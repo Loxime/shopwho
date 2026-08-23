@@ -28,6 +28,13 @@ final class ResetReaderTest extends TestCase
         (new JsonResetReader(new ReferenceNormalizer()))->read(ResetType::Products, dirname(__DIR__).'/Fixtures/DataReset/users.json');
     }
 
+    public function testJsonReadsProductsContract(): void
+    {
+        $payload = (new JsonResetReader(new ReferenceNormalizer()))->read(ResetType::Products, dirname(__DIR__).'/Fixtures/DataReset/products.json');
+        self::assertSame(['PROD-FICTION-001', 'PROD-FICTION-404'], $payload->references);
+        self::assertSame([], $payload->issues);
+    }
+
     public function testXlsxReadsExpectedSheetAndHeader(): void
     {
         $file = $this->xlsx('users', [['externalRef'], [' USR-FICTION-XLSX '], ['USR-FICTION-XLSX']]);
@@ -43,6 +50,14 @@ final class ResetReaderTest extends TestCase
         $this->expectException(ImportException::class);
         $this->expectExceptionMessage('externalRef');
         (new XlsxResetReader(new ReferenceNormalizer()))->read(ResetType::Products, $file);
+    }
+
+    public function testXlsxReadsProductsContract(): void
+    {
+        $file = $this->xlsx('products', [['externalRef'], ['PROD-FICTION-XLSX']]);
+        $payload = (new XlsxResetReader(new ReferenceNormalizer()))->read(ResetType::Products, $file);
+        self::assertSame(['PROD-FICTION-XLSX'], $payload->references);
+        self::assertSame([], $payload->issues);
     }
 
     private function xlsx(string $sheetName, array $rows): string
