@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home', methods: ['GET'])]
-    public function index(Request $request, ProductRepository $products, TrackingService $tracking): Response
+    public function index(Request $request, ProductRepository $products, CategoryRepository $categories, TrackingService $tracking): Response
     {
         $query = trim((string) $request->query->get('q', '')) ?: null;
         $category = trim((string) $request->query->get('category', '')) ?: null;
@@ -23,7 +24,7 @@ class HomeController extends AbstractController
 
         return $this->render('home/index.html.twig', [
             'products' => $products->findCatalog($query, $category),
-            'categories' => $products->findActiveCategories(),
+            'categories' => $categories->findBy([], ['name' => 'ASC']),
             'query' => $query,
             'category' => $category,
         ]);
