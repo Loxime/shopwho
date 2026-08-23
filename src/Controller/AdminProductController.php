@@ -65,9 +65,13 @@ class AdminProductController extends AbstractController
     public function delete(Product $product, Request $request, EntityManagerInterface $em): Response
     {
         if ($this->isCsrfTokenValid('delete-product-'.$product->getId(), (string) $request->request->get('_token'))) {
-            $em->remove($product);
-            $em->flush();
-            $this->addFlash('success', 'Produit supprimé.');
+            if ($product->hasReviews()) {
+                $this->addFlash('error', 'Ce produit possède des avis clients et ne peut pas être supprimé.');
+            } else {
+                $em->remove($product);
+                $em->flush();
+                $this->addFlash('success', 'Produit supprimé.');
+            }
         }
 
         return $this->redirectToRoute('admin_product_index');
