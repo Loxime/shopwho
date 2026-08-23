@@ -17,6 +17,15 @@ class AdminCategoryTest extends WebTestCase
         return new Kernel($options['environment'] ?? 'test', $options['debug'] ?? true);
     }
 
+    public function testAnonymousUserIsRedirectedToAdminLogin(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/admin/categories');
+
+        self::assertResponseRedirects('/admin/login');
+    }
+
     public function testAdminCannotDeleteCategoryContainingAProduct(): void
     {
         $client = static::createClient();

@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Category;
 use App\Entity\Product;
+use App\Repository\CategoryRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -26,6 +27,9 @@ class ProductType extends AbstractType
                 'class' => Category::class,
                 'choice_label' => 'name',
                 'choice_attr' => static fn (Category $category): array => ['data-slug' => $category->getSlug()],
+                'query_builder' => static fn (CategoryRepository $categories) => $categories
+                    ->createQueryBuilder('category')
+                    ->orderBy('category.name', 'ASC'),
                 'label' => 'Catégorie',
                 'placeholder' => 'Choisir une catégorie',
             ])
