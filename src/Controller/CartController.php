@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\User;
 use App\Repository\ProductRepository;
+use App\Service\OrderService;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -54,7 +56,7 @@ class CartController extends AbstractController
     }
 
     #[Route('/panier/commander', name: 'app_cart_checkout', methods: ['POST'])]
-    public function checkout(Request $request, ProductRepository $products, TrackingService $tracking): Response
+    public function checkout(Request $request, ProductRepository $products, TrackingService $tracking, OrderService $orders): Response
     {
         [$lines, $totalCents] = $this->buildCart($request, $products);
         $tracking->track('CHECKOUT_STARTED', null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
@@ -62,7 +64,15 @@ class CartController extends AbstractController
             return $this->redirectToRoute('app_cart');
         }
 
-        $tracking->track('PURCHASE', null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
+        $metadata = ['line_count' => count($lines), 'total_cents' => $totalCents];
+        $user = $this->getUser();
+        if ($user instanceof User) {
+            $order = $orders->createFromCart($user, $lines, $totalCents);
+            $metadata['order_id'] = $order->getId();
+            $metadata['order_reference'] = $order->getReference();
+        }
+
+        $tracking->track('PURCHASE', null, $metadata);
         $request->getSession()->remove('cart');
         $this->addFlash('success', 'Commande simulée avec succès. Aucun paiement réel n’a été effectué.');
 
