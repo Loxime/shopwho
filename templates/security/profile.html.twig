@@ -11,5 +11,21 @@
     <div><dt>Adresse e-mail</dt><dd>{{ user.email }}</dd></div>
     <div><dt>Compte créé le</dt><dd>{{ user.createdAt|date('d/m/Y') }}</dd></div>
   </dl>
+  <section class="section" aria-labelledby="recent-orders-title">
+    <h2 id="recent-orders-title">Mes commandes récentes</h2>
+    {% if orders is empty %}
+      <p class="muted">Vous n’avez pas encore de commande enregistrée.</p>
+    {% else %}
+      <div class="order-list">
+        {% for order in orders %}
+          <article class="order-summary">
+            <h3><a href="{{ path('app_profile_order_show', {reference: order.reference}) }}">{{ order.reference }}</a></h3>
+            <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.statusLabel }} · {{ (order.totalCents / 100)|number_format(2, ',', ' ') }} € · {{ order.itemCount }} article{% if order.itemCount > 1 %}s{% endif %}</p>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <a class="btn" href="{{ path('app_profile_orders') }}">Voir toutes mes commandes</a>
+  </section>
 </div></section>
 {% endblock %}
