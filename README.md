@@ -14,10 +14,13 @@ Application : http://localhost:8080
 
 Administration produits : http://localhost:8080/admin/products
 
-Compte admin HTTP Basic local : `admin` / `shopwho-dev`.
+Création d'un administrateur local :
 
-> Ne jamais utiliser ces identifiants en production. Les secrets de production devront être placés dans `.env.local` ou injectés par l'environnement.
+```bash
+docker compose exec app php bin/console app:create-admin admin@shopwho.local
+```
 
+Le mot de passe est demandé de manière interactive et stocké uniquement sous forme hashée en base.
 
 ## Données pour la data science
 

@@ -1,22 +1,21 @@
 security:
   password_hashers:
-    Symfony\Component\Security\Core\User\InMemoryUser: plaintext
+    App\Entity\User: 'auto'
 
   providers:
-    shopwho_admin:
-      memory:
-        users:
-          admin:
-            password: '%env(ADMIN_PASSWORD)%'
-            roles: ['ROLE_ADMIN']
+    shopwho_users:
+      entity:
+        class: App\Entity\User
+        property: email
 
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
       security: false
+
     main:
       lazy: true
-      provider: shopwho_admin
+      provider: shopwho_users
       http_basic:
         realm: 'Shopwho Admin'
 
