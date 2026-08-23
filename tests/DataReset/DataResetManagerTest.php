@@ -21,6 +21,7 @@ final class DataResetManagerTest extends KernelTestCase
 {
     private EntityManagerInterface $em;
     private DataResetManager $manager;
+    private ?Category $category = null;
     private string $suffix;
 
     protected static function createKernel(array $options = []): KernelInterface
@@ -33,6 +34,7 @@ final class DataResetManagerTest extends KernelTestCase
         self::bootKernel();
         $this->em = static::getContainer()->get(EntityManagerInterface::class);
         $this->manager = static::getContainer()->get(DataResetManager::class);
+        $this->category = null;
         $this->suffix = strtoupper(bin2hex(random_bytes(6)));
         $this->em->getConnection()->beginTransaction();
     }
@@ -168,14 +170,16 @@ final class DataResetManagerTest extends KernelTestCase
 
     private function product(string $name, DataOrigin $origin): Product
     {
-        $category = $this->em->getRepository(Category::class)->findOneBy([]);
-        if (!$category) {
-            $category = (new Category())->setName('FICTION '.$this->suffix)->setSlug('fiction-'.strtolower($this->suffix));
-            $this->em->persist($category);
+        if (null === $this->category) {
+            $this->category = $this->em->getRepository(Category::class)->findOneBy([]);
+            if (null === $this->category) {
+                $this->category = (new Category())->setName('FICTION '.$this->suffix)->setSlug('fiction-'.strtolower($this->suffix));
+                $this->em->persist($this->category);
+            }
         }
         $product = (new Product())->setExternalRef('PROD-FICTION-'.$name.'-'.$this->suffix)->setDataOrigin($origin)
             ->setName('Produit FICTION '.$name)->setSlug('fiction-'.strtolower($name).'-'.strtolower($this->suffix))
-            ->setDescription('Donnée exclusivement synthétique.')->setPriceCents(100)->setStock(1)->setCategory($category);
+            ->setDescription('Donnée exclusivement synthétique.')->setPriceCents(100)->setStock(1)->setCategory($this->category);
         $this->em->persist($product);
 
         return $product;
