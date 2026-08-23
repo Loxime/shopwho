@@ -48,12 +48,12 @@ class Review
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
-    public function __construct(User $user, Product $product, int $rating)
+    public function __construct(User $user, Product $product, int $rating, ?\DateTimeImmutable $createdAt = null)
     {
         $this->user = $user;
         $this->product = $product;
         $this->rating = $rating;
-        $now = new \DateTimeImmutable();
+        $now = $createdAt ?? new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
     }

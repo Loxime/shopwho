@@ -48,9 +48,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Review::class)]
     private Collection $reviews;
 
-    public function __construct()
+    public function __construct(?\DateTimeImmutable $createdAt = null)
     {
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = $createdAt ?? new \DateTimeImmutable();
         $this->orders = new ArrayCollection();
         $this->reviews = new ArrayCollection();
     }

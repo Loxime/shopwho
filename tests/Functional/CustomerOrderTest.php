@@ -235,7 +235,7 @@ class CustomerOrderTest extends WebTestCase
     private function persistOrder(User $user, Product $product, string $reference, \DateTimeImmutable $orderedAt): Order
     {
         $order = new Order($user, $reference, $product->getPriceCents(), $orderedAt);
-        new OrderItem($order, $product, 1);
+        OrderItem::fromProduct($order, $product, 1);
         $this->em()->persist($order);
         $this->em()->flush();
 

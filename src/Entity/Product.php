@@ -18,6 +18,9 @@ class Product
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 180, unique: true, nullable: true)]
+    private ?string $externalRef = null;
+
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
     private string $name = '';
@@ -68,6 +71,8 @@ class Product
     }
 
     public function getId(): ?int { return $this->id; }
+    public function getExternalRef(): ?string { return $this->externalRef; }
+    public function setExternalRef(?string $externalRef): self { $this->externalRef = null === $externalRef || '' === trim($externalRef) ? null : trim($externalRef); return $this; }
     public function getName(): string { return $this->name; }
     public function setName(string $name): self { $this->name = $name; $this->touch(); return $this; }
     public function getSlug(): string { return $this->slug; }
