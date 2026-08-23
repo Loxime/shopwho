@@ -1,11 +1,9 @@
-{% extends 'base.html.twig' %}
-{% block title %}Gestion des données importées — Shopwho{% endblock %}
-{% block body %}
+{% extends 'admin/base.html.twig' %}
+{% block admin_title %}Données importées{% endblock %}
+{% block admin_subtitle %}Prévisualisation et suppression contrôlée des imports{% endblock %}
+{% block admin_body %}
 <section class="section"><div class="container">
-  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Gestion des données importées</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a href="{{ path('admin_category_index') }}">Catégories</a></div></div>
   <p>Prévisualisez une liste JSON ou XLSX avant toute suppression. Les données natives et l’historique métier restent protégés.</p>
-  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
-  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
   <form method="post" enctype="multipart/form-data" class="admin-form">
     <div><label for="reset-type">Type</label><select id="reset-type" name="type"><option value="users"{{ type == 'users' ? ' selected' : '' }}>Users</option><option value="products"{{ type == 'products' ? ' selected' : '' }}>Products</option></select></div>
     <div><label for="reset-file">Fichier JSON ou XLSX (10 MB max.)</label><input id="reset-file" type="file" name="reset_file" accept=".json,.xlsx" required></div>

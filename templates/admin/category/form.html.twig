@@ -1,6 +1,7 @@
-{% extends 'base.html.twig' %}
-{% block title %}{{ title }} — Shopwho{% endblock %}
-{% block body %}
+{% extends 'admin/base.html.twig' %}
+{% block admin_title %}{{ title }}{% endblock %}
+{% block admin_subtitle %}Organisation et navigation du catalogue{% endblock %}
+{% block admin_body %}
 <section class="section"><div class="container form-container"><a href="{{ path('admin_category_index') }}">← Retour</a><h1>{{ title }}</h1>
 {{ form_start(form) }}
   {% for field in form %}<div class="form-row">{{ form_label(field) }}{{ form_widget(field) }}{{ form_errors(field) }}{% if field.vars.help %}<small class="muted">{{ field.vars.help }}</small>{% endif %}</div>{% endfor %}
