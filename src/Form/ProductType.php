@@ -2,7 +2,9 @@
 
 namespace App\Form;
 
+use App\Entity\Category;
 use App\Entity\Product;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
@@ -20,7 +22,13 @@ class ProductType extends AbstractType
             ->add('description', TextareaType::class, ['label' => 'Description'])
             ->add('price', MoneyType::class, ['label' => 'Prix', 'currency' => 'EUR'])
             ->add('stock', null, ['label' => 'Stock'])
-            ->add('category', null, ['label' => 'Catégorie'])
+            ->add('category', EntityType::class, [
+                'class' => Category::class,
+                'choice_label' => 'name',
+                'choice_attr' => static fn (Category $category): array => ['data-slug' => $category->getSlug()],
+                'label' => 'Catégorie',
+                'placeholder' => 'Choisir une catégorie',
+            ])
             ->add('imageUrl', null, ['label' => 'URL image', 'required' => false])
             ->add('isActive', CheckboxType::class, ['label' => 'Actif', 'required' => false]);
     }
