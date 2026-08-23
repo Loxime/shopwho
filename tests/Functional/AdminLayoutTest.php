@@ -67,7 +67,7 @@ final class AdminLayoutTest extends WebTestCase
             self::assertSelectorNotExists('.category-bar');
             self::assertSelectorNotExists('.footer');
             self::assertSelectorTextNotContains('body', 'Livraison offerte');
-            self::assertSelectorTextNotContains('body', 'Mesure d’audience Shopwho');
+            self::assertSelectorTextNotContains('body', "Mesure d'audience Shopwho");
         }
 
         $this->removeUser($admin);
