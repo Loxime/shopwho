@@ -2,22 +2,22 @@
 {% block admin_title %}Données importées{% endblock %}
 {% block admin_subtitle %}Prévisualisation et suppression contrôlée des imports{% endblock %}
 {% block admin_body %}
-<section class="section"><div class="container">
-  <p>Prévisualisez une liste JSON ou XLSX avant toute suppression. Les données natives et l’historique métier restent protégés.</p>
-  <form method="post" enctype="multipart/form-data" class="admin-form">
-    <div><label for="reset-type">Type</label><select id="reset-type" name="type"><option value="users"{{ type == 'users' ? ' selected' : '' }}>Users</option><option value="products"{{ type == 'products' ? ' selected' : '' }}>Products</option></select></div>
-    <div><label for="reset-file">Fichier JSON ou XLSX (10 MB max.)</label><input id="reset-file" type="file" name="reset_file" accept=".json,.xlsx" required></div>
-    <button class="btn orange" type="submit">Prévisualiser</button>
-  </form>
-
+<div class="admin-data-reset">
+  <aside class="admin-callout admin-callout-info"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><div><strong>Suppression protégée</strong><p>Seules les données importées éligibles peuvent être supprimées. Les données natives et l’historique métier restent protégés.</p></div></aside>
+  <section class="admin-card admin-upload-card" aria-labelledby="upload-title">
+    <div class="admin-card-header"><div><h2 id="upload-title">Prévisualiser un fichier</h2><p>Chargez une liste JSON ou XLSX avant toute suppression.</p></div><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i></div>
+    <form method="post" enctype="multipart/form-data" class="admin-upload-form"><div class="admin-form-row"><label for="reset-type">Type de données</label><select id="reset-type" name="type"><option value="users"{{ type == 'users' ? ' selected' : '' }}>Utilisateurs</option><option value="products"{{ type == 'products' ? ' selected' : '' }}>Produits</option></select></div><div class="admin-form-row admin-file-field"><label for="reset-file">Fichier JSON ou XLSX</label><input id="reset-file" type="file" name="reset_file" accept=".json,.xlsx" required><small class="admin-field-help">Taille maximale : 10 MB.</small></div><button class="admin-button admin-button-primary" type="submit"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Prévisualiser</button></form>
+  </section>
   {% if result %}
-    <h2>Résultat {{ token ? 'de la prévisualisation' : 'de l’application' }}</h2>
-    <div class="actions"><strong>Total : {{ result.total }}</strong><span>Supprimables : {{ result.deletable }}</span><span>Supprimés : {{ result.deleted }}</span><span>Protégés : {{ result.protected }}</span><span>Introuvables : {{ result.notFound }}</span><span>Erreurs : {{ result.failed }}</span><span>Doublons ignorés : {{ result.skipped }}</span></div>
-    <table class="table"><thead><tr><th>externalRef</th><th>État</th><th>Raison</th></tr></thead><tbody>
-    {% set reasonLabels = {native: type == 'users' ? 'compte natif' : 'produit natif', has_orders: 'possède des commandes', has_reviews: 'possède des avis', used_in_order_history: 'présent dans l’historique de commande', not_found: 'référence inconnue', duplicate: 'doublon ignoré', empty_external_ref: 'externalRef vide'} %}
-    {% for entry in result.entries %}<tr><td>{{ entry.externalRef ?? ('Ligne ' ~ entry.record) }}</td><td>{{ entry.status == 'deletable' ? 'Supprimable' : (entry.status == 'protected' ? 'Protégé' : entry.status) }}</td><td>{{ reasonLabels[entry.reason] ?? entry.reason ?? '—' }}{% if entry.relatedCount %} ({{ entry.relatedCount }}){% endif %}</td></tr>{% endfor %}
-    </tbody></table>
-    {% if token %}<form method="post" action="{{ path('admin_data_reset_apply') }}" onsubmit="return confirm('Confirmer la suppression des entrées supprimables ?')"><input type="hidden" name="preview_token" value="{{ token }}"><input type="hidden" name="_token" value="{{ csrf_token('data-reset-apply-' ~ token) }}"><button class="btn danger" type="submit">Confirmer et appliquer</button></form>{% endif %}
+    <section class="admin-card" aria-labelledby="result-title">
+      <div class="admin-card-header"><div><h2 id="result-title">Résultat {{ token ? 'de la prévisualisation' : 'de l’application' }}</h2><p>{{ result.total }} entrée{{ result.total > 1 ? 's analysées' : ' analysée' }}</p></div></div>
+      <dl class="admin-summary-grid"><div><dt>Total</dt><dd>{{ result.total }}</dd></div><div class="is-success"><dt>Supprimables</dt><dd>{{ result.deletable }}</dd></div><div class="is-success"><dt>Supprimés</dt><dd>{{ result.deleted }}</dd></div><div><dt>Protégés</dt><dd>{{ result.protected }}</dd></div><div><dt>Introuvables</dt><dd>{{ result.notFound }}</dd></div><div class="is-danger"><dt>Erreurs</dt><dd>{{ result.failed }}</dd></div><div><dt>Doublons ignorés</dt><dd>{{ result.skipped }}</dd></div></dl>
+      <div class="admin-table-scroll"><table class="admin-table"><thead><tr><th scope="col">externalRef</th><th scope="col">État</th><th scope="col">Raison</th></tr></thead><tbody>
+      {% set reasonLabels = {native: type == 'users' ? 'compte natif' : 'produit natif', has_orders: 'possède des commandes', has_reviews: 'possède des avis', used_in_order_history: 'présent dans l’historique de commande', not_found: 'référence inconnue', duplicate: 'doublon ignoré', empty_external_ref: 'externalRef vide'} %}
+      {% for entry in result.entries %}<tr><td><code>{{ entry.externalRef ?? ('Ligne ' ~ entry.record) }}</code></td><td>{% set statusLabel = entry.status == 'deletable' ? 'Supprimable' : (entry.status == 'protected' ? 'Protégé' : entry.status) %}<span class="admin-badge {{ entry.status == 'deletable' ? 'admin-badge-success' : (entry.status == 'protected' ? 'admin-badge-muted' : 'admin-badge-danger') }}">{{ statusLabel }}</span></td><td>{{ reasonLabels[entry.reason] ?? entry.reason ?? '—' }}{% if entry.relatedCount %} ({{ entry.relatedCount }}){% endif %}</td></tr>{% endfor %}
+      </tbody></table></div>
+    </section>
+    {% if token %}<section class="admin-danger-zone" aria-labelledby="apply-title"><div><h2 id="apply-title"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Appliquer la suppression</h2><p>Cette action supprimera définitivement les entrées indiquées comme supprimables dans la prévisualisation.</p></div><form method="post" action="{{ path('admin_data_reset_apply') }}" onsubmit="return confirm('Confirmer la suppression des entrées supprimables ?')"><input type="hidden" name="preview_token" value="{{ token }}"><input type="hidden" name="_token" value="{{ csrf_token('data-reset-apply-' ~ token) }}"><button class="admin-button admin-button-danger" type="submit"><i class="fa-solid fa-trash" aria-hidden="true"></i> Confirmer et appliquer</button></form></section>{% endif %}
   {% endif %}
-</div></section>
+</div>
 {% endblock %}
