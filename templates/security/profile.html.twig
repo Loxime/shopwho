@@ -20,7 +20,7 @@
         {% for order in orders %}
           <article class="order-summary">
             <h3><a href="{{ path('app_profile_order_show', {reference: order.reference}) }}">{{ order.reference }}</a></h3>
-            <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.status }} · {{ (order.totalCents / 100)|number_format(2, ',', ' ') }} € · {{ order.itemCount }} article{% if order.itemCount > 1 %}s{% endif %}</p>
+            <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.statusLabel }} · {{ (order.totalCents / 100)|number_format(2, ',', ' ') }} € · {{ order.itemCount }} article{% if order.itemCount > 1 %}s{% endif %}</p>
           </article>
         {% endfor %}
       </div>

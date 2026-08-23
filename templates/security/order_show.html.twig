@@ -6,7 +6,7 @@
 <section class="section"><div class="container profile-page">
   <a href="{{ path('app_profile_orders') }}">← Mes commandes</a>
   <h1>Commande {{ order.reference }}</h1>
-  <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.status }}</p>
+  <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.statusLabel }}</p>
   <table>
     <thead><tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th></tr></thead>
     <tbody>

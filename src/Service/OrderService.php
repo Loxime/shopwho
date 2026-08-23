@@ -19,28 +19,38 @@ class OrderService
      */
     public function createFromCart(User $user, array $lines, int $totalCents): Order
     {
-        if ($lines === []) {
-            throw new \InvalidArgumentException('Une commande doit contenir au moins une ligne.');
-        }
-
         return $this->entityManager->wrapInTransaction(function () use ($user, $lines, $totalCents): Order {
-            $calculatedTotal = 0;
-            $order = new Order($user, $this->generateReference(), $totalCents);
-
-            foreach ($lines as $line) {
-                $item = new OrderItem($order, $line['product'], $line['quantity']);
-                $calculatedTotal += $item->getLineTotalCents();
-            }
-
-            if ($calculatedTotal !== $totalCents) {
-                throw new \InvalidArgumentException('Le total de commande ne correspond pas aux lignes du panier.');
-            }
-
-            $this->entityManager->persist($order);
+            $order = $this->persistFromCart($user, $lines, $totalCents);
             $this->entityManager->flush();
 
             return $order;
         });
+    }
+
+    /**
+     * @param list<array{product: Product, quantity: int, lineTotal: float}> $lines
+     */
+    public function persistFromCart(User $user, array $lines, int $totalCents): Order
+    {
+        if ($lines === []) {
+            throw new \InvalidArgumentException('Une commande doit contenir au moins une ligne.');
+        }
+
+        $calculatedTotal = 0;
+        $order = new Order($user, $this->generateReference(), $totalCents);
+
+        foreach ($lines as $line) {
+            $item = new OrderItem($order, $line['product'], $line['quantity']);
+            $calculatedTotal += $item->getLineTotalCents();
+        }
+
+        if ($calculatedTotal !== $totalCents) {
+            throw new \InvalidArgumentException('Le total de commande ne correspond pas aux lignes du panier.');
+        }
+
+        $this->entityManager->persist($order);
+
+        return $order;
     }
 
     private function generateReference(): string

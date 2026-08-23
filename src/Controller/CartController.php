@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\ProductRepository;
 use App\Service\OrderService;
 use App\Service\TrackingService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -56,8 +57,12 @@ class CartController extends AbstractController
     }
 
     #[Route('/panier/commander', name: 'app_cart_checkout', methods: ['POST'])]
-    public function checkout(Request $request, ProductRepository $products, TrackingService $tracking, OrderService $orders): Response
+    public function checkout(Request $request, ProductRepository $products, TrackingService $tracking, OrderService $orders, EntityManagerInterface $entityManager): Response
     {
+        if (!$this->isCsrfTokenValid('checkout', $request->request->getString('_token'))) {
+            return $this->redirectToRoute('app_cart');
+        }
+
         [$lines, $totalCents] = $this->buildCart($request, $products);
         $tracking->track('CHECKOUT_STARTED', null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
         if (!$lines) {
@@ -67,12 +72,17 @@ class CartController extends AbstractController
         $metadata = ['line_count' => count($lines), 'total_cents' => $totalCents];
         $user = $this->getUser();
         if ($user instanceof User) {
-            $order = $orders->createFromCart($user, $lines, $totalCents);
-            $metadata['order_id'] = $order->getId();
-            $metadata['order_reference'] = $order->getReference();
+            $entityManager->wrapInTransaction(function () use ($orders, $user, $lines, $totalCents, $tracking, $metadata, $entityManager): void {
+                $order = $orders->persistFromCart($user, $lines, $totalCents);
+                $entityManager->flush();
+                $metadata['order_id'] = $order->getId();
+                $metadata['order_reference'] = $order->getReference();
+                $tracking->track('PURCHASE', null, $metadata);
+            });
+        } else {
+            $tracking->track('PURCHASE', null, $metadata);
         }
 
-        $tracking->track('PURCHASE', null, $metadata);
         $request->getSession()->remove('cart');
         $this->addFlash('success', 'Commande simulée avec succès. Aucun paiement réel n’a été effectué.');
 
@@ -87,7 +97,7 @@ class CartController extends AbstractController
 
         foreach ($cart as $id => $quantity) {
             $product = $products->find((int) $id);
-            if (!$product || !$product->isActive()) {
+            if (!$product || !$product->isActive() || $product->getStock() < 1) {
                 continue;
             }
             $quantity = max(1, min((int) $quantity, $product->getStock()));

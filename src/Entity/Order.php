@@ -67,6 +67,7 @@ class Order
     public function setExternalRef(?string $externalRef): self { $this->externalRef = $externalRef === null || trim($externalRef) === '' ? null : trim($externalRef); return $this; }
     public function getUser(): User { return $this->user; }
     public function getStatus(): string { return $this->status; }
+    public function getStatusLabel(): string { return self::STATUS_COMPLETED === $this->status ? 'Terminée (simulation)' : $this->status; }
     public function getTotalCents(): int { return $this->totalCents; }
     public function getOrderedAt(): \DateTimeImmutable { return $this->orderedAt; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }

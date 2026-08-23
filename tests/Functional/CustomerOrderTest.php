@@ -9,6 +9,7 @@ use App\Entity\Product;
 use App\Entity\TrackingEvent;
 use App\Entity\User;
 use App\Kernel;
+use App\Service\TrackingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
@@ -27,7 +28,8 @@ class CustomerOrderTest extends WebTestCase
         [$product] = $this->createCatalogFixture();
         $before = $this->em()->getRepository(Order::class)->count([]);
         $client->request('POST', '/panier/ajouter/'.$product->getId());
-        $client->request('POST', '/panier/commander');
+        $client->request('GET', '/panier');
+        $client->submitForm('Simuler la commande');
 
         self::assertResponseRedirects('/panier');
         self::assertSame($before, $this->em()->getRepository(Order::class)->count([]));
@@ -44,7 +46,8 @@ class CustomerOrderTest extends WebTestCase
         $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
         $before = $this->em()->getRepository(Order::class)->count([]);
         $client->request('POST', '/panier/ajouter/'.$product->getId());
-        $client->request('POST', '/panier/commander');
+        $client->request('GET', '/panier');
+        $client->submitForm('Simuler la commande');
 
         self::assertResponseRedirects('/panier');
         $em = $this->em();
@@ -66,13 +69,85 @@ class CustomerOrderTest extends WebTestCase
     public function testEmptyCartDoesNotCreateOrder(): void
     {
         $client = static::createClient();
-        [, $user] = $this->createCatalogFixture(true);
+        [$product, $user] = $this->createCatalogFixture(true);
         $client->loginUser($user);
         $before = $this->em()->getRepository(Order::class)->count([]);
-        $client->request('POST', '/panier/commander');
+        $client->request('POST', '/panier/ajouter/'.$product->getId());
+        $crawler = $client->request('GET', '/panier');
+        $token = $crawler->filter('input[name="_token"]')->attr('value');
+        $client->request('POST', '/panier/retirer/'.$product->getId());
+        $client->request('POST', '/panier/commander', ['_token' => $token]);
 
         self::assertResponseRedirects('/panier');
         self::assertSame($before, $this->em()->getRepository(Order::class)->count([]));
+    }
+
+    public function testCheckoutIgnoresProductWhoseStockReachedZero(): void
+    {
+        $client = static::createClient();
+        [$product, $user] = $this->createCatalogFixture(true);
+        $client->loginUser($user);
+        $before = $this->em()->getRepository(Order::class)->count([]);
+        $client->request('POST', '/panier/ajouter/'.$product->getId());
+        $crawler = $client->request('GET', '/panier');
+        $token = $crawler->filter('input[name="_token"]')->attr('value');
+        $managedProduct = $this->em()->find(Product::class, $product->getId());
+        self::assertInstanceOf(Product::class, $managedProduct);
+        $managedProduct->setStock(0);
+        $this->em()->flush();
+        $client->request('POST', '/panier/commander', ['_token' => $token]);
+
+        self::assertResponseRedirects('/panier');
+        self::assertSame($before, $this->em()->getRepository(Order::class)->count([]));
+    }
+
+    public function testInvalidCheckoutCsrfDoesNotCreateOrderTrackPurchaseOrEmptyCart(): void
+    {
+        $client = static::createClient();
+        [$product, $user] = $this->createCatalogFixture(true);
+        $client->loginUser($user);
+        $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
+        $em = $this->em();
+        $orderCount = $em->getRepository(Order::class)->count([]);
+        $purchaseCount = $em->getRepository(TrackingEvent::class)->count(['eventType' => 'PURCHASE']);
+        $client->request('POST', '/panier/ajouter/'.$product->getId());
+        $client->request('POST', '/panier/commander', ['_token' => 'invalid']);
+
+        self::assertResponseRedirects('/panier');
+        self::assertSame($orderCount, $em->getRepository(Order::class)->count([]));
+        self::assertSame($purchaseCount, $em->getRepository(TrackingEvent::class)->count(['eventType' => 'PURCHASE']));
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', $product->getName());
+    }
+
+    public function testPurchaseFailureRollsBackOrderAndKeepsCart(): void
+    {
+        $client = static::createClient();
+        $client->disableReboot();
+        [$product, $user] = $this->createCatalogFixture(true);
+        $tracking = $this->createMock(TrackingService::class);
+        $tracking->method('track')->willReturnCallback(static function (string $eventType): void {
+            if ('PURCHASE' === $eventType) {
+                throw new \RuntimeException('Simulated PURCHASE failure');
+            }
+        });
+        static::getContainer()->set(TrackingService::class, $tracking);
+        $client->loginUser($user);
+        $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
+        $client->request('POST', '/panier/ajouter/'.$product->getId());
+        $client->request('GET', '/panier');
+        $before = (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM customer_order');
+        $client->catchExceptions(false);
+
+        try {
+            $client->submitForm('Simuler la commande');
+            self::fail('The simulated PURCHASE failure should have been thrown.');
+        } catch (\RuntimeException $exception) {
+            self::assertSame('Simulated PURCHASE failure', $exception->getMessage());
+        }
+
+        self::assertSame($before, (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM customer_order'));
+        self::assertTrue($client->getRequest()->getSession()->has('cart'));
     }
 
     public function testOrderRoutesRequireAuthentication(): void
@@ -96,6 +171,7 @@ class CustomerOrderTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertCount(5, $crawler->filter('.order-summary'));
         self::assertStringContainsString('-6', $crawler->filter('.order-summary')->first()->text());
+        self::assertSelectorTextContains('body', 'Terminée (simulation)');
         self::assertSelectorTextContains('body', 'Voir toutes mes commandes');
     }
 
@@ -118,6 +194,7 @@ class CustomerOrderTest extends WebTestCase
         self::assertSame($newer, $crawler->filter('.order-summary')->eq(0)->attr('data-order-reference'));
         self::assertSame($older, $crawler->filter('.order-summary')->eq(1)->attr('data-order-reference'));
         self::assertStringNotContainsString($foreign, $crawler->text());
+        self::assertSelectorTextContains('body', 'Terminée (simulation)');
     }
 
     public function testUserCanSeeOwnOrderButAnotherUserGetsNotFound(): void
@@ -132,6 +209,7 @@ class CustomerOrderTest extends WebTestCase
         $client->request('GET', '/profil/commandes/'.$reference);
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', $reference);
+        self::assertSelectorTextContains('body', 'Terminée (simulation)');
 
         $client->loginUser($userB);
         $client->request('GET', '/profil/commandes/'.$reference);

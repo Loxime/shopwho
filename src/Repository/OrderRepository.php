@@ -30,7 +30,13 @@ class OrderRepository extends ServiceEntityRepository
     /** @return list<Order> */
     public function findAllForUser(User $user): array
     {
-        return $this->findRecentForUser($user, PHP_INT_MAX);
+        return $this->createQueryBuilder('customerOrder')
+            ->andWhere('customerOrder.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('customerOrder.orderedAt', 'DESC')
+            ->addOrderBy('customerOrder.id', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     public function findOneByReferenceAndUser(string $reference, User $user): ?Order
