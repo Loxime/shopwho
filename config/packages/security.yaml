@@ -16,8 +16,17 @@ security:
     main:
       lazy: true
       provider: shopwho_users
-      http_basic:
-        realm: 'Shopwho Admin'
+
+      form_login:
+        login_path: admin_login
+        check_path: admin_login
+        enable_csrf: true
+        default_target_path: admin_product_index
+
+      logout:
+        path: admin_logout
+        target: app_home
 
   access_control:
+    - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
     - { path: ^/admin, roles: ROLE_ADMIN }
