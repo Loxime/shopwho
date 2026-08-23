@@ -73,7 +73,7 @@ class Order
     public function setExternalRef(?string $externalRef): self { $this->externalRef = $externalRef === null || trim($externalRef) === '' ? null : trim($externalRef); return $this; }
     public function getUser(): User { return $this->user; }
     public function getStatus(): string { return $this->status; }
-    public function getStatusLabel(): string { return self::STATUS_SIMULATED_COMPLETED === $this->status ? 'Terminée (simulation)' : $this->status; }
+    public function getStatusLabel(): string { return match ($this->status) { self::STATUS_SIMULATED_COMPLETED => 'Terminée (simulation)', self::STATUS_IMPORTED_COMPLETED => 'Terminée', self::STATUS_CANCELLED => 'Annulée', self::STATUS_REFUNDED => 'Remboursée', default => $this->status }; }
     public function getTotalCents(): int { return $this->totalCents; }
     public function getOrderedAt(): \DateTimeImmutable { return $this->orderedAt; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
