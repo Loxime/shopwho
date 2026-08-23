@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\DataOrigin;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,6 +30,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180, unique: true, nullable: true)]
     private ?string $externalRef = null;
+
+    #[ORM\Column(length: 20, enumType: DataOrigin::class)]
+    private DataOrigin $dataOrigin = DataOrigin::Native;
 
     #[ORM\Column]
     private array $roles = [];
@@ -109,6 +113,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setExternalRef(?string $externalRef): self
     {
         $this->externalRef = $this->normalizeNullableValue($externalRef);
+
+        return $this;
+    }
+
+    public function getDataOrigin(): DataOrigin
+    {
+        return $this->dataOrigin;
+    }
+
+    public function setDataOrigin(DataOrigin $dataOrigin): self
+    {
+        $this->dataOrigin = $dataOrigin;
 
         return $this;
     }

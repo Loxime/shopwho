@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\DataOrigin;
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,9 @@ class Product
 
     #[ORM\Column(length: 180, unique: true, nullable: true)]
     private ?string $externalRef = null;
+
+    #[ORM\Column(length: 20, enumType: DataOrigin::class)]
+    private DataOrigin $dataOrigin = DataOrigin::Native;
 
     #[ORM\Column(length: 180)]
     #[Assert\NotBlank]
@@ -73,6 +77,8 @@ class Product
     public function getId(): ?int { return $this->id; }
     public function getExternalRef(): ?string { return $this->externalRef; }
     public function setExternalRef(?string $externalRef): self { $this->externalRef = null === $externalRef || '' === trim($externalRef) ? null : trim($externalRef); return $this; }
+    public function getDataOrigin(): DataOrigin { return $this->dataOrigin; }
+    public function setDataOrigin(DataOrigin $dataOrigin): self { $this->dataOrigin = $dataOrigin; return $this; }
     public function getName(): string { return $this->name; }
     public function setName(string $name): self { $this->name = $name; $this->touch(); return $this; }
     public function getSlug(): string { return $this->slug; }

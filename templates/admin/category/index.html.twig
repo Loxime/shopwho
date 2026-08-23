@@ -2,7 +2,7 @@
 {% block title %}Administration catégories — Shopwho{% endblock %}
 {% block body %}
 <section class="section"><div class="container">
-  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Catégories</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a class="btn orange" href="{{ path('admin_category_new') }}">Nouvelle catégorie</a></div></div>
+  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Catégories</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a href="{{ path('admin_data_reset') }}">Données importées</a><a class="btn orange" href="{{ path('admin_category_new') }}">Nouvelle catégorie</a></div></div>
   {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
   {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
   <table class="table"><thead><tr><th>Nom</th><th>Slug</th><th>Navigation</th><th>À la une</th><th>Produits</th><th>Actions</th></tr></thead><tbody>
