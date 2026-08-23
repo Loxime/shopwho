@@ -19,6 +19,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     private string $email = '';
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $firstName = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $lastName = null;
+
+    #[ORM\Column(length: 180, unique: true, nullable: true)]
+    private ?string $externalRef = null;
+
     #[ORM\Column]
     private array $roles = [];
 
@@ -55,6 +64,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
+    public function getFirstName(): ?string
+    {
+        return $this->firstName;
+    }
+
+    public function setFirstName(?string $firstName): self
+    {
+        $this->firstName = $this->normalizeNullableValue($firstName);
+
+        return $this;
+    }
+
+    public function getLastName(): ?string
+    {
+        return $this->lastName;
+    }
+
+    public function setLastName(?string $lastName): self
+    {
+        $this->lastName = $this->normalizeNullableValue($lastName);
+
+        return $this;
+    }
+
+    public function getExternalRef(): ?string
+    {
+        return $this->externalRef;
+    }
+
+    public function setExternalRef(?string $externalRef): self
+    {
+        $this->externalRef = $this->normalizeNullableValue($externalRef);
+
+        return $this;
+    }
+
+    public function getDisplayName(): string
+    {
+        $name = trim(sprintf('%s %s', $this->firstName ?? '', $this->lastName ?? ''));
+
+        return $name !== '' ? $name : $this->email;
+    }
+
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -89,5 +141,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
+    }
+
+    private function normalizeNullableValue(?string $value): ?string
+    {
+        $value = $value === null ? null : trim($value);
+
+        return $value === '' ? null : $value;
     }
 }

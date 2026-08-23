@@ -3,7 +3,9 @@
 namespace App\Service;
 
 use App\Entity\TrackingEvent;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 class TrackingService
@@ -11,6 +13,7 @@ class TrackingService
     public function __construct(
         private readonly RequestStack $requestStack,
         private readonly EntityManagerInterface $entityManager,
+        private readonly Security $security,
     ) {
     }
 
@@ -43,7 +46,13 @@ class TrackingService
             'method' => $request->getMethod(),
         ], $metadata);
 
-        $this->entityManager->persist(new TrackingEvent($visitorId, $sessionId, $eventType, $productId, $metadata));
+        $event = new TrackingEvent($visitorId, $sessionId, $eventType, $productId, $metadata);
+        $user = $this->security->getUser();
+        if ($user instanceof User) {
+            $event->setUser($user);
+        }
+
+        $this->entityManager->persist($event);
         $this->entityManager->flush();
     }
 }

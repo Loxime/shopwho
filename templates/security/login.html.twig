@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion — Shopwho{% endblock %}
+
+{% block body %}
+<div class="customer-login-backdrop">
+  <section class="customer-login-card" aria-labelledby="login-title">
+    <a class="customer-login-close" href="{{ path('app_home') }}" aria-label="Fermer">×</a>
+    <div class="customer-login-brand">SHOPWHO</div>
+    <h1 id="login-title">Connexion</h1>
+    <p class="muted">Connectez-vous à votre compte Shopwho.</p>
+    {% if error %}<div class="login-error">Identifiants incorrects.</div>{% endif %}
+    <form method="post" action="{{ path('app_login') }}">
+      <div class="form-row"><label for="username">Adresse e-mail</label><input id="username" type="email" name="_username" value="{{ last_username }}" autocomplete="email" required autofocus></div>
+      <div class="form-row"><label for="password">Mot de passe</label><input id="password" type="password" name="_password" autocomplete="current-password" required></div>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+      <button class="btn orange customer-login-submit" type="submit">Se connecter</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
