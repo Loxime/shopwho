@@ -1,0 +1,8 @@
+{
+  "users": [
+    {"externalRef": "USR-FICTION-001"},
+    {"externalRef": " USR-FICTION-002 "},
+    {"externalRef": "USR-FICTION-001"},
+    {"externalRef": ""}
+  ]
+}
