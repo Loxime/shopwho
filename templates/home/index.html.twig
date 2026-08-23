@@ -13,7 +13,7 @@
 <section id="catalogue" class="section"><div class="container">
   <div class="actions" style="justify-content:space-between;flex-wrap:wrap">
     <h2>Nos produits</h2>
-    <div class="actions"><a href="{{ path('app_home') }}">Tous</a>{% for item in categories %}<a href="{{ path('app_home', {category:item}) }}">{{ item }}</a>{% endfor %}</div>
+    <div class="actions category-filter"><a href="{{ path('app_home') }}">Tous</a>{% for item in categories %}<a href="{{ path('app_home', {category:item.slug}) }}"{% if category == item.slug %} aria-current="page"{% endif %}>{{ item.name }}</a>{% endfor %}</div>
   </div>
   {% if query %}<p>Résultats pour <strong>{{ query }}</strong></p>{% endif %}
   <div class="grid">
@@ -21,7 +21,7 @@
     <article class="card">
       <a href="{{ path('app_product_show', {slug:product.slug}) }}">
         {% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:220px;display:grid;place-items:center;background:#eef2ff;font-size:55px">🛍️</div>{% endif %}
-        <div class="card-body"><div class="muted">{{ product.category }}</div><h3>{{ product.name }}</h3><div class="price">{{ product.price|number_format(2, ',', ' ') }} €</div></div>
+        <div class="card-body"><div class="muted">{{ product.category.name }}</div><h3>{{ product.name }}</h3><div class="price">{{ product.price|number_format(2, ',', ' ') }} €</div></div>
       </a>
     </article>
   {% else %}<p>Aucun produit ne correspond à la recherche.</p>{% endfor %}

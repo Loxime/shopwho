@@ -2,6 +2,7 @@
 
 namespace App\Tests;
 
+use App\Entity\Category;
 use App\Entity\Product;
 use PHPUnit\Framework\TestCase;
 
@@ -20,5 +21,14 @@ class ProductTest extends TestCase
         $product = (new Product())->setIsActive(false);
 
         self::assertFalse($product->isActive());
+    }
+
+    public function testProductUsesNormalizedCategory(): void
+    {
+        $category = (new Category())->setName('High-tech')->setSlug('high-tech');
+        $product = (new Product())->setCategory($category);
+
+        self::assertSame($category, $product->getCategory());
+        self::assertSame('High-tech', (string) $product->getCategory());
     }
 }
