@@ -1,0 +1,12 @@
+/.env.local
+/.env.*.local
+/vendor/
+/var/
+/phpunit.xml
+/.phpunit.cache/
+/.idea/
+/.vscode/
+/data/
+/exports/
+*.csv
+*.parquet

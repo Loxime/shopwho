@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Shopwho{% endblock %}</title>
+  <link rel="stylesheet" href="/styles/app.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="promo">Livraison offerte dès 59 € en France</div>
+  <div class="header-main container">
+    <a class="brand" href="{{ path('app_home') }}">SHOPWHO</a>
+    <form class="search" action="{{ path('app_home') }}" method="get">
+      <input type="search" name="q" value="{{ app.request.query.get('q') }}" placeholder="Rechercher un produit...">
+    </form>
+    <nav>
+      <a href="{{ path('app_cart') }}">Panier</a>
+      {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_product_index') }}">Admin</a>{% else %}<a href="{{ path('app_login') }}">Connexion</a>{% endif %}
+    </nav>
+  </div>
+</header>
+<main>{% block body %}{% endblock %}</main>
+<footer class="footer"><div class="container">Shopwho — MVP e-commerce instrumenté pour la data science.</div></footer>
+</body>
+</html>
