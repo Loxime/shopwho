@@ -3,6 +3,7 @@ FROM php:8.4-fpm-alpine
 RUN apk add --no-cache \
         icu-dev \
         libpq-dev \
+        libzip-dev \
         oniguruma-dev \
         libxml2-dev \
         git \
@@ -11,6 +12,7 @@ RUN apk add --no-cache \
         intl \
         mbstring \
         pdo_pgsql \
+        zip \
         dom \
         xml \
         xmlwriter \
