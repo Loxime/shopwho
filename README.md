@@ -17,3 +17,16 @@ Administration produits : http://localhost:8080/admin/products
 Compte admin HTTP Basic local : `admin` / `shopwho-dev`.
 
 > Ne jamais utiliser ces identifiants en production. Les secrets de production devront être placés dans `.env.local` ou injectés par l'environnement.
+
+
+## Données pour la data science
+
+Les événements de navigation sont pseudonymisés et stockés dans `tracking_event`.
+
+Export CSV :
+
+```bash
+docker compose exec app php bin/console app:tracking:export-csv --output=exports/tracking.csv
+```
+
+Le dossier `exports/` et les fichiers CSV/Parquet sont ignorés par Git : **aucun dataset réel ne doit être versionné**.
