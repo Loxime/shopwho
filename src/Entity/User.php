@@ -44,10 +44,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['orderedAt' => 'DESC', 'id' => 'DESC'])]
     private Collection $orders;
 
+    /** @var Collection<int, Review> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Review::class)]
+    private Collection $reviews;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->orders = new ArrayCollection();
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -115,6 +120,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $name !== '' ? $name : $this->email;
     }
 
+    public function getPublicDisplayName(): string
+    {
+        if ($this->firstName) {
+            return $this->lastName
+                ? sprintf('%s %s.', $this->firstName, mb_strtoupper(mb_substr($this->lastName, 0, 1)))
+                : $this->firstName;
+        }
+
+        return 'Client Shopwho';
+    }
+
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -152,6 +168,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->orders;
     }
+
+    /** @return Collection<int, Review> */
+    public function getReviews(): Collection { return $this->reviews; }
 
     public function eraseCredentials(): void
     {
