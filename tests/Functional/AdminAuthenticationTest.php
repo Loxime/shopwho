@@ -35,19 +35,16 @@ class AdminAuthenticationTest extends WebTestCase
 
         $client->request('GET', '/admin/products');
 
-        self::assertResponseRedirects('/admin/login');
+        self::assertResponseRedirects('/connexion');
     }
 
-    public function testLoginPageIsAccessible(): void
+    public function testLegacyAdminLoginRedirectsToUnifiedLogin(): void
     {
         $client = static::createClient();
 
         $client->request('GET', '/admin/login');
 
-        self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Administration');
-        self::assertSelectorExists('input[name="_username"]');
-        self::assertSelectorExists('input[name="_password"]');
+        self::assertResponseRedirects('/connexion');
     }
 
     public function testInvalidCredentialsAreRejected(): void
@@ -56,7 +53,7 @@ class AdminAuthenticationTest extends WebTestCase
 
         $this->createAdmin();
 
-        $crawler = $client->request('GET', '/admin/login');
+        $crawler = $client->request('GET', '/connexion');
 
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => self::EMAIL,
@@ -65,7 +62,7 @@ class AdminAuthenticationTest extends WebTestCase
 
         $client->submit($form);
 
-        self::assertResponseRedirects('/admin/login');
+        self::assertResponseRedirects('/connexion');
 
         $client->followRedirect();
 
@@ -82,7 +79,7 @@ class AdminAuthenticationTest extends WebTestCase
 
         $this->createAdmin();
 
-        $crawler = $client->request('GET', '/admin/login');
+        $crawler = $client->request('GET', '/connexion');
 
         $form = $crawler->selectButton('Se connecter')->form([
             '_username' => self::EMAIL,
@@ -91,7 +88,7 @@ class AdminAuthenticationTest extends WebTestCase
 
         $client->submit($form);
 
-        self::assertResponseRedirects('/admin/products');
+        self::assertResponseRedirects('/profil');
 
         $client->followRedirect();
 
@@ -99,6 +96,8 @@ class AdminAuthenticationTest extends WebTestCase
 
         $client->request('GET', '/admin/logout');
 
+        self::assertResponseRedirects('/deconnexion');
+        $client->followRedirect();
         self::assertResponseRedirects('/');
 
         $client->followRedirect();
@@ -107,7 +106,7 @@ class AdminAuthenticationTest extends WebTestCase
 
         $client->request('GET', '/admin/products');
 
-        self::assertResponseRedirects('/admin/login');
+        self::assertResponseRedirects('/connexion');
     }
 
     private function createAdmin(): void

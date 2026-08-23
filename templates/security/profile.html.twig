@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil — Shopwho{% endblock %}
+
+{% block body %}
+<section class="section"><div class="container profile-page">
+  <div class="profile-heading"><i class="fa-solid fa-circle-user" aria-hidden="true"></i><div><h1>Mon profil</h1><p class="muted">Les informations de votre compte Shopwho.</p></div></div>
+  <dl class="profile-details">
+    <div><dt>Prénom</dt><dd>{{ user.firstName ?? 'Non renseigné' }}</dd></div>
+    <div><dt>Nom</dt><dd>{{ user.lastName ?? 'Non renseigné' }}</dd></div>
+    <div><dt>Adresse e-mail</dt><dd>{{ user.email }}</dd></div>
+    <div><dt>Compte créé le</dt><dd>{{ user.createdAt|date('d/m/Y') }}</dd></div>
+  </dl>
+</div></section>
+{% endblock %}

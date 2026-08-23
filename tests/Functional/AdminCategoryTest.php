@@ -23,7 +23,7 @@ class AdminCategoryTest extends WebTestCase
 
         $client->request('GET', '/admin/categories');
 
-        self::assertResponseRedirects('/admin/login');
+        self::assertResponseRedirects('/connexion');
     }
 
     public function testAdminCannotDeleteCategoryContainingAProduct(): void
