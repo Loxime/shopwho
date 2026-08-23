@@ -1,12 +1,14 @@
-{% extends 'base.html.twig' %}
-{% block title %}Administration catégories — Shopwho{% endblock %}
-{% block body %}
-<section class="section"><div class="container">
-  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Catégories</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a href="{{ path('admin_data_reset') }}">Données importées</a><a class="btn orange" href="{{ path('admin_category_new') }}">Nouvelle catégorie</a></div></div>
-  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
-  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
-  <table class="table"><thead><tr><th>Nom</th><th>Slug</th><th>Navigation</th><th>À la une</th><th>Produits</th><th>Actions</th></tr></thead><tbody>
-  {% for category in categories %}<tr><td>{% if category.icon %}<i class="{{ category.icon }}" aria-hidden="true"></i> {% endif %}{{ category.name }}</td><td>{{ category.slug }}</td><td>{{ category.showInNavigation ? 'Position ' ~ category.navigationPosition : 'Masquée' }}</td><td>{{ category.featured ? 'Oui' : 'Non' }}</td><td>{{ category.products|length }}</td><td><div class="actions"><a class="icon-action" href="{{ path('admin_category_edit', {id:category.id}) }}" title="Modifier {{ category.name }}" aria-label="Modifier {{ category.name }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a><form method="post" action="{{ path('admin_category_delete', {id:category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?')"><input type="hidden" name="_token" value="{{ csrf_token('delete-category-' ~ category.id) }}"><button class="icon-action danger" type="submit" title="Supprimer {{ category.name }}" aria-label="Supprimer {{ category.name }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></form></div></td></tr>{% else %}<tr><td colspan="6">Aucune catégorie.</td></tr>{% endfor %}
-  </tbody></table>
-</div></section>
+{% extends 'admin/base.html.twig' %}
+{% block admin_title %}Catégories{% endblock %}
+{% block admin_subtitle %}Organisation et navigation du catalogue{% endblock %}
+{% block admin_actions %}<a class="admin-button admin-button-primary" href="{{ path('admin_category_new') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Nouvelle catégorie</a>{% endblock %}
+{% block admin_body %}
+<section class="admin-card" aria-labelledby="categories-list-title">
+  <div class="admin-card-header"><div><h2 id="categories-list-title">Structure du catalogue</h2><p>{{ categories|length }} catégorie{{ categories|length > 1 ? 's' : '' }}</p></div></div>
+  <div class="admin-table-scroll"><table class="admin-table">
+    <thead><tr><th scope="col">Nom</th><th scope="col">Slug</th><th scope="col">Navigation</th><th scope="col">À la une</th><th scope="col">Produits</th><th scope="col" class="admin-table-actions-heading">Actions</th></tr></thead><tbody>
+    {% for category in categories %}<tr><td><strong>{% if category.icon %}<i class="{{ category.icon }} admin-category-icon" aria-hidden="true"></i>{% endif %}{{ category.name }}</strong></td><td><code>{{ category.slug }}</code></td><td>{% if category.showInNavigation %}<span class="admin-badge admin-badge-success">Visible · position {{ category.navigationPosition }}</span>{% else %}<span class="admin-badge admin-badge-muted">Masquée</span>{% endif %}</td><td>{% if category.featured %}<span class="admin-badge admin-badge-accent"><i class="fa-solid fa-star" aria-hidden="true"></i> À la une</span>{% else %}<span class="admin-badge admin-badge-muted">Non</span>{% endif %}</td><td>{{ category.products|length }}</td><td><div class="admin-row-actions"><a class="admin-icon-button" href="{{ path('admin_category_edit', {id:category.id}) }}" title="Modifier {{ category.name }}" aria-label="Modifier {{ category.name }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i><span class="admin-sr-only">Modifier</span></a><form method="post" action="{{ path('admin_category_delete', {id:category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?')"><input type="hidden" name="_token" value="{{ csrf_token('delete-category-' ~ category.id) }}"><button class="admin-icon-button admin-icon-button-danger" type="submit" title="Supprimer {{ category.name }}" aria-label="Supprimer {{ category.name }}"><i class="fa-solid fa-trash" aria-hidden="true"></i><span class="admin-sr-only">Supprimer</span></button></form></div></td></tr>{% else %}<tr><td class="admin-empty-state" colspan="6">Aucune catégorie.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</section>
 {% endblock %}

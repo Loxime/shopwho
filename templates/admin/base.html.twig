@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% block admin_title %}Administration{% endblock %} — Shopwho{% endblock %}</title>
+  <link rel="stylesheet" href="/styles/admin.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">
+</head>
+<body class="admin-body">
+{% set currentRoute = app.request.attributes.get('_route') ?? '' %}
+<input class="admin-nav-toggle" type="checkbox" id="admin-nav-toggle">
+<div class="admin-shell" data-admin-shell>
+  <aside class="admin-sidebar" aria-label="Navigation d’administration">
+    <div class="admin-sidebar-brand">
+      <span>SHOPWHO</span>
+      <strong>Administration</strong>
+    </div>
+    <nav class="admin-nav" aria-label="Sections du backoffice">
+      <a class="admin-nav-item{{ currentRoute starts with 'admin_product_' ? ' is-active' : '' }}" href="{{ path('admin_product_index') }}"{{ currentRoute starts with 'admin_product_' ? ' aria-current="page"' : '' }}>
+        <i class="fa-solid fa-box-open" aria-hidden="true"></i><span>Produits</span>
+      </a>
+      <a class="admin-nav-item{{ currentRoute starts with 'admin_category_' ? ' is-active' : '' }}" href="{{ path('admin_category_index') }}"{{ currentRoute starts with 'admin_category_' ? ' aria-current="page"' : '' }}>
+        <i class="fa-solid fa-tags" aria-hidden="true"></i><span>Catégories</span>
+      </a>
+      <a class="admin-nav-item{{ currentRoute starts with 'admin_data_reset' ? ' is-active' : '' }}" href="{{ path('admin_data_reset') }}"{{ currentRoute starts with 'admin_data_reset' ? ' aria-current="page"' : '' }}>
+        <i class="fa-solid fa-database" aria-hidden="true"></i><span>Données importées</span>
+      </a>
+    </nav>
+    <nav class="admin-sidebar-footer" aria-label="Liens de session">
+      <a class="admin-nav-item" href="{{ path('app_home') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Retour à la boutique</span></a>
+      <a class="admin-nav-item" href="{{ path('app_logout') }}"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Déconnexion</span></a>
+    </nav>
+  </aside>
+
+  <div class="admin-workspace">
+    <header class="admin-topbar">
+      <label class="admin-menu-button" for="admin-nav-toggle" aria-label="Ouvrir ou fermer la navigation"><i class="fa-solid fa-bars" aria-hidden="true"></i></label>
+      <div class="admin-topbar-heading">
+        <h1>{{ block('admin_title') }}</h1>
+        {% set subtitle %}{% block admin_subtitle %}{% endblock %}{% endset %}
+        {% if subtitle|trim %}<p>{{ subtitle }}</p>{% endif %}
+      </div>
+      <div class="admin-user">
+        <i class="fa-solid fa-circle-user" aria-hidden="true"></i>
+        <span>{{ app.user.displayName }}</span>
+      </div>
+    </header>
+
+    <main class="admin-main">
+      <div class="admin-page">
+        {% set actions %}{% block admin_actions %}{% endblock %}{% endset %}
+        {% if actions|trim %}<div class="admin-page-actions">{{ actions|raw }}</div>{% endif %}
+        <div class="admin-flashes" aria-live="polite">
+          {% for message in app.flashes('success') %}<div class="admin-flash admin-flash-success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>{{ message }}</span></div>{% endfor %}
+          {% for message in app.flashes('error') %}<div class="admin-flash admin-flash-error"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span>{{ message }}</span></div>{% endfor %}
+        </div>
+        {% block admin_body %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  <label class="admin-nav-overlay" for="admin-nav-toggle" aria-hidden="true"></label>
+</div>
+</body>
+</html>
