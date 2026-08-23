@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'tracking_event')]
 #[ORM\Index(columns: ['session_id', 'occurred_at'], name: 'idx_tracking_session_time')]
 #[ORM\Index(columns: ['event_type', 'occurred_at'], name: 'idx_tracking_type_time')]
+#[ORM\Index(columns: ['user_id'], name: 'idx_tracking_user')]
 class TrackingEvent
 {
     #[ORM\Id]
@@ -27,6 +28,10 @@ class TrackingEvent
 
     #[ORM\Column(nullable: true)]
     private ?int $productId = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $user = null;
 
     #[ORM\Column(type: Types::JSON)]
     private array $metadata = [];
@@ -49,6 +54,8 @@ class TrackingEvent
     public function getSessionId(): string { return $this->sessionId; }
     public function getEventType(): string { return $this->eventType; }
     public function getProductId(): ?int { return $this->productId; }
+    public function getUser(): ?User { return $this->user; }
+    public function setUser(?User $user): self { $this->user = $user; return $this; }
     public function getMetadata(): array { return $this->metadata; }
     public function getOccurredAt(): \DateTimeImmutable { return $this->occurredAt; }
 }
