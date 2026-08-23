@@ -1,9 +1,22 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ product.name }} — Shopwho{% endblock %}
 {% block body %}
-<section class="section"><div class="container product-layout">
-  <div>{% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:500px;display:grid;place-items:center;background:#eef2ff;border-radius:20px;font-size:100px">🛍️</div>{% endif %}</div>
-  <div><p class="muted"><a href="{{ path('app_home', {category:product.category.slug}) }}">{{ product.category.name }}</a></p><h1>{{ product.name }}</h1><p>{{ product.description }}</p><p class="price">{{ product.price|number_format(2, ',', ' ') }} €</p><p class="muted">Stock : {{ product.stock }}</p>
-  <form method="post" action="{{ path('app_cart_add', {id:product.id}) }}"><button class="btn orange" type="submit">Ajouter au panier</button></form></div>
+<section class="section"><div class="container">
+  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
+  <div class="product-layout">
+    <div>{% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:500px;display:grid;place-items:center;background:#eef2ff;border-radius:20px;font-size:100px">🛍️</div>{% endif %}</div>
+    <div><p class="muted"><a href="{{ path('app_home', {category:product.category.slug}) }}">{{ product.category.name }}</a></p><h1>{{ product.name }}</h1>
+      {% if ratingStats.count > 0 %}{% set roundedRating = ratingStats.average|round %}<p class="product-rating" aria-label="Note moyenne {{ ratingStats.average|number_format(1, ',', ' ') }} sur 5, {{ ratingStats.count }} avis"><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= roundedRating ? '★' : '☆' }}{% endfor %}</span> {{ ratingStats.average|number_format(1, ',', ' ') }}/5 — {{ ratingStats.count }} avis</p>{% else %}<p class="muted">Aucun avis</p>{% endif %}
+      <p>{{ product.description }}</p><p class="price">{{ product.price|number_format(2, ',', ' ') }} €</p><p class="muted">Stock : {{ product.stock }}</p><form method="post" action="{{ path('app_cart_add', {id:product.id}) }}"><button class="btn orange" type="submit">Ajouter au panier</button></form>
+    </div>
+  </div>
+</div></section>
+<section class="section reviews-section"><div class="container"><h2>Avis clients</h2>
+  {% if not app.user %}<p><a href="{{ path('app_login') }}">Connectez-vous pour laisser un avis.</a></p>
+  {% elseif userReview %}<div class="review-callout"><strong>Votre avis</strong><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= userReview.rating ? '★' : '☆' }}{% endfor %}</span> {{ userReview.rating }}/5</p>{% if userReview.comment %}<p>{{ userReview.comment }}</p>{% endif %}<a class="btn" href="{{ path('app_profile_review_edit', {id:userReview.id}) }}">Modifier mon avis</a></div>
+  {% elseif canReview %}<div class="review-form"><h3>Donner mon avis</h3>{{ form_start(reviewForm) }}{{ form_row(reviewForm.rating) }}{{ form_row(reviewForm.comment) }}<button class="btn orange" type="submit">Publier mon avis</button>{{ form_end(reviewForm) }}</div>
+  {% else %}<p class="muted">Vous devez avoir acheté ce produit pour publier un avis.</p>{% endif %}
+  <div class="review-list">{% for review in reviews %}<article class="review-card" data-review-id="{{ review.id }}"><h3>{{ review.user.publicDisplayName }}</h3><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= review.rating ? '★' : '☆' }}{% endfor %}</span><span class="sr-only">{{ review.rating }} étoiles sur 5</span></p>{% if review.comment %}<p>{{ review.comment }}</p>{% endif %}<time class="muted" datetime="{{ review.createdAt|date('c') }}">{{ review.createdAt|date('d/m/Y') }}</time></article>{% else %}<p class="muted">Aucun avis client pour le moment.</p>{% endfor %}</div>
 </div></section>
 {% endblock %}
