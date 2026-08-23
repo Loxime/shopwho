@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+{% block title %}Panier — Shopwho{% endblock %}
+{% block body %}
+<section class="section"><div class="container" style="max-width:900px"><h1>Votre panier</h1>
+{% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+{% if lines %}
+<table class="table"><thead><tr><th>Produit</th><th>Quantité</th><th>Total</th><th></th></tr></thead><tbody>
+{% for line in lines %}<tr><td>{{ line.product.name }}</td><td>{{ line.quantity }}</td><td>{{ line.lineTotal|number_format(2, ',', ' ') }} €</td><td><form method="post" action="{{ path('app_cart_remove', {id:line.product.id}) }}"><button type="submit">Retirer</button></form></td></tr>{% endfor %}
+</tbody></table>
+<div style="display:flex;justify-content:flex-end;gap:20px;align-items:center;margin-top:25px"><strong class="price">{{ total|number_format(2, ',', ' ') }} €</strong><form method="post" action="{{ path('app_cart_checkout') }}"><button class="btn orange" type="submit">Simuler la commande</button></form></div>
+<p class="muted">MVP : aucune transaction bancaire n'est réalisée.</p>
+{% else %}<p>Votre panier est vide.</p><a class="btn" href="{{ path('app_home') }}">Retour au catalogue</a>{% endif %}
+</div></section>
+{% endblock %}
