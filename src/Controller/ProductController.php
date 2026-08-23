@@ -3,6 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Entity\Review;
+use App\Entity\User;
+use App\Form\ReviewType;
+use App\Repository\OrderRepository;
+use App\Repository\ReviewRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,7 +19,9 @@ class ProductController extends AbstractController
     #[Route('/produit/{slug}', name: 'app_product_show', methods: ['GET'])]
 public function show(
     #[MapEntity(mapping: ['slug' => 'slug'])] Product $product,
-    TrackingService $tracking
+    TrackingService $tracking,
+    ReviewRepository $reviews,
+    OrderRepository $orders,
 ): Response {
     if (!$product->isActive()) {
         throw $this->createNotFoundException();
@@ -25,8 +32,20 @@ public function show(
         'price_cents' => $product->getPriceCents(),
     ]);
 
+    $user = $this->getUser();
+    $userReview = $user instanceof User ? $reviews->findOneByUserAndProduct($user, $product) : null;
+    $canReview = $user instanceof User && !$userReview && $orders->hasUserPurchasedProduct($user, $product);
+    $reviewForm = $canReview ? $this->createForm(ReviewType::class, new Review($user, $product, 5), [
+        'action' => $this->generateUrl('app_profile_review_create', ['id' => $product->getId()]),
+    ])->createView() : null;
+
     return $this->render('product/show.html.twig', [
         'product' => $product,
+        'reviews' => $reviews->findForProduct($product),
+        'ratingStats' => $reviews->getProductRatingStats($product),
+        'userReview' => $userReview,
+        'canReview' => $canReview,
+        'reviewForm' => $reviewForm,
     ]);
 }
 }

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Order;
 use App\Entity\User;
+use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -42,5 +43,25 @@ class OrderRepository extends ServiceEntityRepository
     public function findOneByReferenceAndUser(string $reference, User $user): ?Order
     {
         return $this->findOneBy(['reference' => $reference, 'user' => $user]);
+    }
+
+    public function hasUserPurchasedProduct(User $user, Product $product): bool
+    {
+        if (null === $product->getId()) {
+            return false;
+        }
+
+        return (bool) $this->createQueryBuilder('customerOrder')
+            ->select('1')
+            ->join('customerOrder.items', 'item')
+            ->andWhere('customerOrder.user = :user')
+            ->andWhere('customerOrder.status = :status')
+            ->andWhere('(item.product = :product OR item.productIdSnapshot = :productId)')
+            ->setParameter('user', $user)
+            ->setParameter('status', Order::STATUS_COMPLETED)
+            ->setParameter('product', $product)
+            ->setParameter('productId', $product->getId())
+            ->setMaxResults(1)
+            ->getQuery()->getOneOrNullResult();
     }
 }

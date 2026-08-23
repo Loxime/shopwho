@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\ProductRepository;
 use Doctrine\DBAL\Types\Types;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -53,11 +55,16 @@ class Product
     #[ORM\Column]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Review> */
+    #[ORM\OneToMany(mappedBy: 'product', targetEntity: Review::class)]
+    private Collection $reviews;
+
     public function __construct()
     {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
+        $this->reviews = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -81,6 +88,9 @@ class Product
     public function setIsActive(bool $isActive): self { $this->isActive = $isActive; $this->touch(); return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
+    /** @return Collection<int, Review> */
+    public function getReviews(): Collection { return $this->reviews; }
+    public function hasReviews(): bool { return !$this->reviews->isEmpty(); }
 
     private function touch(): void { $this->updatedAt = new \DateTimeImmutable(); }
 }
