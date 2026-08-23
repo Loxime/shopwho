@@ -7,16 +7,45 @@ on:
 jobs:
   quality:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: shopwho_test
+          POSTGRES_USER: shopwho
+          POSTGRES_PASSWORD: shopwho
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U shopwho -d shopwho_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql://shopwho:shopwho@127.0.0.1:5432/shopwho_test?serverVersion=16&charset=utf8
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
           coverage: none
+          extensions: pdo_pgsql
+
       - uses: ramsey/composer-install@v3
+
       - name: Composer validation
         run: composer validate --strict
+
       - name: PHP syntax
         run: find src public migrations tests -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: Database migrations
+        run: php bin/console doctrine:migrations:migrate --no-interaction --env=test
+
       - name: PHPUnit
         run: vendor/bin/phpunit
