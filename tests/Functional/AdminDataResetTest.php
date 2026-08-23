@@ -39,8 +39,8 @@ final class AdminDataResetTest extends WebTestCase
 
         $crawler = $client->request('POST', '/admin/data-reset', ['type' => 'users'], ['reset_file' => new UploadedFile($file, 'reset-users.json', 'application/json', null, true)]);
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Supprimables : 1');
-        self::assertSelectorTextContains('body', 'Protégés : 1');
+        self::assertSelectorTextSame('.admin-summary-grid div:nth-child(2) dd', '1');
+        self::assertSelectorTextSame('.admin-summary-grid div:nth-child(4) dd', '1');
         self::assertNotNull($em->getRepository(User::class)->find($targetId));
 
         $form = $crawler->selectButton('Confirmer et appliquer')->form();
