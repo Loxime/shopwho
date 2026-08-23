@@ -59,7 +59,7 @@ class AdminCategoryTest extends WebTestCase
 
         self::assertResponseRedirects('/admin/categories');
         $client->followRedirect();
-        self::assertSelectorTextContains('.flash-error', 'Réaffectez-les avant de la supprimer');
+        self::assertSelectorTextContains('.admin-flash-error', 'Réaffectez-les avant de la supprimer');
 
         $em->clear();
         self::assertNotNull($em->getRepository(Category::class)->findOneBy(['slug' => 'categorie-protegee-test']));

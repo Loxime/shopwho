@@ -189,7 +189,7 @@ class ProductReviewTest extends WebTestCase
         $client->submit($form);
         self::assertResponseRedirects('/admin/products');
         $client->followRedirect();
-        self::assertSelectorTextContains('.flash-error', 'possède des avis clients');
+        self::assertSelectorTextContains('.admin-flash-error', 'possède des avis clients');
         self::assertNotNull($this->em()->find(Product::class, $product->getId()));
     }
 
