@@ -35,9 +35,10 @@ class Product
     #[Assert\PositiveOrZero]
     private int $stock = 0;
 
-    #[ORM\Column(length: 100)]
-    #[Assert\NotBlank]
-    private string $category = 'Autres';
+    #[ORM\ManyToOne(inversedBy: 'products')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotNull]
+    private ?Category $category = null;
 
     #[ORM\Column(length: 500, nullable: true)]
     #[Assert\Url]
@@ -72,8 +73,8 @@ class Product
     public function setPrice(float $price): self { $this->priceCents = (int) round($price * 100); $this->touch(); return $this; }
     public function getStock(): int { return $this->stock; }
     public function setStock(int $stock): self { $this->stock = $stock; $this->touch(); return $this; }
-    public function getCategory(): string { return $this->category; }
-    public function setCategory(string $category): self { $this->category = $category; $this->touch(); return $this; }
+    public function getCategory(): ?Category { return $this->category; }
+    public function setCategory(Category $category): self { $this->category = $category; $this->touch(); return $this; }
     public function getImageUrl(): ?string { return $this->imageUrl; }
     public function setImageUrl(?string $imageUrl): self { $this->imageUrl = $imageUrl ?: null; $this->touch(); return $this; }
     public function isActive(): bool { return $this->isActive; }

@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block title %}Administration catégories — Shopwho{% endblock %}
+{% block body %}
+<section class="section"><div class="container">
+  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Catégories</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a class="btn orange" href="{{ path('admin_category_new') }}">Nouvelle catégorie</a></div></div>
+  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
+  <table class="table"><thead><tr><th>Nom</th><th>Slug</th><th>Navigation</th><th>À la une</th><th>Produits</th><th>Actions</th></tr></thead><tbody>
+  {% for category in categories %}<tr><td>{% if category.icon %}<i class="{{ category.icon }}" aria-hidden="true"></i> {% endif %}{{ category.name }}</td><td>{{ category.slug }}</td><td>{{ category.showInNavigation ? 'Position ' ~ category.navigationPosition : 'Masquée' }}</td><td>{{ category.featured ? 'Oui' : 'Non' }}</td><td>{{ category.products|length }}</td><td><div class="actions"><a class="icon-action" href="{{ path('admin_category_edit', {id:category.id}) }}" title="Modifier {{ category.name }}" aria-label="Modifier {{ category.name }}"><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i></a><form method="post" action="{{ path('admin_category_delete', {id:category.id}) }}" onsubmit="return confirm('Supprimer cette catégorie ?')"><input type="hidden" name="_token" value="{{ csrf_token('delete-category-' ~ category.id) }}"><button class="icon-action danger" type="submit" title="Supprimer {{ category.name }}" aria-label="Supprimer {{ category.name }}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button></form></div></td></tr>{% else %}<tr><td colspan="6">Aucune catégorie.</td></tr>{% endfor %}
+  </tbody></table>
+</div></section>
+{% endblock %}

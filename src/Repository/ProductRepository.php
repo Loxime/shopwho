@@ -17,6 +17,8 @@ class ProductRepository extends ServiceEntityRepository
     public function findCatalog(?string $query = null, ?string $category = null): array
     {
         $qb = $this->createQueryBuilder('p')
+            ->addSelect('c')
+            ->join('p.category', 'c')
             ->andWhere('p.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('p.createdAt', 'DESC');
@@ -27,21 +29,10 @@ class ProductRepository extends ServiceEntityRepository
         }
 
         if ($category) {
-            $qb->andWhere('p.category = :category')->setParameter('category', $category);
+            $qb->andWhere('c.slug = :category')->setParameter('category', $category);
         }
 
         return $qb->getQuery()->getResult();
     }
 
-    /** @return string[] */
-    public function findActiveCategories(): array
-    {
-        $rows = $this->createQueryBuilder('p')
-            ->select('DISTINCT p.category AS category')
-            ->andWhere('p.isActive = true')
-            ->orderBy('p.category', 'ASC')
-            ->getQuery()->getArrayResult();
-
-        return array_column($rows, 'category');
-    }
 }

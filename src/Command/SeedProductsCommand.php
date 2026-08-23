@@ -2,7 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\Category;
 use App\Entity\Product;
+use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -13,7 +15,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:seed-products', description: 'Ajoute un petit catalogue de démonstration si la base est vide.')]
 class SeedProductsCommand extends Command
 {
-    public function __construct(private readonly ProductRepository $products, private readonly EntityManagerInterface $em)
+    public function __construct(
+        private readonly ProductRepository $products,
+        private readonly CategoryRepository $categories,
+        private readonly EntityManagerInterface $em,
+    )
     {
         parent::__construct();
     }
@@ -36,14 +42,29 @@ class SeedProductsCommand extends Command
             ['Support Arc', 'support-arc', 'Support aluminium pour ordinateur portable.', 3490, 60, 'Accessoires'],
         ];
 
-        foreach ($items as [$name, $slug, $description, $price, $stock, $category]) {
+        $categoryEntities = [];
+        foreach (array_values(array_unique(array_column($items, 5))) as $position => $categoryName) {
+            $categorySlug = strtolower($categoryName);
+            $category = $this->categories->findOneBy(['slug' => $categorySlug]);
+            if (!$category) {
+                $category = (new Category())
+                    ->setName($categoryName)
+                    ->setSlug($categorySlug)
+                    ->setNavigationPosition(($position + 1) * 10)
+                    ->setIsFeatured($position < 2);
+                $this->em->persist($category);
+            }
+            $categoryEntities[$categoryName] = $category;
+        }
+
+        foreach ($items as [$name, $slug, $description, $price, $stock, $categoryName]) {
             $product = (new Product())
                 ->setName($name)
                 ->setSlug($slug)
                 ->setDescription($description)
                 ->setPriceCents($price)
                 ->setStock($stock)
-                ->setCategory($category)
+                ->setCategory($categoryEntities[$categoryName])
                 ->setIsActive(true);
             $this->em->persist($product);
         }

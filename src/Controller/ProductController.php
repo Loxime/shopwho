@@ -21,7 +21,7 @@ public function show(
     }
 
     $tracking->track('PRODUCT_VIEW', $product->getId(), [
-        'category' => $product->getCategory(),
+        'category' => $product->getCategory()?->getSlug(),
         'price_cents' => $product->getPriceCents(),
     ]);
 
