@@ -38,7 +38,7 @@ class AdminAuthenticationTest extends WebTestCase
         self::assertResponseRedirects('/connexion');
     }
 
-    public function testLoginPageIsAccessible(): void
+    public function testLegacyAdminLoginRedirectsToUnifiedLogin(): void
     {
         $client = static::createClient();
 

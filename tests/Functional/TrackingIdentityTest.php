@@ -45,6 +45,36 @@ class TrackingIdentityTest extends WebTestCase
         self::assertNotSame('', $event->getSessionId());
     }
 
+    public function testAnonymousEventIsNotRetroactivelyAttachedAfterLogin(): void
+    {
+        $client = static::createClient();
+        $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
+        $client->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+        $anonymousEvent = $this->latestEvent();
+        $anonymousEventId = $anonymousEvent->getId();
+        self::assertNull($anonymousEvent->getUser());
+
+        $user = $this->createUser();
+        $client->loginUser($user);
+        $client->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        $em->clear();
+
+        $authenticatedEvent = $em->getRepository(TrackingEvent::class)->findOneBy([], ['id' => 'DESC']);
+        self::assertInstanceOf(TrackingEvent::class, $authenticatedEvent);
+        self::assertNotSame($anonymousEventId, $authenticatedEvent->getId());
+        self::assertSame($user->getId(), $authenticatedEvent->getUser()?->getId());
+
+        $persistedAnonymousEvent = $em->getRepository(TrackingEvent::class)->find($anonymousEventId);
+        self::assertInstanceOf(TrackingEvent::class, $persistedAnonymousEvent);
+        self::assertNull($persistedAnonymousEvent->getUser());
+    }
+
     public function testRefusedTrackingCreatesNoEvent(): void
     {
         $client = static::createClient();
