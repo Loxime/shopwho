@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ title }} — Shopwho{% endblock %}
+{% block body %}
+<section class="section"><div class="container" style="max-width:780px"><a href="{{ path('admin_product_index') }}">← Retour</a><h1>{{ title }}</h1>
+{{ form_start(form) }}
+  {% for field in form %}<div class="form-row">{{ form_label(field) }}{{ form_widget(field) }}{{ form_errors(field) }}{% if field.vars.help %}<small class="muted">{{ field.vars.help }}</small>{% endif %}</div>{% endfor %}
+  <button class="btn orange" type="submit">Enregistrer</button>
+{{ form_end(form) }}
+</div></section>
+{% endblock %}

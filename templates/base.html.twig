@@ -16,7 +16,7 @@
     </form>
     <nav>
       <a href="{{ path('app_cart') }}">Panier</a>
-      {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_product_index') }}">Admin</a>{% else %}<a href="{{ path('app_login') }}">Connexion</a>{% endif %}
+      <a href="{{ path('admin_product_index') }}">Admin</a>
     </nav>
   </div>
 </header>

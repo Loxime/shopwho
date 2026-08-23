@@ -69,6 +69,7 @@ class Product
     public function getPriceCents(): int { return $this->priceCents; }
     public function setPriceCents(int $priceCents): self { $this->priceCents = $priceCents; $this->touch(); return $this; }
     public function getPrice(): float { return $this->priceCents / 100; }
+    public function setPrice(float $price): self { $this->priceCents = (int) round($price * 100); $this->touch(); return $this; }
     public function getStock(): int { return $this->stock; }
     public function setStock(int $stock): self { $this->stock = $stock; $this->touch(); return $this; }
     public function getCategory(): string { return $this->category; }

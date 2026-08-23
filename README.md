@@ -12,6 +12,8 @@ docker compose exec app php bin/console app:seed-products
 
 Application : http://localhost:8080
 
-Compte admin local : `admin@shopwho.local` / `shopwho-dev`.
+Administration produits : http://localhost:8080/admin/products
+
+Compte admin HTTP Basic local : `admin` / `shopwho-dev`.
 
 > Ne jamais utiliser ces identifiants en production. Les secrets de production devront être placés dans `.env.local` ou injectés par l'environnement.
