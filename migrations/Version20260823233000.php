@@ -3,7 +3,7 @@ declare(strict_types=1);
 namespace DoctrineMigrations;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Migrations\AbstractMigration;
-final class Version20260823184500 extends AbstractMigration
+final class Version20260823233000 extends AbstractMigration
 {
     public function getDescription(): string { return 'Add external identity for imported products and historical product reference snapshot'; }
     public function up(Schema $schema): void
