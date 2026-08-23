@@ -13,7 +13,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(name: 'idx_customer_order_ordered_at', columns: ['ordered_at'])]
 class Order
 {
-    public const STATUS_COMPLETED = 'simulated_completed';
+    public const STATUS_SIMULATED_COMPLETED = 'simulated_completed';
+    /** @deprecated use STATUS_SIMULATED_COMPLETED */
+    public const STATUS_COMPLETED = self::STATUS_SIMULATED_COMPLETED;
+    public const STATUS_IMPORTED_COMPLETED = 'completed';
+    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_REFUNDED = 'refunded';
+    public const IMPORT_STATUSES = [self::STATUS_IMPORTED_COMPLETED, self::STATUS_CANCELLED, self::STATUS_REFUNDED];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -31,7 +37,7 @@ class Order
     private User $user;
 
     #[ORM\Column(length: 40)]
-    private string $status = self::STATUS_COMPLETED;
+    private string $status = self::STATUS_SIMULATED_COMPLETED;
 
     #[ORM\Column]
     #[Assert\PositiveOrZero]
@@ -67,10 +73,21 @@ class Order
     public function setExternalRef(?string $externalRef): self { $this->externalRef = $externalRef === null || trim($externalRef) === '' ? null : trim($externalRef); return $this; }
     public function getUser(): User { return $this->user; }
     public function getStatus(): string { return $this->status; }
-    public function getStatusLabel(): string { return self::STATUS_COMPLETED === $this->status ? 'Terminée (simulation)' : $this->status; }
+    public function getStatusLabel(): string { return match ($this->status) { self::STATUS_SIMULATED_COMPLETED => 'Terminée (simulation)', self::STATUS_IMPORTED_COMPLETED => 'Terminée', self::STATUS_CANCELLED => 'Annulée', self::STATUS_REFUNDED => 'Remboursée', default => $this->status }; }
     public function getTotalCents(): int { return $this->totalCents; }
     public function getOrderedAt(): \DateTimeImmutable { return $this->orderedAt; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
+    public static function import(User $user, string $externalRef, string $status, int $totalCents, ?\DateTimeImmutable $orderedAt = null): self
+    {
+        if (!in_array($status, self::IMPORT_STATUSES, true)) {
+            throw new \InvalidArgumentException(sprintf('Unknown imported order status "%s".', $status));
+        }
+        $order = new self($user, 'IMP-'.strtoupper(bin2hex(random_bytes(8))), $totalCents, $orderedAt);
+        $order->externalRef = trim($externalRef);
+        $order->status = $status;
+        return $order;
+    }
 
     /** @return Collection<int, OrderItem> */
     public function getItems(): Collection { return $this->items; }

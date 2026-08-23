@@ -1,0 +1,9 @@
+<?php
+namespace App\Import\Importer;
+use App\Entity\Order;use App\Entity\OrderItem;use App\Import\DTO\OrderImportDto;use App\Repository\OrderRepository;use App\Repository\ProductRepository;use App\Repository\UserRepository;use Doctrine\ORM\EntityManagerInterface;
+final readonly class OrderImporter implements DataImporterInterface {
+ public function __construct(private OrderRepository $orders,private UserRepository $users,private ProductRepository $products,private EntityManagerInterface $em){}
+ public function supports(string $type):bool{return 'orders'===$type;}
+ public function import(object $dto):ImportOutcome {assert($dto instanceof OrderImportDto);if($this->orders->findOneBy(['externalRef'=>$dto->externalRef]))return ImportOutcome::Skipped;$run=fn()=>$this->create($dto);if($this->em->getConnection()->isTransactionActive())return $run();return $this->em->wrapInTransaction($run);}
+ private function create(OrderImportDto $dto):ImportOutcome {$user=$this->users->findOneBy(['externalRef'=>$dto->userExternalRef]);if(!$user)throw new \DomainException(sprintf('Unknown user "%s".',$dto->userExternalRef));if([]===$dto->items)throw new \DomainException('Order must contain at least one order item.');$total=0;foreach($dto->items as $item){$total+=$item->quantity*$item->unitPriceCents;}if(null!==$dto->totalCents&&$dto->totalCents!==$total)throw new \DomainException(sprintf('Source total %d differs from calculated total %d.',$dto->totalCents,$total));$order=Order::import($user,$dto->externalRef,$dto->status,$total,$dto->orderedAt);foreach($dto->items as $item){$product=null=== $item->productExternalRef?null:$this->products->findOneBy(['externalRef'=>$item->productExternalRef]);OrderItem::import($order,$product,$item->productExternalRef,$item->productNameSnapshot,$item->productSlugSnapshot,$item->quantity,$item->unitPriceCents);}$this->em->persist($order);$this->em->flush();return ImportOutcome::Created;}
+}

@@ -40,7 +40,7 @@ class OrderService
         $order = new Order($user, $this->generateReference(), $totalCents);
 
         foreach ($lines as $line) {
-            $item = new OrderItem($order, $line['product'], $line['quantity']);
+            $item = OrderItem::fromProduct($order, $line['product'], $line['quantity']);
             $calculatedTotal += $item->getLineTotalCents();
         }
 

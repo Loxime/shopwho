@@ -207,7 +207,7 @@ class ProductReviewTest extends WebTestCase
     private function purchase(User $user, Product $product): void
     {
         $order = new Order($user, 'SW-REVIEW-'.bin2hex(random_bytes(6)), $product->getPriceCents());
-        new OrderItem($order, $product, 1);
+        OrderItem::fromProduct($order, $product, 1);
         $this->em()->persist($order); $this->em()->flush();
     }
 
