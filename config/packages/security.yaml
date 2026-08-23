@@ -31,5 +31,5 @@ security:
     - { path: ^/connexion$, roles: PUBLIC_ACCESS }
     - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
     - { path: ^/admin/logout$, roles: PUBLIC_ACCESS }
-    - { path: ^/profil$, roles: ROLE_USER }
+    - { path: ^/profil(?:/|$), roles: ROLE_USER }
     - { path: ^/admin, roles: ROLE_ADMIN }

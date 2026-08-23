@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes commandes — Shopwho{% endblock %}
+
+{% block body %}
+<section class="section"><div class="container profile-page">
+  <h1>Mes commandes</h1>
+  {% if orders is empty %}
+    <p class="muted">Vous n’avez pas encore de commande enregistrée.</p>
+  {% else %}
+    <div class="order-list">
+      {% for order in orders %}
+        <article class="order-summary" data-order-reference="{{ order.reference }}">
+          <h2><a href="{{ path('app_profile_order_show', {reference: order.reference}) }}">{{ order.reference }}</a></h2>
+          <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.status }} · {{ (order.totalCents / 100)|number_format(2, ',', ' ') }} € · {{ order.itemCount }} article{% if order.itemCount > 1 %}s{% endif %}</p>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div></section>
+{% endblock %}
