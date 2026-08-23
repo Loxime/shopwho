@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des données importées — Shopwho{% endblock %}
+{% block body %}
+<section class="section"><div class="container">
+  <div class="actions page-heading"><div><p class="muted">Administration locale</p><h1>Gestion des données importées</h1></div><div class="actions"><a href="{{ path('admin_product_index') }}">Produits</a><a href="{{ path('admin_category_index') }}">Catégories</a></div></div>
+  <p>Prévisualisez une liste JSON ou XLSX avant toute suppression. Les données natives et l’historique métier restent protégés.</p>
+  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
+  <form method="post" enctype="multipart/form-data" class="admin-form">
+    <div><label for="reset-type">Type</label><select id="reset-type" name="type"><option value="users"{{ type == 'users' ? ' selected' : '' }}>Users</option><option value="products"{{ type == 'products' ? ' selected' : '' }}>Products</option></select></div>
+    <div><label for="reset-file">Fichier JSON ou XLSX (10 MB max.)</label><input id="reset-file" type="file" name="reset_file" accept=".json,.xlsx" required></div>
+    <button class="btn orange" type="submit">Prévisualiser</button>
+  </form>
+
+  {% if result %}
+    <h2>Résultat {{ token ? 'de la prévisualisation' : 'de l’application' }}</h2>
+    <div class="actions"><strong>Total : {{ result.total }}</strong><span>Supprimables : {{ result.deletable }}</span><span>Supprimés : {{ result.deleted }}</span><span>Protégés : {{ result.protected }}</span><span>Introuvables : {{ result.notFound }}</span><span>Erreurs : {{ result.failed }}</span><span>Doublons ignorés : {{ result.skipped }}</span></div>
+    <table class="table"><thead><tr><th>externalRef</th><th>État</th><th>Raison</th></tr></thead><tbody>
+    {% set reasonLabels = {native: type == 'users' ? 'compte natif' : 'produit natif', has_orders: 'possède des commandes', has_reviews: 'possède des avis', used_in_order_history: 'présent dans l’historique de commande', not_found: 'référence inconnue', duplicate: 'doublon ignoré', empty_external_ref: 'externalRef vide'} %}
+    {% for entry in result.entries %}<tr><td>{{ entry.externalRef ?? ('Ligne ' ~ entry.record) }}</td><td>{{ entry.status == 'deletable' ? 'Supprimable' : (entry.status == 'protected' ? 'Protégé' : entry.status) }}</td><td>{{ reasonLabels[entry.reason] ?? entry.reason ?? '—' }}{% if entry.relatedCount %} ({{ entry.relatedCount }}){% endif %}</td></tr>{% endfor %}
+    </tbody></table>
+    {% if token %}<form method="post" action="{{ path('admin_data_reset_apply') }}" onsubmit="return confirm('Confirmer la suppression des entrées supprimables ?')"><input type="hidden" name="preview_token" value="{{ token }}"><input type="hidden" name="_token" value="{{ csrf_token('data-reset-apply-' ~ token) }}"><button class="btn danger" type="submit">Confirmer et appliquer</button></form>{% endif %}
+  {% endif %}
+</div></section>
+{% endblock %}
