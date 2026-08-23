@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration — Shopwho{% endblock %}
+
+{% block body %}
+<div class="admin-login-backdrop">
+    <section class="admin-login-modal" aria-labelledby="admin-login-title">
+        <a
+            class="admin-login-close"
+            href="{{ path('app_home') }}"
+            aria-label="Fermer"
+        >
+            ×
+        </a>
+
+        <div class="admin-login-brand">SHOPWHO</div>
+
+        <h1 id="admin-login-title">Administration</h1>
+
+        <p class="muted">
+            Connectez-vous pour accéder à la gestion de Shopwho.
+        </p>
+
+        {% if error %}
+            <div class="login-error">
+                Identifiants incorrects.
+            </div>
+        {% endif %}
+
+        <form method="post" action="{{ path('admin_login') }}">
+            <div class="form-row">
+                <label for="username">Adresse e-mail</label>
+
+                <input
+                    id="username"
+                    type="email"
+                    name="_username"
+                    value="{{ last_username }}"
+                    autocomplete="email"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-row">
+                <label for="password">Mot de passe</label>
+
+                <input
+                    id="password"
+                    type="password"
+                    name="_password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <input
+                type="hidden"
+                name="_csrf_token"
+                value="{{ csrf_token('authenticate') }}"
+            >
+
+            <button class="btn orange admin-login-submit" type="submit">
+                Se connecter
+            </button>
+        </form>
+
+        <p class="admin-login-note">
+            Accès réservé à l'administration Shopwho.
+        </p>
+    </section>
+</div>
+{% endblock %}

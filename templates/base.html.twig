@@ -16,7 +16,12 @@
     </form>
     <nav>
       <a href="{{ path('app_cart') }}">Panier</a>
-      <a href="{{ path('admin_product_index') }}">Admin</a>
+      {% if app.user %}
+         <a href="{{ path('admin_product_index') }}">Admin</a>
+         <a href="{{ path('admin_logout') }}">Déconnexion</a>
+      {% else %}
+         <a href="{{ path('admin_login') }}">Admin</a>
+      {% endif %}
     </nav>
   </div>
 </header>
