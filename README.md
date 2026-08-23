@@ -30,3 +30,8 @@ docker compose exec app php bin/console app:tracking:export-csv --output=exports
 ```
 
 Le dossier `exports/` et les fichiers CSV/Parquet sont ignorés par Git : **aucun dataset réel ne doit être versionné**.
+
+
+## Consentement de mesure
+
+Le tracking comportemental n'est activé que lorsque le visiteur accepte la mesure d'audience via le bandeau prévu à cet effet. Ce mécanisme technique devra être relu avec la politique de confidentialité et les règles applicables avant la mise en production.

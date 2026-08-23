@@ -22,5 +22,16 @@
 </header>
 <main>{% block body %}{% endblock %}</main>
 <footer class="footer"><div class="container">Shopwho — MVP e-commerce instrumenté pour la data science.</div></footer>
+{% if app.request.cookies.get('shopwho_tracking_consent') is null %}
+<div style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #d1d5db;padding:16px;z-index:20;box-shadow:0 -6px 20px rgba(0,0,0,.08)">
+  <div class="container" style="display:flex;gap:20px;justify-content:space-between;align-items:center;flex-wrap:wrap">
+    <div><strong>Mesure d'audience Shopwho</strong><div class="muted">Vous pouvez accepter ou refuser la collecte d'événements de navigation pseudonymisés utilisés pour le projet de data science.</div></div>
+    <div class="actions">
+      <form method="post" action="{{ path('app_tracking_consent', {choice:'refuse'}) }}"><button type="submit">Refuser</button></form>
+      <form method="post" action="{{ path('app_tracking_consent', {choice:'accept'}) }}"><button class="btn orange" type="submit">Accepter</button></form>
+    </div>
+  </div>
+</div>
+{% endif %}
 </body>
 </html>

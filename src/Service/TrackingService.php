@@ -21,6 +21,10 @@ class TrackingService
             return;
         }
 
+        if ($request->cookies->get('shopwho_tracking_consent') !== 'yes') {
+            return;
+        }
+
         $session = $request->getSession();
         $visitorId = $session->get('tracking_visitor_id');
         if (!$visitorId) {
