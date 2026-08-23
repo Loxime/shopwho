@@ -1,0 +1,9 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ product.name }} — Shopwho{% endblock %}
+{% block body %}
+<section class="section"><div class="container product-layout">
+  <div>{% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:500px;display:grid;place-items:center;background:#eef2ff;border-radius:20px;font-size:100px">🛍️</div>{% endif %}</div>
+  <div><p class="muted">{{ product.category }}</p><h1>{{ product.name }}</h1><p>{{ product.description }}</p><p class="price">{{ product.price|number_format(2, ',', ' ') }} €</p><p class="muted">Stock : {{ product.stock }}</p>
+  <form method="post" action="{{ path('app_cart_add', {id:product.id}) }}"><button class="btn orange" type="submit">Ajouter au panier</button></form></div>
+</div></section>
+{% endblock %}
