@@ -1,0 +1,77 @@
+FROM php:8.4-fpm-alpine AS php-base
+
+RUN apk add --no-cache \
+        icu-libs \
+        libpq \
+        libzip \
+        libxml2 \
+        oniguruma \
+    && apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        icu-dev \
+        libpq-dev \
+        libzip-dev \
+        libxml2-dev \
+        oniguruma-dev \
+    && docker-php-ext-install -j"$(nproc)" \
+        dom \
+        intl \
+        mbstring \
+        opcache \
+        pdo_pgsql \
+        xml \
+        xmlreader \
+        xmlwriter \
+        zip \
+    && apk del .build-deps \
+    && rm -rf /tmp/*
+
+FROM php-base AS vendor
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Symfony Runtime expects the dotenv path to exist. Keep it empty: production
+# configuration is injected exclusively through the container environment.
+RUN touch .env
+
+COPY composer.json composer.lock symfony.lock ./
+
+# Symfony auto-scripts need the application code, so dependencies are installed
+# without scripts in this cacheable layer. Auto-scripts run after the code copy.
+RUN composer install \
+    --no-dev \
+    --prefer-dist \
+    --no-interaction \
+    --no-progress \
+    --optimize-autoloader \
+    --no-scripts
+
+COPY bin bin/
+COPY config config/
+COPY migrations migrations/
+COPY public public/
+COPY src src/
+COPY templates templates/
+
+RUN APP_ENV=prod \
+    APP_DEBUG=0 \
+    APP_SECRET=build-only-not-a-runtime-secret \
+    DATABASE_URL='postgresql://build:build@db:5432/build?serverVersion=16&charset=utf8' \
+    DEFAULT_URI='https://shopwho.falchero.fr' \
+    composer run-script post-install-cmd --no-dev
+
+FROM php-base AS app
+
+ENV APP_ENV=prod \
+    APP_DEBUG=0
+
+WORKDIR /var/www/html
+
+COPY --from=vendor --chown=www-data:www-data /var/www/html /var/www/html
+
+RUN mkdir -p var/cache var/log \
+    && chown -R www-data:www-data var
+
+CMD ["php-fpm"]
