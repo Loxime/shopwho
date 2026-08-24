@@ -42,6 +42,11 @@ docker compose exec app php bin/console app:tracking:export-csv --output=exports
 
 Le dossier `exports/` et les fichiers CSV/Parquet sont ignorés par Git : **aucun dataset réel ne doit être versionné**.
 
+## Déploiement production
+
+L'architecture Docker de production, ses variables et la procédure de
+déploiement manuel sont décrites dans [docs/deployment.md](docs/deployment.md).
+
 
 ## Consentement de mesure
 
