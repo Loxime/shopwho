@@ -18,8 +18,22 @@ Internet
 Le Nginx hôte devra remplacer, et non simplement relayer, les en-têtes
 `X-Forwarded-For`, `X-Forwarded-Host`, `X-Forwarded-Port` et
 `X-Forwarded-Proto`. Le Nginx Docker les transmet à PHP-FPM. Symfony ne fait
-confiance qu'au proxy directement connecté (`REMOTE_ADDR`, ainsi qu'à
-`127.0.0.1`) : aucune plage publique n'est approuvée.
+confiance, en production uniquement, qu'au proxy directement connecté
+(`REMOTE_ADDR`) : aucune plage publique n'est approuvée.
+
+La future configuration du Nginx hôte devra notamment fixer les en-têtes ainsi :
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $remote_addr;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Port $server_port;
+```
+
+L'utilisation de `$remote_addr` pour `X-Forwarded-For` écrase toute valeur
+potentiellement falsifiée reçue d'Internet.
 
 ## Variables requises
 

@@ -1,13 +1,5 @@
 framework:
   secret: '%env(APP_SECRET)%'
-  # Trust only the direct web-server peer. The host and container Nginx layers
-  # must replace forwarding headers received from untrusted clients.
-  trusted_proxies: '127.0.0.1,REMOTE_ADDR'
-  trusted_headers:
-    - 'x-forwarded-for'
-    - 'x-forwarded-host'
-    - 'x-forwarded-proto'
-    - 'x-forwarded-port'
   csrf_protection: true
   session: true
   router:
