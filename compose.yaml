@@ -19,7 +19,7 @@ services:
   nginx:
     image: nginx:1.27-alpine
     ports:
-      - "8080:80"
+      - "127.0.0.1:${SHOPWHO_HTTP_PORT:-3030}:80"
     volumes:
       - ./:/var/www/html:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

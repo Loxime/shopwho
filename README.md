@@ -10,9 +10,17 @@ docker compose exec app php bin/console doctrine:migrations:migrate --no-interac
 docker compose exec app php bin/console app:seed-products
 ```
 
-Application : http://localhost:8080
+Application : http://localhost:3030
 
-Administration produits : http://localhost:8080/admin/products
+Administration produits : http://localhost:3030/admin/products
+
+Le port HTTP Docker est lié à `127.0.0.1` afin que l'application puisse être
+placée derrière un reverse proxy en production. Il peut être surchargé, par
+exemple pour une future préproduction :
+
+```bash
+SHOPWHO_HTTP_PORT=3031 docker compose up -d --build
+```
 
 Création d'un administrateur local :
 
