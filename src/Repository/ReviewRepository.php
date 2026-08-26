@@ -60,4 +60,39 @@ class ReviewRepository extends ServiceEntityRepository
             'count' => (int) $result['reviewCount'],
         ];
     }
+    
+    /**
+     * @param list<int> $productIds
+     *
+     * @return array<int, array{average: float, count: int}>
+     */
+    public function getRatingStatsByProductIds(array $productIds): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('review')
+            ->select(
+                'IDENTITY(review.product) AS productId',
+                'AVG(review.rating) AS average',
+                'COUNT(review.id) AS reviewCount'
+            )
+            ->andWhere('IDENTITY(review.product) IN (:productIds)')
+            ->setParameter('productIds', $productIds)
+            ->groupBy('review.product')
+            ->getQuery()
+            ->getArrayResult();
+
+        $stats = [];
+
+        foreach ($rows as $row) {
+            $stats[(int) $row['productId']] = [
+                'average' => (float) $row['average'],
+                'count' => (int) $row['reviewCount'],
+            ];
+        }
+
+        return $stats;
+    }
 }
