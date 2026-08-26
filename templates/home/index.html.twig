@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 
+{% set catalogTrackingEnabled =
+  app.request.cookies.get('shopwho_tracking_consent') == 'yes'
+%}
+
 {% block title %}Shopwho — découvrir{% endblock %}
 
 {% block body %}
-  {% set catalogTrackingEnabled =
-    app.request.cookies.get('shopwho_tracking_consent') == 'yes'
-  %}
-
   <section class="hero">
     <div class="container hero-grid">
       <div>
