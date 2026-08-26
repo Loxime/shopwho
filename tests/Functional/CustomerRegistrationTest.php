@@ -118,8 +118,8 @@ class CustomerRegistrationTest extends WebTestCase
                 'registration[plainPassword][second]' => self::PASSWORD,
             ])
         );
-
-        self::assertResponseIsSuccessful();
+    
+        self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains(
             'body',
             'Un compte existe déjà avec cette adresse e-mail.'
@@ -151,7 +151,7 @@ class CustomerRegistrationTest extends WebTestCase
             ])
         );
 
-        self::assertResponseIsSuccessful();
+        self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains(
             'body',
             'Les mots de passe ne correspondent pas.'
@@ -176,7 +176,7 @@ class CustomerRegistrationTest extends WebTestCase
             ])
         );
 
-        self::assertResponseIsSuccessful();
+        self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains(
             'body',
             'Le mot de passe doit contenir au moins 12 caractères.'

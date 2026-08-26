@@ -175,7 +175,7 @@ class CustomerProfileManagementTest extends WebTestCase
             ])
         );
 
-        self::assertResponseIsSuccessful();
+        self::assertResponseStatusCodeSame(422);
 
         self::assertSelectorTextContains(
             'body',
@@ -235,7 +235,7 @@ class CustomerProfileManagementTest extends WebTestCase
             ])
         );
 
-        self::assertResponseIsSuccessful();
+        self::assertResponseStatusCodeSame(422);
 
         self::assertSelectorTextContains(
             'body',
@@ -284,7 +284,7 @@ class CustomerProfileManagementTest extends WebTestCase
             ])
         );
 
-        self::assertResponseIsSuccessful();
+        self::assertResponseStatusCodeSame(422);
 
         self::assertSelectorTextContains(
             'body',
