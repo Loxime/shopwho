@@ -17,42 +17,101 @@ class TrackingService
     ) {
     }
 
-    public function track(string $eventType, ?int $productId = null, array $metadata = []): void
+    public function track(
+        string $eventType,
+        ?int $productId = null,
+        array $metadata = []
+    ): void {
+        $this->trackBatch([
+            [
+                'eventType' => $eventType,
+                'productId' => $productId,
+                'metadata' => $metadata,
+            ],
+        ]);
+    }
+
+    /**
+     * @param list<array{
+     *     eventType: string,
+     *     productId: ?int,
+     *     metadata?: array<string, mixed>
+     * }> $events
+     */
+    public function trackBatch(array $events): void
     {
+        if ($events === []) {
+            return;
+        }
+
         $request = $this->requestStack->getCurrentRequest();
+
         if (!$request || !$request->hasSession()) {
             return;
         }
 
-        if ($request->cookies->get('shopwho_tracking_consent') !== 'yes') {
+        if (
+            $request->cookies->get(
+                'shopwho_tracking_consent'
+            ) !== 'yes'
+        ) {
             return;
         }
 
         $session = $request->getSession();
-        $visitorId = $session->get('tracking_visitor_id');
+
+        $visitorId = $session->get(
+            'tracking_visitor_id'
+        );
+
         if (!$visitorId) {
             $visitorId = bin2hex(random_bytes(16));
-            $session->set('tracking_visitor_id', $visitorId);
+
+            $session->set(
+                'tracking_visitor_id',
+                $visitorId
+            );
         }
 
-        $sessionId = $session->get('tracking_session_id');
+        $sessionId = $session->get(
+            'tracking_session_id'
+        );
+
         if (!$sessionId) {
             $sessionId = bin2hex(random_bytes(16));
-            $session->set('tracking_session_id', $sessionId);
+
+            $session->set(
+                'tracking_session_id',
+                $sessionId
+            );
         }
 
-        $metadata = array_merge([
-            'path' => $request->getPathInfo(),
-            'method' => $request->getMethod(),
-        ], $metadata);
-
-        $event = new TrackingEvent($visitorId, $sessionId, $eventType, $productId, $metadata);
         $user = $this->security->getUser();
-        if ($user instanceof User) {
-            $event->setUser($user);
+
+        foreach ($events as $eventData) {
+            $metadata = array_merge(
+                [
+                    'path' => $request->getPathInfo(),
+                    'method' => $request->getMethod(),
+                ],
+                $eventData['metadata'] ?? []
+            );
+
+            $event = new TrackingEvent(
+                $visitorId,
+                $sessionId,
+                $eventData['eventType'],
+                $eventData['productId'],
+                $metadata
+            );
+
+            if ($user instanceof User) {
+                $event->setUser($user);
+            }
+
+            $this->entityManager->persist($event);
         }
 
-        $this->entityManager->persist($event);
         $this->entityManager->flush();
     }
 }
