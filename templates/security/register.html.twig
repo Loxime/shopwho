@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription — Shopwho{% endblock %}
+
+{% block body %}
+<div class="customer-login-backdrop">
+  <section class="customer-login-card" aria-labelledby="registration-title">
+    <a
+      class="customer-login-close"
+      href="{{ path('app_home') }}"
+      aria-label="Fermer"
+    >×</a>
+
+    <div class="customer-login-brand">SHOPWHO</div>
+
+    <h1 id="registration-title">Créer un compte</h1>
+    <p class="muted">
+      Créez votre compte pour retrouver vos commandes, donner votre avis
+      et profiter pleinement de Shopwho.
+    </p>
+
+    {{ form_start(registrationForm) }}
+
+      {{ form_errors(registrationForm) }}
+
+      <div class="form-row">
+        {{ form_label(registrationForm.firstName) }}
+        {{ form_widget(registrationForm.firstName) }}
+        {{ form_errors(registrationForm.firstName) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(registrationForm.lastName) }}
+        {{ form_widget(registrationForm.lastName) }}
+        {{ form_errors(registrationForm.lastName) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(registrationForm.email) }}
+        {{ form_widget(registrationForm.email) }}
+        {{ form_errors(registrationForm.email) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(registrationForm.plainPassword.first) }}
+        {{ form_widget(registrationForm.plainPassword.first) }}
+        {{ form_errors(registrationForm.plainPassword.first) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(registrationForm.plainPassword.second) }}
+        {{ form_widget(registrationForm.plainPassword.second) }}
+        {{ form_errors(registrationForm.plainPassword.second) }}
+      </div>
+
+      <button class="btn orange customer-login-submit" type="submit">
+        Créer mon compte
+      </button>
+
+    {{ form_end(registrationForm) }}
+
+    <p class="customer-login-switch">
+      Déjà un compte ?
+      <a href="{{ path('app_login') }}">Connectez-vous</a>
+    </p>
+  </section>
+</div>
+{% endblock %}
