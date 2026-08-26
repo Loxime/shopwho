@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Supprimer mon compte — Shopwho{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container form-container">
+
+    <div class="danger-zone">
+      <h1>
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        Supprimer mon compte
+      </h1>
+
+      <p>
+        Cette action est définitive.
+      </p>
+
+      <p class="muted">
+        Votre compte ainsi que les données directement associées à votre
+        utilisation de Shopwho seront supprimés.
+      </p>
+
+      <div class="danger-zone-warning">
+        <strong>Seront notamment supprimés :</strong>
+
+        <ul>
+          <li>vos informations de compte ;</li>
+          <li>vos commandes et leurs lignes ;</li>
+          <li>vos avis ;</li>
+          <li>vos événements de navigation associés ;</li>
+          <li>votre session et votre consentement au suivi.</li>
+        </ul>
+      </div>
+
+      {{ form_start(deleteAccountForm) }}
+
+        {{ form_errors(deleteAccountForm) }}
+
+        <div class="form-row">
+          {{ form_label(deleteAccountForm.currentPassword) }}
+          {{ form_widget(deleteAccountForm.currentPassword) }}
+          {{ form_errors(deleteAccountForm.currentPassword) }}
+        </div>
+
+        <div class="form-row">
+          {{ form_label(deleteAccountForm.confirmation) }}
+          {{ form_widget(deleteAccountForm.confirmation) }}
+          {{ form_help(deleteAccountForm.confirmation) }}
+          {{ form_errors(deleteAccountForm.confirmation) }}
+        </div>
+
+        <div class="actions">
+          <button class="btn danger" type="submit">
+            Supprimer définitivement mon compte
+          </button>
+
+          <a class="btn" href="{{ path('app_profile') }}">
+            Annuler
+          </a>
+        </div>
+
+      {{ form_end(deleteAccountForm) }}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

@@ -33,5 +33,18 @@
     {% endif %}
     <a class="btn" href="{{ path('app_profile_orders') }}">Voir toutes mes commandes</a>
   </section>
+      <section class="profile-danger-zone">
+      <h2>Zone dangereuse</h2>
+
+      <p class="muted">
+        La suppression de votre compte est définitive.
+      </p>
+
+      <a class="btn danger" href="{{ path('app_profile_delete') }}">
+        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+        Supprimer mon compte
+      </a>
+    </section>
 </div></section>
+
 {% endblock %}
