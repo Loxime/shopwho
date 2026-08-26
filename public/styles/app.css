@@ -118,3 +118,24 @@
   color:#991b1b;
   font-size:14px;
 }
+
+
+.profile-actions{
+  margin-top:22px;
+}
+
+.form-row .help-text{
+  margin:0;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.profile-form-separator{
+  margin:32px 0;
+  border:0;
+  border-top:1px solid #e5e7eb;
+}
+
+.form-container h2{
+  margin-bottom:8px;
+}

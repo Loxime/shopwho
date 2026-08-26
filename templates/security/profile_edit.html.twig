@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier mon profil — Shopwho{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container form-container">
+
+    <div class="profile-heading">
+      <i class="fa-solid fa-user-pen" aria-hidden="true"></i>
+      <div>
+        <h1>Modifier mon profil</h1>
+        <p class="muted">
+          Mettez à jour les informations associées à votre compte.
+        </p>
+      </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+      <div class="flash">{{ message }}</div>
+    {% endfor %}
+
+    {{ form_start(profileForm) }}
+
+      {{ form_errors(profileForm) }}
+
+      <div class="form-row">
+        {{ form_label(profileForm.firstName) }}
+        {{ form_widget(profileForm.firstName) }}
+        {{ form_errors(profileForm.firstName) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(profileForm.lastName) }}
+        {{ form_widget(profileForm.lastName) }}
+        {{ form_errors(profileForm.lastName) }}
+      </div>
+
+      <div class="form-row">
+        {{ form_label(profileForm.email) }}
+        {{ form_widget(profileForm.email) }}
+        {{ form_errors(profileForm.email) }}
+      </div>
+
+	<hr class="profile-form-separator">
+
+    <h2>Sécurité</h2>
+
+    <p class="muted">
+      Laissez les champs suivants vides si vous ne souhaitez pas modifier
+      votre mot de passe.
+    </p>
+
+    <div class="form-row">
+      {{ form_label(profileForm.newPassword.first) }}
+      {{ form_widget(profileForm.newPassword.first) }}
+      {{ form_errors(profileForm.newPassword.first) }}
+    </div>
+
+    <div class="form-row">
+      {{ form_label(profileForm.newPassword.second) }}
+      {{ form_widget(profileForm.newPassword.second) }}
+      {{ form_errors(profileForm.newPassword.second) }}
+    </div>
+
+      <div class="form-row">
+        {{ form_label(profileForm.currentPassword) }}
+        {{ form_widget(profileForm.currentPassword) }}
+        {{ form_help(profileForm.currentPassword) }}
+        {{ form_errors(profileForm.currentPassword) }}
+      </div>
+
+
+      <div class="actions">
+        <button class="btn orange" type="submit">
+          Enregistrer les modifications
+        </button>
+
+        <a class="btn" href="{{ path('app_profile') }}">
+          Annuler
+        </a>
+      </div>
+
+    {{ form_end(profileForm) }}
+
+  </div>
+</section>
+{% endblock %}
