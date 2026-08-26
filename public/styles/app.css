@@ -169,3 +169,93 @@
   background:#991b1b;
   border-color:#991b1b;
 }
+
+.address-page{
+  max-width:1000px;
+}
+
+.address-data-notice{
+  display:flex;
+  gap:14px;
+  margin-bottom:28px;
+  padding:18px 20px;
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+  border-radius:14px;
+}
+
+.address-data-notice>i{
+  margin-top:3px;
+  color:var(--blue);
+  font-size:20px;
+}
+
+.address-data-notice p{
+  margin:6px 0 0;
+}
+
+.address-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+}
+
+.address-card{
+  padding:26px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+}
+
+.address-card-heading{
+  display:flex;
+  gap:14px;
+  align-items:flex-start;
+  margin-bottom:24px;
+}
+
+.address-card-heading>i{
+  display:grid;
+  place-items:center;
+  width:42px;
+  height:42px;
+  flex:0 0 42px;
+  border-radius:50%;
+  background:#eef2ff;
+  color:var(--blue);
+}
+
+.address-card-heading h2{
+  margin:0 0 5px;
+}
+
+.address-card-heading p{
+  margin:0;
+}
+
+.address-city-row{
+  display:grid;
+  grid-template-columns:140px 1fr;
+  gap:14px;
+}
+
+.address-card .form-row input,
+.address-card .form-row select{
+  width:100%;
+}
+
+.address-back{
+  margin-top:28px;
+}
+
+@media(max-width:800px){
+  .address-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:480px){
+  .address-city-row{
+    grid-template-columns:1fr;
+  }
+}

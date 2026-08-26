@@ -1,0 +1,189 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes adresses — Shopwho{% endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container address-page">
+
+    <div class="profile-heading">
+      <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+
+      <div>
+        <h1>Mes adresses</h1>
+
+        <p class="muted">
+          Gérez vos informations de livraison et de facturation.
+        </p>
+      </div>
+    </div>
+
+    <div class="address-data-notice">
+      <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+
+      <div>
+        <strong>Utilisation des données géographiques</strong>
+
+        <p>
+          La ville, le code postal et le pays pourront être utilisés
+          dans les analyses statistiques du projet Shopwho afin
+          d’étudier des tendances géographiques.
+        </p>
+
+        <p class="muted">
+          Les lignes détaillées de votre adresse ne sont pas destinées
+          aux analyses statistiques.
+        </p>
+      </div>
+    </div>
+
+    <div class="address-grid">
+
+      <article class="address-card">
+        <div class="address-card-heading">
+          <i class="fa-solid fa-truck" aria-hidden="true"></i>
+
+          <div>
+            <h2>Adresse de livraison</h2>
+            <p class="muted">
+              Adresse utilisée pour simuler la livraison
+              de vos commandes.
+            </p>
+          </div>
+        </div>
+
+        {{ form_start(shippingForm) }}
+
+          {{ form_errors(shippingForm) }}
+
+          <div class="form-row">
+            {{ form_label(shippingForm.firstName) }}
+            {{ form_widget(shippingForm.firstName) }}
+            {{ form_errors(shippingForm.firstName) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(shippingForm.lastName) }}
+            {{ form_widget(shippingForm.lastName) }}
+            {{ form_errors(shippingForm.lastName) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(shippingForm.line1) }}
+            {{ form_widget(shippingForm.line1) }}
+            {{ form_errors(shippingForm.line1) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(shippingForm.line2) }}
+            {{ form_widget(shippingForm.line2) }}
+            {{ form_errors(shippingForm.line2) }}
+          </div>
+
+          <div class="address-city-row">
+            <div class="form-row">
+              {{ form_label(shippingForm.postalCode) }}
+              {{ form_widget(shippingForm.postalCode) }}
+              {{ form_errors(shippingForm.postalCode) }}
+            </div>
+
+            <div class="form-row">
+              {{ form_label(shippingForm.city) }}
+              {{ form_widget(shippingForm.city) }}
+              {{ form_errors(shippingForm.city) }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            {{ form_label(shippingForm.countryCode) }}
+            {{ form_widget(shippingForm.countryCode) }}
+            {{ form_errors(shippingForm.countryCode) }}
+          </div>
+
+          <button class="btn orange" type="submit">
+            Enregistrer l’adresse de livraison
+          </button>
+
+        {{ form_end(shippingForm) }}
+      </article>
+
+      <article class="address-card">
+        <div class="address-card-heading">
+          <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+
+          <div>
+            <h2>Adresse de facturation</h2>
+            <p class="muted">
+              Adresse utilisée pour simuler les informations
+              de facturation.
+            </p>
+          </div>
+        </div>
+
+        {{ form_start(billingForm) }}
+
+          {{ form_errors(billingForm) }}
+
+          <div class="form-row">
+            {{ form_label(billingForm.firstName) }}
+            {{ form_widget(billingForm.firstName) }}
+            {{ form_errors(billingForm.firstName) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(billingForm.lastName) }}
+            {{ form_widget(billingForm.lastName) }}
+            {{ form_errors(billingForm.lastName) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(billingForm.line1) }}
+            {{ form_widget(billingForm.line1) }}
+            {{ form_errors(billingForm.line1) }}
+          </div>
+
+          <div class="form-row">
+            {{ form_label(billingForm.line2) }}
+            {{ form_widget(billingForm.line2) }}
+            {{ form_errors(billingForm.line2) }}
+          </div>
+
+          <div class="address-city-row">
+            <div class="form-row">
+              {{ form_label(billingForm.postalCode) }}
+              {{ form_widget(billingForm.postalCode) }}
+              {{ form_errors(billingForm.postalCode) }}
+            </div>
+
+            <div class="form-row">
+              {{ form_label(billingForm.city) }}
+              {{ form_widget(billingForm.city) }}
+              {{ form_errors(billingForm.city) }}
+            </div>
+          </div>
+
+          <div class="form-row">
+            {{ form_label(billingForm.countryCode) }}
+            {{ form_widget(billingForm.countryCode) }}
+            {{ form_errors(billingForm.countryCode) }}
+          </div>
+
+          <button class="btn orange" type="submit">
+            Enregistrer l’adresse de facturation
+          </button>
+
+        {{ form_end(billingForm) }}
+      </article>
+
+    </div>
+
+    <div class="address-back">
+      <a class="btn" href="{{ path('app_profile') }}">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        Retour au profil
+      </a>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
