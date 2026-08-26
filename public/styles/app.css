@@ -300,3 +300,50 @@
 .card .price{
   margin-top:auto;
 }
+
+.recommendations-section{
+  background:#fff;
+  border-top:1px solid #e5e7eb;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.recommendations-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:24px;
+  margin-bottom:28px;
+}
+
+.recommendations-heading h2{
+  margin:4px 0 8px;
+}
+
+.recommendations-heading p{
+  margin-top:0;
+}
+
+.recommendations-eyebrow{
+  margin:0;
+  color:var(--blue);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.recommendations-grid{
+  margin-top:0;
+}
+
+.recommendation-card{
+  position:relative;
+}
+
+.product-image-placeholder{
+  height:220px;
+  display:grid;
+  place-items:center;
+  background:#eef2ff;
+  font-size:55px;
+}
