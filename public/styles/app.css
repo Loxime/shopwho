@@ -139,3 +139,33 @@
 .form-container h2{
   margin-bottom:8px;
 }
+
+.profile-danger-zone{
+  margin-top:40px;
+  padding-top:28px;
+  border-top:1px solid #fecaca;
+}
+
+.profile-danger-zone h2,
+.danger-zone h1{
+  color:#991b1b;
+}
+
+.danger-zone-warning{
+  margin:24px 0;
+  padding:16px 20px;
+  border:1px solid #fecaca;
+  border-radius:10px;
+  background:#fef2f2;
+}
+
+.btn.danger{
+  background:#b91c1c;
+  border-color:#b91c1c;
+  color:#fff;
+}
+
+.btn.danger:hover{
+  background:#991b1b;
+  border-color:#991b1b;
+}
