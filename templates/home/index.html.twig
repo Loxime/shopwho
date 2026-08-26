@@ -21,7 +21,47 @@
     <article class="card">
       <a href="{{ path('app_product_show', {slug:product.slug}) }}">
         {% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:220px;display:grid;place-items:center;background:#eef2ff;font-size:55px">🛍️</div>{% endif %}
-        <div class="card-body"><div class="muted">{{ product.category.name }}</div><h3>{{ product.name }}</h3><div class="price">{{ product.price|number_format(2, ',', ' ') }} €</div></div>
+        <div class="card-body">
+          <div class="muted">
+            {{ product.category.name }}
+          </div>
+
+          <h3>{{ product.name }}</h3>
+
+          {% set rating = productRatingStats[product.id] ?? null %}
+
+          {% if rating and rating.count > 0 %}
+            {% set roundedRating = rating.average|round %}
+
+            <div
+              class="card-rating"
+              aria-label="Note moyenne {{ rating.average|number_format(1, ',', ' ') }} sur 5, {{ rating.count }} avis"
+            >
+              <span class="stars" aria-hidden="true">
+                {% for star in 1..5 %}
+                  {{ star <= roundedRating ? '★' : '☆' }}
+                {% endfor %}
+              </span>
+
+              <span>
+                {{ rating.average|number_format(1, ',', ' ') }}
+                ({{ rating.count }})
+              </span>
+            </div>
+          {% else %}
+            <div class="card-rating muted">
+              Pas encore d’avis
+            </div>
+          {% endif %}
+
+          <p class="card-description">
+            {{ product.description|slice(0, 60) }}{% if product.description|length > 60 %}…{% endif %}
+          </p>
+
+          <div class="price">
+            {{ product.price|number_format(2, ',', ' ') }} €
+          </div>
+        </div>
       </a>
     </article>
   {% else %}<p>Aucun produit ne correspond à la recherche.</p>{% endfor %}

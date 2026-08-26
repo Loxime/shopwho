@@ -259,3 +259,44 @@
     grid-template-columns:1fr;
   }
 }
+
+.site-header{
+  position:sticky;
+  top:0;
+  z-index:50;
+  box-shadow:0 2px 12px rgba(15,23,42,.08);
+}
+
+.card>a{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
+
+.card-body{
+  display:flex;
+  flex-direction:column;
+  flex:1;
+}
+
+.card-body h3{
+  margin:10px 0;
+}
+
+.card-rating{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-bottom:10px;
+  font-size:14px;
+}
+
+.card-description{
+  margin:0 0 16px;
+  color:#4b5563;
+  line-height:1.45;
+}
+
+.card .price{
+  margin-top:auto;
+}
