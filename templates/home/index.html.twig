@@ -39,6 +39,196 @@
     </div>
   </section>
 
+  {% if recommendations is not empty %}
+    {% set primaryRecommendationStrategy =
+      recommendations|first.strategy
+    %}
+
+    <section
+      class="section recommendations-section"
+      aria-labelledby="recommendations-title"
+      {% if catalogTrackingEnabled %}
+        data-recommendation-tracking
+        data-tracking-endpoint="{{ path(
+          'app_tracking_recommendations'
+        ) }}"
+        data-tracking-token="{{ csrf_token(
+          'recommendation_tracking'
+        ) }}"
+      {% endif %}
+    >
+      <div class="container">
+        <div class="recommendations-heading">
+          <div>
+            {% if primaryRecommendationStrategy
+              == 'frequently_viewed'
+            %}
+              <p class="recommendations-eyebrow">
+                Sélection personnalisée
+              </p>
+
+              <h2 id="recommendations-title">
+                Pour vous
+              </h2>
+
+              <p class="muted">
+                Une sélection basée sur les produits
+                que vous avez consultés récemment.
+              </p>
+            {% elseif primaryRecommendationStrategy
+              == 'popular_30d'
+            %}
+              <p class="recommendations-eyebrow">
+                Les tendances du moment
+              </p>
+
+              <h2 id="recommendations-title">
+                Les plus populaires
+              </h2>
+
+              <p class="muted">
+                Les produits les plus commandés
+                récemment sur Shopwho.
+              </p>
+            {% else %}
+              <p class="recommendations-eyebrow">
+                Les mieux notés
+              </p>
+
+              <h2 id="recommendations-title">
+                Les favoris de nos clients
+              </h2>
+
+              <p class="muted">
+                Une sélection des produits les
+                mieux évalués.
+              </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid recommendations-grid">
+          {% for recommendation in recommendations %}
+            {% set product =
+              recommendation.product
+            %}
+
+            {% set rating =
+              productRatingStats[product.id] ?? null
+            %}
+
+            <article
+              class="
+                card
+                recommendation-card
+                js-recommendation-card
+              "
+              data-product-id="{{ product.id }}"
+              data-position="{{ loop.index }}"
+              data-strategy="{{ recommendation.strategy }}"
+            >
+              <a
+                class="js-recommendation-link"
+                href="{{ path(
+                  'app_product_show',
+                  {
+                    slug: product.slug
+                  }
+                ) }}"
+              >
+                {% if product.imageUrl %}
+                  <img
+                    src="{{ product.imageUrl }}"
+                    alt="{{ product.name }}"
+                  >
+                {% else %}
+                  <div
+                    class="product-image-placeholder"
+                    aria-hidden="true"
+                  >
+                    🛍️
+                  </div>
+                {% endif %}
+
+                <div class="card-body">
+                  <div class="muted">
+                    {{ product.category.name }}
+                  </div>
+
+                  <h3>
+                    {{ product.name }}
+                  </h3>
+
+                  {% if rating and rating.count > 0 %}
+                    {% set roundedRating =
+                      rating.average|round
+                    %}
+
+                    <div
+                      class="card-rating"
+                      aria-label="
+                        Note moyenne
+                        {{ rating.average|number_format(
+                          1,
+                          ',',
+                          ' '
+                        ) }}
+                        sur 5,
+                        {{ rating.count }}
+                        avis
+                      "
+                    >
+                      <span
+                        class="stars"
+                        aria-hidden="true"
+                      >
+                        {% for star in 1..5 %}
+                          {{ star <= roundedRating
+                            ? '★'
+                            : '☆'
+                          }}
+                        {% endfor %}
+                      </span>
+
+                      <span>
+                        {{ rating.average|number_format(
+                          1,
+                          ',',
+                          ' '
+                        ) }}
+                        ({{ rating.count }})
+                      </span>
+                    </div>
+                  {% else %}
+                    <div class="card-rating muted">
+                      Pas encore d’avis
+                    </div>
+                  {% endif %}
+
+                  <p class="card-description">
+                    {{ product.description|slice(0, 60) }}
+                    {%- if product.description|length > 60 -%}
+                      …
+                    {%- endif -%}
+                  </p>
+
+                  <div class="price">
+                    {{ product.price|number_format(
+                      2,
+                      ',',
+                      ' '
+                    ) }}
+                    €
+                  </div>
+                </div>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
   <section
     id="catalogue"
     class="section"
@@ -69,9 +259,12 @@
 
           {% for item in categories %}
             <a
-              href="{{ path('app_home', {
-                category: item.slug
-              }) }}"
+              href="{{ path(
+                'app_home',
+                {
+                  category: item.slug
+                }
+              ) }}"
               {% if category == item.slug %}
                 aria-current="page"
               {% endif %}
@@ -91,6 +284,10 @@
 
       <div class="grid">
         {% for product in products %}
+          {% set rating =
+            productRatingStats[product.id] ?? null
+          %}
+
           <article
             class="card js-product-card"
             data-product-id="{{ product.id }}"
@@ -98,9 +295,12 @@
           >
             <a
               class="js-product-card-link"
-              href="{{ path('app_product_show', {
-                slug: product.slug
-              }) }}"
+              href="{{ path(
+                'app_product_show',
+                {
+                  slug: product.slug
+                }
+              ) }}"
             >
               {% if product.imageUrl %}
                 <img
@@ -109,13 +309,7 @@
                 >
               {% else %}
                 <div
-                  style="
-                    height:220px;
-                    display:grid;
-                    place-items:center;
-                    background:#eef2ff;
-                    font-size:55px
-                  "
+                  class="product-image-placeholder"
                   aria-hidden="true"
                 >
                   🛍️
@@ -130,10 +324,6 @@
                 <h3>
                   {{ product.name }}
                 </h3>
-
-                {% set rating =
-                  productRatingStats[product.id] ?? null
-                %}
 
                 {% if rating and rating.count > 0 %}
                   {% set roundedRating =
@@ -215,5 +405,12 @@
       src="/js/catalog-tracking.js"
       defer
     ></script>
+
+    {% if recommendations is not empty %}
+      <script
+        src="/js/recommendation-tracking.js"
+        defer
+      ></script>
+    {% endif %}
   {% endif %}
 {% endblock %}

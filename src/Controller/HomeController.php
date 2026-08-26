@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
-use App\Repository\ReviewRepository;
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
+use App\Repository\ReviewRepository;
+use App\Service\RecommendationService;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,25 +21,43 @@ class HomeController extends AbstractController
         ProductRepository $products,
         CategoryRepository $categories,
         ReviewRepository $reviews,
+        RecommendationService $recommendationService,
         TrackingService $tracking,
     ): Response {
-        $query = trim((string) $request->query->get('q', '')) ?: null;
-        $category = trim((string) $request->query->get('category', '')) ?: null;
+        $query = trim(
+            (string) $request->query->get('q', '')
+        ) ?: null;
 
-        $tracking->track('PAGE_VIEW', null, [
-            'page' => 'catalog',
-        ]);
+        $category = trim(
+            (string) $request->query->get('category', '')
+        ) ?: null;
+
+        $tracking->track(
+            'PAGE_VIEW',
+            null,
+            [
+                'page' => 'catalog',
+            ]
+        );
 
         if ($query) {
-            $tracking->track('SEARCH', null, [
-                'query' => $query,
-            ]);
+            $tracking->track(
+                'SEARCH',
+                null,
+                [
+                    'query' => $query,
+                ]
+            );
         }
 
         if ($category) {
-            $tracking->track('CATEGORY_VIEW', null, [
-                'category' => $category,
-            ]);
+            $tracking->track(
+                'CATEGORY_VIEW',
+                null,
+                [
+                    'category' => $category,
+                ]
+            );
         }
 
         $catalogProducts = $products->findCatalog(
@@ -45,24 +65,60 @@ class HomeController extends AbstractController
             $category
         );
 
-        $productIds = [];
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            $user = null;
+        }
+
+        $recommendations =
+            $recommendationService->recommend(
+                $user,
+                8
+            );
+
+        $ratingProductIds = [];
 
         foreach ($catalogProducts as $product) {
-            if ($product->getId() !== null) {
-                $productIds[] = $product->getId();
+            $productId = $product->getId();
+
+            if ($productId !== null) {
+                $ratingProductIds[$productId] = true;
             }
         }
 
-        return $this->render('home/index.html.twig', [
-            'products' => $catalogProducts,
-            'productRatingStats' => $reviews
-                ->getRatingStatsByProductIds($productIds),
-            'categories' => $categories->findBy(
-                [],
-                ['name' => 'ASC']
-            ),
-            'query' => $query,
-            'category' => $category,
-        ]);
+        foreach ($recommendations as $recommendation) {
+            $productId =
+                $recommendation->product->getId();
+
+            if ($productId !== null) {
+                $ratingProductIds[$productId] = true;
+            }
+        }
+
+        return $this->render(
+            'home/index.html.twig',
+            [
+                'products' => $catalogProducts,
+                'recommendations' =>
+                    $recommendations,
+                'productRatingStats' =>
+                    $reviews
+                        ->getRatingStatsByProductIds(
+                            array_keys(
+                                $ratingProductIds
+                            )
+                        ),
+                'categories' =>
+                    $categories->findBy(
+                        [],
+                        [
+                            'name' => 'ASC',
+                        ]
+                    ),
+                'query' => $query,
+                'category' => $category,
+            ]
+        );
     }
 }
