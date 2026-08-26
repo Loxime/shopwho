@@ -1,70 +1,219 @@
 {% extends 'base.html.twig' %}
+
+{% set catalogTrackingEnabled =
+  app.request.cookies.get('shopwho_tracking_consent') == 'yes'
+%}
+
 {% block title %}Shopwho — découvrir{% endblock %}
+
 {% block body %}
-<section class="hero"><div class="container hero-grid">
-  <div>
-    <p class="muted">E-commerce expérimental & data</p>
-    <h1>Découvrez ce qui vous ressemble.</h1>
-    <p>Shopwho est une boutique de démonstration conçue pour étudier des parcours d'achat de manière pseudonymisée.</p>
-    <a class="btn orange" href="#catalogue">Voir les produits</a>
-  </div>
-  <div><h2 style="font-size:70px;color:#272785;margin:0">WHO?</h2><p class="muted">Un catalogue simple aujourd'hui, une expérience guidée par la donnée demain.</p></div>
-</div></section>
-<section id="catalogue" class="section"><div class="container">
-  <div class="actions" style="justify-content:space-between;flex-wrap:wrap">
-    <h2>Nos produits</h2>
-    <div class="actions category-filter"><a href="{{ path('app_home') }}">Tous</a>{% for item in categories %}<a href="{{ path('app_home', {category:item.slug}) }}"{% if category == item.slug %} aria-current="page"{% endif %}>{{ item.name }}</a>{% endfor %}</div>
-  </div>
-  {% if query %}<p>Résultats pour <strong>{{ query }}</strong></p>{% endif %}
-  <div class="grid">
-  {% for product in products %}
-    <article class="card">
-      <a href="{{ path('app_product_show', {slug:product.slug}) }}">
-        {% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:220px;display:grid;place-items:center;background:#eef2ff;font-size:55px">🛍️</div>{% endif %}
-        <div class="card-body">
-          <div class="muted">
-            {{ product.category.name }}
-          </div>
+  <section class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="muted">
+          E-commerce expérimental & data
+        </p>
 
-          <h3>{{ product.name }}</h3>
+        <h1>Découvrez ce qui vous ressemble.</h1>
 
-          {% set rating = productRatingStats[product.id] ?? null %}
+        <p>
+          Shopwho est une boutique de démonstration conçue pour
+          étudier des parcours d'achat de manière pseudonymisée.
+        </p>
 
-          {% if rating and rating.count > 0 %}
-            {% set roundedRating = rating.average|round %}
+        <a class="btn orange" href="#catalogue">
+          Voir les produits
+        </a>
+      </div>
 
-            <div
-              class="card-rating"
-              aria-label="Note moyenne {{ rating.average|number_format(1, ',', ' ') }} sur 5, {{ rating.count }} avis"
+      <div>
+        <h2 style="font-size:70px;color:#272785;margin:0">
+          WHO?
+        </h2>
+
+        <p class="muted">
+          Un catalogue simple aujourd'hui, une expérience guidée
+          par la donnée demain.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="catalogue"
+    class="section"
+    {% if catalogTrackingEnabled %}
+      data-catalog-tracking
+      data-tracking-endpoint="{{ path('app_tracking_catalog') }}"
+      data-tracking-token="{{ csrf_token('catalog_tracking') }}"
+      data-query="{{ query ?? '' }}"
+      data-category="{{ category ?? '' }}"
+    {% endif %}
+  >
+    <div class="container">
+      <div
+        class="actions"
+        style="justify-content:space-between;flex-wrap:wrap"
+      >
+        <h2>Nos produits</h2>
+
+        <div class="actions category-filter">
+          <a
+            href="{{ path('app_home') }}"
+            {% if not category %}
+              aria-current="page"
+            {% endif %}
+          >
+            Tous
+          </a>
+
+          {% for item in categories %}
+            <a
+              href="{{ path('app_home', {
+                category: item.slug
+              }) }}"
+              {% if category == item.slug %}
+                aria-current="page"
+              {% endif %}
             >
-              <span class="stars" aria-hidden="true">
-                {% for star in 1..5 %}
-                  {{ star <= roundedRating ? '★' : '☆' }}
-                {% endfor %}
-              </span>
-
-              <span>
-                {{ rating.average|number_format(1, ',', ' ') }}
-                ({{ rating.count }})
-              </span>
-            </div>
-          {% else %}
-            <div class="card-rating muted">
-              Pas encore d’avis
-            </div>
-          {% endif %}
-
-          <p class="card-description">
-            {{ product.description|slice(0, 60) }}{% if product.description|length > 60 %}…{% endif %}
-          </p>
-
-          <div class="price">
-            {{ product.price|number_format(2, ',', ' ') }} €
-          </div>
+              {{ item.name }}
+            </a>
+          {% endfor %}
         </div>
-      </a>
-    </article>
-  {% else %}<p>Aucun produit ne correspond à la recherche.</p>{% endfor %}
-  </div>
-</div></section>
+      </div>
+
+      {% if query %}
+        <p>
+          Résultats pour
+          <strong>{{ query }}</strong>
+        </p>
+      {% endif %}
+
+      <div class="grid">
+        {% for product in products %}
+          <article
+            class="card js-product-card"
+            data-product-id="{{ product.id }}"
+            data-position="{{ loop.index }}"
+          >
+            <a
+              class="js-product-card-link"
+              href="{{ path('app_product_show', {
+                slug: product.slug
+              }) }}"
+            >
+              {% if product.imageUrl %}
+                <img
+                  src="{{ product.imageUrl }}"
+                  alt="{{ product.name }}"
+                >
+              {% else %}
+                <div
+                  style="
+                    height:220px;
+                    display:grid;
+                    place-items:center;
+                    background:#eef2ff;
+                    font-size:55px
+                  "
+                  aria-hidden="true"
+                >
+                  🛍️
+                </div>
+              {% endif %}
+
+              <div class="card-body">
+                <div class="muted">
+                  {{ product.category.name }}
+                </div>
+
+                <h3>
+                  {{ product.name }}
+                </h3>
+
+                {% set rating =
+                  productRatingStats[product.id] ?? null
+                %}
+
+                {% if rating and rating.count > 0 %}
+                  {% set roundedRating =
+                    rating.average|round
+                  %}
+
+                  <div
+                    class="card-rating"
+                    aria-label="
+                      Note moyenne
+                      {{ rating.average|number_format(
+                        1,
+                        ',',
+                        ' '
+                      ) }}
+                      sur 5,
+                      {{ rating.count }}
+                      avis
+                    "
+                  >
+                    <span
+                      class="stars"
+                      aria-hidden="true"
+                    >
+                      {% for star in 1..5 %}
+                        {{ star <= roundedRating
+                          ? '★'
+                          : '☆'
+                        }}
+                      {% endfor %}
+                    </span>
+
+                    <span>
+                      {{ rating.average|number_format(
+                        1,
+                        ',',
+                        ' '
+                      ) }}
+                      ({{ rating.count }})
+                    </span>
+                  </div>
+                {% else %}
+                  <div class="card-rating muted">
+                    Pas encore d’avis
+                  </div>
+                {% endif %}
+
+                <p class="card-description">
+                  {{ product.description|slice(0, 60) }}
+                  {%- if product.description|length > 60 -%}
+                    …
+                  {%- endif -%}
+                </p>
+
+                <div class="price">
+                  {{ product.price|number_format(
+                    2,
+                    ',',
+                    ' '
+                  ) }}
+                  €
+                </div>
+              </div>
+            </a>
+          </article>
+        {% else %}
+          <p>
+            Aucun produit ne correspond à la recherche.
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block javascripts %}
+  {% if catalogTrackingEnabled %}
+    <script
+      src="/js/catalog-tracking.js"
+      defer
+    ></script>
+  {% endif %}
 {% endblock %}
