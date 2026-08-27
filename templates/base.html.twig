@@ -27,16 +27,28 @@
       )
   %}
 
-  <div
-    class="promo special-offer-banner"
-    style="
-      --offer-background: {{ headerOffer.backgroundColor }};
-      --offer-text: {{ headerOffer.textColor }};
-    "
-  >
+	<div
+	  class="promo special-offer-banner js-special-offer"
+	  data-special-offer
+	  data-offer-id="{{ headerOffer.id }}"
+	  data-placement="header"
+	  data-position="1"
+	  data-tracking-endpoint="{{ path(
+	    'app_tracking_special_offers'
+	  ) }}"
+	  data-tracking-token="{{ csrf_token(
+	    'special_offer_tracking'
+	  ) }}"
+	  style="
+	    --offer-background: {{ headerOffer.backgroundColor }};
+	    --offer-text: {{ headerOffer.textColor }};
+	  "
+	>
     {% if headerOfferUrl %}
       <a
-        class="special-offer-banner-link"
+        class="
+	  special-offer-banner-link
+	  js-special-offer-link"
         href="{{ headerOfferUrl }}"
       >
     {% endif %}
@@ -116,6 +128,16 @@
     </div>
   </div>
 </div>
+{% endif %}
+{% if
+  app.request.cookies.get(
+    'shopwho_tracking_consent'
+  ) == 'yes'
+%}
+  <script
+    src="/js/special-offer-tracking.js"
+    defer
+  ></script>
 {% endif %}
 {% block javascripts %}{% endblock %}
 </body>

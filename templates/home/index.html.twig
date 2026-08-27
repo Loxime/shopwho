@@ -88,11 +88,21 @@
           %}
 
           <article
-            class="special-offer-card special-offer-card-primary"
-            style="
-              --offer-background: {{ offer.backgroundColor }};
-              --offer-text: {{ offer.textColor }};
-            "
+		  class="
+		    special-offer-card
+		    special-offer-card-primary
+		    js-special-offer
+		  "
+		  data-special-offer
+		  data-offer-id="{{ offer.id }}"
+		  data-placement="homepage"
+		  data-position="{{ loop.index }}"
+		  data-tracking-endpoint="{{ path(
+		    'app_tracking_special_offers'
+		  ) }}"
+		  data-tracking-token="{{ csrf_token(
+		    'special_offer_tracking'
+		  ) }}"
           >
             <div class="special-offer-card-content">
               {% if offer.targetCategory %}
@@ -111,7 +121,7 @@
 
               {% if offerUrl %}
                 <a
-                  class="special-offer-cta"
+                  class="special-offer-cta js-special-offer-link"
                   href="{{ offerUrl }}"
                 >
                   {{ offer.ctaLabel ?? 'Découvrir' }}
@@ -145,12 +155,22 @@
                 )
             %}
 
-            <article
-              class="special-offer-card special-offer-card-secondary"
-              style="
-                --offer-background: {{ offer.backgroundColor }};
-                --offer-text: {{ offer.textColor }};
-              "
+	   <article
+		  class="
+		    special-offer-card
+		    special-offer-card-secondary
+		    js-special-offer
+		  "
+		  data-special-offer
+		  data-offer-id="{{ offer.id }}"
+		  data-placement="homepage"
+		  data-position="{{ loop.index + 3 }}"
+		  data-tracking-endpoint="{{ path(
+		    'app_tracking_special_offers'
+		  ) }}"
+		  data-tracking-token="{{ csrf_token(
+		    'special_offer_tracking'
+		  ) }}"
             >
               <div class="special-offer-card-content">
                 {% if offer.targetCategory %}
@@ -169,7 +189,7 @@
 
                 {% if offerUrl %}
                   <a
-                    class="special-offer-cta"
+                    class="special-offer-cta js-special-offer-link"
                     href="{{ offerUrl }}"
                   >
                     {{ offer.ctaLabel ?? 'Découvrir' }}
