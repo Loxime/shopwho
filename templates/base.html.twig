@@ -92,6 +92,33 @@
     <nav aria-label="Actions utilisateur">
       <a class="header-action" href="{{ path('app_cart') }}" title="Panier" aria-label="Panier"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i></a>
       {% if app.user %}
+        {% set unreadNotifications =
+          shopwho_unread_notification_count(
+            app.user
+          )
+        %}
+
+        <a
+          class="header-action notification-header-link"
+          href="{{ path('app_profile_notifications') }}"
+          title="Notifications"
+          aria-label="Notifications{% if unreadNotifications > 0 %}, {{ unreadNotifications }} non lue{{ unreadNotifications > 1 ? 's' : '' }}{% endif %}"
+        >
+          <i
+            class="fa-solid fa-bell"
+            aria-hidden="true"
+          ></i>
+
+          {% if unreadNotifications > 0 %}
+            <span class="notification-badge">
+              {{ unreadNotifications > 99
+                ? '99+'
+                : unreadNotifications
+              }}
+            </span>
+          {% endif %}
+        </a>
+
          <details class="profile-menu"><summary class="header-action" title="Profil" aria-label="Ouvrir le menu profil"><i class="fa-solid fa-user" aria-hidden="true"></i></summary><div class="profile-dropdown">
            <span class="profile-email">{{ app.user.displayName }}</span>
            <a href="{{ path('app_profile') }}"><i class="fa-solid fa-id-card" aria-hidden="true"></i> Mon profil</a>
@@ -99,6 +126,10 @@
            <a href="{{ path('app_profile_favorites') }}">
              <i class="fa-solid fa-heart" aria-hidden="true"></i>
              Mes favoris
+           </a>
+           <a href="{{ path('app_profile_notifications') }}">
+             <i class="fa-solid fa-bell" aria-hidden="true"></i>
+             Mes notifications{% if unreadNotifications > 0 %} ({{ unreadNotifications }}){% endif %}
            </a>
            <a href="{{ path('app_profile_reviews') }}"><i class="fa-solid fa-star" aria-hidden="true"></i> Mes avis</a>
            {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_product_index') }}"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Se rendre sur le backoffice</a>{% endif %}
