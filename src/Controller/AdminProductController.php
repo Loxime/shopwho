@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use App\Service\FavoriteProductNotificationService;
 
 #[Route('/admin/products')]
 class AdminProductController extends AbstractController
@@ -44,8 +45,11 @@ class AdminProductController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'admin_product_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
-    public function edit(Product $product, Request $request, EntityManagerInterface $em, SluggerInterface $slugger): Response
+    public function edit(Product $product, Request $request, EntityManagerInterface $em, SluggerInterface $slugger, FavoriteProductNotificationService $notifications): Response
     {
+        $previousPriceCents = $product->getPriceCents();
+        $previousStock = $product->getStock();
+        $previousIsActive = $product->isActive();
         $form = $this->createForm(ProductType::class, $product);
         $form->handleRequest($request);
 
@@ -53,6 +57,13 @@ class AdminProductController extends AbstractController
             if (!$product->getSlug()) {
                 $product->setSlug(strtolower($slugger->slug($product->getName())->toString()));
             }
+            $notifications
+                ->notifyForProductUpdate(
+                    $product,
+                    $previousPriceCents,
+                    $previousStock,
+                    $previousIsActive
+                );
             $em->flush();
             $this->addFlash('success', 'Produit modifié.');
             return $this->redirectToRoute('admin_product_index');

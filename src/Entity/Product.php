@@ -66,12 +66,21 @@ class Product
     #[ORM\OneToMany(mappedBy: 'product', targetEntity: Review::class)]
     private Collection $reviews;
 
+    /** @var Collection<int, Favorite> */
+    #[ORM\OneToMany(
+        mappedBy: 'product',
+        targetEntity: Favorite::class,
+        orphanRemoval: true
+    )]
+    private Collection $favorites;
+    
     public function __construct()
     {
         $now = new \DateTimeImmutable();
         $this->createdAt = $now;
         $this->updatedAt = $now;
         $this->reviews = new ArrayCollection();
+        $this->favorites = new ArrayCollection();
     }
 
     public function getId(): ?int { return $this->id; }
@@ -101,6 +110,15 @@ class Product
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
     /** @return Collection<int, Review> */
     public function getReviews(): Collection { return $this->reviews; }
+    
+    /**
+     * @return Collection<int, Favorite>
+     */
+    public function getFavorites(): Collection
+    {
+        return $this->favorites;
+    }
+    
     public function hasReviews(): bool { return !$this->reviews->isEmpty(); }
 
     private function touch(): void { $this->updatedAt = new \DateTimeImmutable(); }

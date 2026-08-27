@@ -10,8 +10,87 @@
       {% if ratingStats.count > 0 %}{% set roundedRating = ratingStats.average|round %}<p class="product-rating" aria-label="Note moyenne {{ ratingStats.average|number_format(1, ',', ' ') }} sur 5, {{ ratingStats.count }} avis"><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= roundedRating ? '★' : '☆' }}{% endfor %}</span> {{ ratingStats.average|number_format(1, ',', ' ') }}/5 — {{ ratingStats.count }} avis</p>{% else %}<p class="muted">Aucun avis</p>{% endif %}
         <p>{{ product.description }}</p>
         <p class="price">{{ product.price|number_format(2, ',', ' ') }} €</p>
-        <form method="post" action="{{ path('app_cart_add', {id:product.id}) }}">
-      <button class="btn orange" type="submit">Ajouter au panier</button></form>
+<div class="product-actions">
+  <form
+    method="post"
+    action="{{ path(
+      'app_cart_add',
+      {
+        id: product.id
+      }
+    ) }}"
+  >
+    <button
+      class="btn orange"
+      type="submit"
+    >
+      Ajouter au panier
+    </button>
+  </form>
+
+  {% if app.user %}
+    <form
+      method="post"
+      action="{{ path(
+        'app_profile_favorite_toggle',
+        {
+          id: product.id
+        }
+      ) }}"
+    >
+      <input
+        type="hidden"
+        name="_token"
+        value="{{ csrf_token(
+          'toggle-favorite-' ~ product.id
+        ) }}"
+      >
+
+      <input
+        type="hidden"
+        name="source"
+        value="product"
+      >
+
+      <button
+        class="btn favorite-button{{ isFavorite
+          ? ' is-favorite'
+          : ''
+        }}"
+        type="submit"
+        aria-pressed="{{ isFavorite
+          ? 'true'
+          : 'false'
+        }}"
+      >
+        <i
+          class="{{ isFavorite
+            ? 'fa-solid'
+            : 'fa-regular'
+          }} fa-heart"
+          aria-hidden="true"
+        ></i>
+
+        {{ isFavorite
+          ? 'Retirer des favoris'
+          : 'Ajouter aux favoris'
+        }}
+      </button>
+    </form>
+  {% else %}
+    <a
+      class="btn favorite-button"
+      href="{{ path('app_login') }}"
+    >
+      <i
+        class="fa-regular fa-heart"
+        aria-hidden="true"
+      ></i>
+
+      Ajouter aux favoris
+    </a>
+  {% endif %}
+</div>
     </div>
   </div>
 </div></section>
