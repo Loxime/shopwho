@@ -177,22 +177,81 @@ class ProductReviewTest extends WebTestCase
         self::assertStringNotContainsString((string) $foreign->getComment(), $crawler->text());
     }
 
-    public function testAdminCannotDeleteProductContainingReview(): void
+    public function testAdminCanDeleteProductContainingReviewAndReviewIsCascaded(): void
     {
         $client = static::createClient();
-        [$product, $owner] = $this->fixture();
-        [, $admin] = $this->fixture(['ROLE_ADMIN']);
-        $this->persistReview($owner, $product, 5, null);
-        $client->loginUser($admin);
-        $crawler = $client->request('GET', '/admin/products');
-        $form = $crawler->filter(sprintf('form[action="/admin/products/%d"]', $product->getId()))->form();
-        $client->submit($form);
-        self::assertResponseRedirects('/admin/products');
-        $client->followRedirect();
-        self::assertSelectorTextContains('.admin-flash-error', 'possède des avis clients');
-        self::assertNotNull($this->em()->find(Product::class, $product->getId()));
-    }
 
+        [$product, $owner] = $this->fixture();
+        [, $admin] = $this->fixture(
+            ['ROLE_ADMIN']
+        );
+
+        $review = $this->persistReview(
+            $owner,
+            $product,
+            5,
+            null
+        );
+
+        $productId = $product->getId();
+        $reviewId = $review->getId();
+
+        self::assertNotNull($productId);
+        self::assertNotNull($reviewId);
+
+        $client->loginUser($admin);
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/products'
+        );
+
+        $form = $crawler
+            ->filter(
+                sprintf(
+                    'form[action="/admin/products/%d"]',
+                    $productId
+                )
+            )
+            ->form();
+
+        $client->submit($form);
+
+        self::assertResponseRedirects(
+            '/admin/products'
+        );
+
+        $client->followRedirect();
+
+        self::assertSelectorTextContains(
+            '.admin-flash-success',
+            'Produit supprimé.'
+        );
+
+        /*
+         * La suppression de l'avis est effectuée
+         * par PostgreSQL via ON DELETE CASCADE.
+         *
+         * On vide donc l'EntityManager avant de
+         * relire les entités afin de ne pas tester
+         * son identity map.
+         */
+        $this->em()->clear();
+
+        self::assertNull(
+            $this->em()->find(
+                Product::class,
+                $productId
+            )
+        );
+
+        self::assertNull(
+            $this->em()->find(
+                Review::class,
+                $reviewId
+            )
+        );
+    }
     /** @return array{Product, User} */
     private function fixture(array $roles = []): array
     {

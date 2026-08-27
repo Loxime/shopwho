@@ -215,3 +215,126 @@ button,input,select,textarea{font:inherit}
 .admin-funnel-step small{
   color:var(--admin-muted);
 }
+
+.admin-review-page{
+  display:grid;
+  gap:22px;
+}
+
+.admin-review-filters{
+  display:grid;
+  grid-template-columns:minmax(260px,2fr) 160px 160px auto;
+  gap:16px;
+  align-items:end;
+  padding:24px;
+}
+
+.admin-review-filters>div{
+  display:grid;
+  gap:7px;
+}
+
+.admin-review-filters label{
+  font-size:13px;
+  font-weight:700;
+}
+
+.admin-review-filters input,
+.admin-review-filters select{
+  width:100%;
+  min-height:42px;
+  padding:10px 12px;
+  color:var(--admin-ink);
+  background:#fff;
+  border:1px solid #cbd5e1;
+  border-radius:9px;
+}
+
+.admin-review-filter-actions{
+  display:flex!important;
+  grid-auto-flow:column;
+  gap:8px!important;
+}
+
+.admin-review-user{
+  display:grid;
+  gap:3px;
+}
+
+.admin-review-user small{
+  color:var(--admin-muted);
+}
+
+.admin-review-product-link:hover{
+  text-decoration:underline;
+}
+
+.admin-review-rating{
+  display:inline-flex;
+  gap:2px;
+  color:#f59e0b;
+}
+
+.admin-review-comment{
+  min-width:260px;
+  max-width:440px;
+  line-height:1.45;
+}
+
+.admin-review-empty{
+  color:var(--admin-muted);
+  font-style:italic;
+}
+
+.admin-pagination{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  padding:18px 24px;
+  border-top:1px solid var(--admin-border);
+}
+
+.admin-pagination-summary{
+  color:var(--admin-muted);
+  font-size:14px;
+}
+
+.admin-pagination-actions{
+  display:flex;
+  gap:8px;
+}
+
+@media(max-width:1100px){
+  .admin-review-filters{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .admin-review-filter-search{
+    grid-column:1/-1;
+  }
+}
+
+@media(max-width:700px){
+  .admin-review-filters{
+    grid-template-columns:1fr;
+  }
+
+  .admin-review-filter-search{
+    grid-column:auto;
+  }
+
+  .admin-review-filter-actions{
+    grid-auto-flow:row;
+  }
+
+  .admin-pagination{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-pagination-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+}

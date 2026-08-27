@@ -51,6 +51,20 @@
     Analytics
   </span>
 </a>
+<a
+  class="admin-nav-item{{ currentRoute starts with 'admin_review_' ? ' is-active' : '' }}"
+  href="{{ path('admin_review_index') }}"
+  {{ currentRoute starts with 'admin_review_' ? ' aria-current="page"' : '' }}
+>
+  <i
+    class="fa-solid fa-star"
+    aria-hidden="true"
+  ></i>
+
+  <span>
+    Avis clients
+  </span>
+</a>
       <a class="admin-nav-item{{ currentRoute starts with 'admin_data_reset' ? ' is-active' : '' }}" href="{{ path('admin_data_reset') }}"{{ currentRoute starts with 'admin_data_reset' ? ' aria-current="page"' : '' }}>
         <i class="fa-solid fa-database" aria-hidden="true"></i><span>Données importées</span>
       </a>
