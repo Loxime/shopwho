@@ -347,3 +347,167 @@
   background:#eef2ff;
   font-size:55px;
 }
+
+.special-offer-banner{
+  background:var(--offer-background);
+  color:var(--offer-text);
+}
+
+.special-offer-banner-link{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  color:inherit;
+  text-decoration:none;
+}
+
+.special-offer-banner-link:hover{
+  color:inherit;
+}
+
+.special-offer-banner-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-weight:800;
+}
+
+.special-offers-section{
+  background:#f8fafc;
+  border-top:1px solid #e5e7eb;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.special-offers-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:24px;
+  margin-bottom:28px;
+}
+
+.special-offers-heading h2{
+  margin:4px 0 8px;
+}
+
+.special-offers-heading p{
+  margin-top:0;
+}
+
+.special-offers-eyebrow{
+  margin:0;
+  color:var(--blue);
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.special-offers-primary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:20px;
+}
+
+.special-offers-secondary{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:16px;
+  margin-top:16px;
+}
+
+.special-offer-card{
+  min-width:0;
+  overflow:hidden;
+  background:var(--offer-background);
+  color:var(--offer-text);
+  border-radius:18px;
+}
+
+.special-offer-card-primary{
+  min-height:270px;
+}
+
+.special-offer-card-secondary{
+  min-height:210px;
+}
+
+.special-offer-card-content{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  padding:26px;
+}
+
+.special-offer-card-secondary
+.special-offer-card-content{
+  padding:20px;
+}
+
+.special-offer-card h3{
+  margin:10px 0;
+  color:inherit;
+  font-size:24px;
+}
+
+.special-offer-card-secondary h3{
+  font-size:19px;
+}
+
+.special-offer-card p{
+  margin:0 0 22px;
+  color:inherit;
+  opacity:.9;
+}
+
+.special-offer-category{
+  align-self:flex-start;
+  padding:5px 9px;
+  border:1px solid currentColor;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  opacity:.85;
+}
+
+.special-offer-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  align-self:flex-start;
+  margin-top:auto;
+  color:inherit;
+  font-weight:800;
+  text-decoration:none;
+}
+
+.special-offer-cta:hover{
+  text-decoration:underline;
+}
+
+@media(max-width:1000px){
+  .special-offers-primary{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .special-offers-secondary{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:650px){
+  .special-offer-banner-link{
+    flex-wrap:wrap;
+  }
+
+  .special-offers-primary,
+  .special-offers-secondary{
+    grid-template-columns:1fr;
+  }
+
+  .special-offer-card-primary,
+  .special-offer-card-secondary{
+    min-height:auto;
+  }
+}

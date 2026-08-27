@@ -1,0 +1,277 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  Offres spéciales
+{% endblock %}
+
+{% block admin_subtitle %}
+  Promotions, mises en avant et expérimentations
+{% endblock %}
+
+{% block admin_actions %}
+  <a
+    class="admin-button admin-button-primary"
+    href="{{ path('admin_special_offer_new') }}"
+  >
+    <i
+      class="fa-solid fa-plus"
+      aria-hidden="true"
+    ></i>
+    Nouvelle offre
+  </a>
+{% endblock %}
+
+{% block admin_body %}
+  <section
+    class="admin-card"
+    aria-labelledby="special-offers-title"
+  >
+    <div class="admin-card-header">
+      <div>
+        <h2 id="special-offers-title">
+          Offres configurées
+        </h2>
+
+        <p>
+          {{ offers|length }}
+          offre{{ offers|length > 1 ? 's' : '' }}
+        </p>
+      </div>
+    </div>
+
+    <div class="admin-table-scroll">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th scope="col">
+              Offre
+            </th>
+
+            <th scope="col">
+              Emplacement
+            </th>
+
+            <th scope="col">
+              Ciblage
+            </th>
+
+            <th scope="col">
+              Diffusion
+            </th>
+
+            <th scope="col">
+              Priorité
+            </th>
+
+            <th scope="col">
+              Statut
+            </th>
+
+            <th
+              scope="col"
+              class="admin-table-actions-heading"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for offer in offers %}
+            <tr>
+              <td>
+                <strong>
+                  {{ offer.title }}
+                </strong>
+
+                {% if offer.experimentKey %}
+                  <div class="muted">
+                    {{ offer.experimentKey }}
+
+                    {% if offer.experimentVariant %}
+                      · variante
+                      {{ offer.experimentVariant }}
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </td>
+
+              <td>
+                {{ offer.placement.label }}
+              </td>
+
+              <td>
+                {% if offer.targetCategory %}
+                  <span class="admin-badge admin-badge-accent">
+                    {{ offer.targetCategory.name }}
+                  </span>
+                {% else %}
+                  <span class="admin-badge admin-badge-muted">
+                    Toutes catégories
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if offer.startsAt %}
+                  {{ offer.startsAt|date('d/m/Y H:i') }}
+                {% else %}
+                  Immédiate
+                {% endif %}
+
+                <br>
+
+                <span class="muted">
+                  jusqu’au
+
+                  {% if offer.endsAt %}
+                    {{ offer.endsAt|date('d/m/Y H:i') }}
+                  {% else %}
+                    ∞
+                  {% endif %}
+                </span>
+              </td>
+
+              <td>
+                {{ offer.priority }}
+              </td>
+
+              <td>
+                {% if offer.currentlyActive %}
+                  <span class="admin-badge admin-badge-success">
+                    Active
+                  </span>
+                {% elseif offer.active %}
+                  <span class="admin-badge admin-badge-accent">
+                    Planifiée
+                  </span>
+                {% else %}
+                  <span class="admin-badge admin-badge-muted">
+                    Désactivée
+                  </span>
+                {% endif %}
+              </td>
+
+              <td>
+                <div class="admin-row-actions">
+                  <a
+                    class="admin-icon-button"
+                    href="{{ path(
+                      'admin_special_offer_edit',
+                      {
+                        id: offer.id
+                      }
+                    ) }}"
+                    title="Modifier {{ offer.title }}"
+                    aria-label="Modifier {{ offer.title }}"
+                  >
+                    <i
+                      class="fa-solid fa-pen-to-square"
+                      aria-hidden="true"
+                    ></i>
+
+                    <span class="admin-sr-only">
+                      Modifier
+                    </span>
+                  </a>
+
+                  <form
+                    method="post"
+                    action="{{ path(
+                      'admin_special_offer_toggle',
+                      {
+                        id: offer.id
+                      }
+                    ) }}"
+                  >
+                    <input
+                      type="hidden"
+                      name="_token"
+                      value="{{ csrf_token(
+                        'toggle-special-offer-' ~ offer.id
+                      ) }}"
+                    >
+
+                    <button
+                      class="admin-icon-button"
+                      type="submit"
+                      title="{{ offer.active
+                        ? 'Désactiver'
+                        : 'Activer'
+                      }} {{ offer.title }}"
+                      aria-label="{{ offer.active
+                        ? 'Désactiver'
+                        : 'Activer'
+                      }} {{ offer.title }}"
+                    >
+                      <i
+                        class="fa-solid {{ offer.active
+                          ? 'fa-toggle-on'
+                          : 'fa-toggle-off'
+                        }}"
+                        aria-hidden="true"
+                      ></i>
+
+                      <span class="admin-sr-only">
+                        Activer ou désactiver
+                      </span>
+                    </button>
+                  </form>
+
+                  <form
+                    method="post"
+                    action="{{ path(
+                      'admin_special_offer_delete',
+                      {
+                        id: offer.id
+                      }
+                    ) }}"
+                    onsubmit="return confirm(
+                      'Supprimer cette offre ?'
+                    )"
+                  >
+                    <input
+                      type="hidden"
+                      name="_token"
+                      value="{{ csrf_token(
+                        'delete-special-offer-' ~ offer.id
+                      ) }}"
+                    >
+
+                    <button
+                      class="
+                        admin-icon-button
+                        admin-icon-button-danger
+                      "
+                      type="submit"
+                      title="Supprimer {{ offer.title }}"
+                      aria-label="Supprimer {{ offer.title }}"
+                    >
+                      <i
+                        class="fa-solid fa-trash"
+                        aria-hidden="true"
+                      ></i>
+
+                      <span class="admin-sr-only">
+                        Supprimer
+                      </span>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td
+                class="admin-empty-state"
+                colspan="7"
+              >
+                Aucune offre spéciale configurée.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

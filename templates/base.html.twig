@@ -10,7 +10,78 @@
 </head>
 <body>
 <header class="site-header">
-  <div class="promo">Livraison offerte dès 59 € en France</div>
+{% set headerOffer = shopwho_header_offer() %}
+
+{% if headerOffer %}
+  {% set headerOfferUrl =
+    headerOffer.targetUrl
+      ?? (
+        headerOffer.targetCategory
+          ? path(
+              'app_home',
+              {
+                category: headerOffer.targetCategory.slug
+              }
+            )
+          : null
+      )
+  %}
+
+	<div
+	  class="promo special-offer-banner js-special-offer"
+	  data-special-offer
+	  data-offer-id="{{ headerOffer.id }}"
+	  data-placement="header"
+	  data-position="1"
+	  data-tracking-endpoint="{{ path(
+	    'app_tracking_special_offers'
+	  ) }}"
+	  data-tracking-token="{{ csrf_token(
+	    'special_offer_tracking'
+	  ) }}"
+	  style="
+	    --offer-background: {{ headerOffer.backgroundColor }};
+	    --offer-text: {{ headerOffer.textColor }};
+	  "
+	>
+    {% if headerOfferUrl %}
+      <a
+        class="
+	  special-offer-banner-link
+	  js-special-offer-link"
+        href="{{ headerOfferUrl }}"
+      >
+    {% endif %}
+
+      <strong>
+        {{ headerOffer.title }}
+      </strong>
+
+      {% if headerOffer.content %}
+        <span>
+          {{ headerOffer.content }}
+        </span>
+      {% endif %}
+
+      {% if headerOfferUrl %}
+        <span class="special-offer-banner-cta">
+          {{ headerOffer.ctaLabel ?? 'Découvrir' }}
+          <i
+            class="fa-solid fa-arrow-right"
+            aria-hidden="true"
+          ></i>
+        </span>
+      {% endif %}
+
+    {% if headerOfferUrl %}
+      </a>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="promo">
+    Livraison offerte dès 59 € en France
+  </div>
+{% endif %}
   <div class="header-main container">
     <a class="brand" href="{{ path('app_home') }}">SHOPWHO</a>
     <form class="search" action="{{ path('app_home') }}" method="get">
@@ -57,6 +128,16 @@
     </div>
   </div>
 </div>
+{% endif %}
+{% if
+  app.request.cookies.get(
+    'shopwho_tracking_consent'
+  ) == 'yes'
+%}
+  <script
+    src="/js/special-offer-tracking.js"
+    defer
+  ></script>
 {% endif %}
 {% block javascripts %}{% endblock %}
 </body>

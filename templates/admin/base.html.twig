@@ -23,6 +23,20 @@
       <a class="admin-nav-item{{ currentRoute starts with 'admin_category_' ? ' is-active' : '' }}" href="{{ path('admin_category_index') }}"{{ currentRoute starts with 'admin_category_' ? ' aria-current="page"' : '' }}>
         <i class="fa-solid fa-tags" aria-hidden="true"></i><span>Catégories</span>
       </a>
+      <a
+  class="admin-nav-item{{ currentRoute starts with 'admin_special_offer_' ? ' is-active' : '' }}"
+  href="{{ path('admin_special_offer_index') }}"
+  {{ currentRoute starts with 'admin_special_offer_' ? ' aria-current="page"' : '' }}
+>
+  <i
+    class="fa-solid fa-bullhorn"
+    aria-hidden="true"
+  ></i>
+
+  <span>
+    Offres spéciales
+  </span>
+</a>
       <a class="admin-nav-item{{ currentRoute starts with 'admin_data_reset' ? ' is-active' : '' }}" href="{{ path('admin_data_reset') }}"{{ currentRoute starts with 'admin_data_reset' ? ' aria-current="page"' : '' }}>
         <i class="fa-solid fa-database" aria-hidden="true"></i><span>Données importées</span>
       </a>
