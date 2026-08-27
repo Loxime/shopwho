@@ -60,12 +60,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private Collection $favorites;
 
+    /** @var Collection<int, Notification> */
+    #[ORM\OneToMany(
+        mappedBy: 'user',
+        targetEntity: Notification::class,
+        orphanRemoval: true
+    )]
+    private Collection $notifications;
+
     public function __construct(?\DateTimeImmutable $createdAt = null)
     {
         $this->createdAt = $createdAt ?? new \DateTimeImmutable();
         $this->orders = new ArrayCollection();
         $this->reviews = new ArrayCollection();
         $this->favorites = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -205,6 +214,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->favorites;
     }
     
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+        
     public function eraseCredentials(): void
     {
     }
