@@ -55,10 +55,23 @@ final class AdminAnalyticsController extends AbstractController
             $to
         );
 
+        $funnel = $analytics->funnel(
+            $from,
+            $to
+        );
+
+        $topProducts = $analytics->topProducts(
+            $from,
+            $to,
+            10
+        );
+
         return $this->render(
             'admin/analytics/index.html.twig',
             [
                 'overview' => $overview,
+                'funnel' => $funnel,
+                'topProducts' => $topProducts,
                 'days' => $days,
                 'periods' =>
                     self::ALLOWED_PERIODS,

@@ -307,6 +307,249 @@
       <div class="admin-card-header">
         <div>
           <h2>
+            Funnel comportemental
+          </h2>
+
+          <p>
+            Sessions ayant progressé dans
+            l'ordre vue produit → panier →
+            checkout → achat.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-filter"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-funnel">
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Vues produit
+            </span>
+
+            <strong>
+              {{ funnel.productViewSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span style="--funnel-width:100%"></span>
+          </div>
+
+          <small>
+            Base du funnel
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Ajout panier
+            </span>
+
+            <strong>
+              {{ funnel.cartSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.viewToCartRate }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.viewToCartRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis la vue produit
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Checkout
+            </span>
+
+            <strong>
+              {{ funnel.checkoutSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.checkoutShareOfViews }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.cartToCheckoutRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis le panier
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Achat
+            </span>
+
+            <strong>
+              {{ funnel.purchaseSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.viewToPurchaseRate }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.checkoutToPurchaseRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis le checkout
+          </small>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Produits les plus engagés
+          </h2>
+
+          <p>
+            Classement basé sur les interactions
+            comportementales trackées.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-ranking-star"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>
+                Produit
+              </th>
+
+              <th>
+                Vues
+              </th>
+
+              <th>
+                Ajouts panier
+              </th>
+
+              <th>
+                Taux panier
+              </th>
+
+              <th>
+                Favoris
+              </th>
+
+              <th>
+                Clics recommandations
+              </th>
+
+              <th class="admin-table-actions-heading">
+                Action
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for product in topProducts %}
+              <tr>
+                <td>
+                  <strong>
+                    {{ product.name }}
+                  </strong>
+                </td>
+
+                <td>
+                  {{ product.views }}
+                </td>
+
+                <td>
+                  {{ product.cartAdds }}
+                </td>
+
+                <td>
+                  {{ product.cartRate
+                    |number_format(
+                      2,
+                      ',',
+                      ' '
+                    )
+                  }} %
+                </td>
+
+                <td>
+                  {{ product.favoriteAdds }}
+                </td>
+
+                <td>
+                  {{ product.recommendationClicks }}
+                </td>
+
+                <td>
+                  <div class="admin-row-actions">
+                    <a
+                      class="admin-icon-button"
+                      href="{{ path(
+                        'admin_product_edit',
+                        {
+                          id: product.id
+                        }
+                      ) }}"
+                      title="Voir le produit"
+                    >
+                      <i
+                        class="fa-solid fa-arrow-up-right-from-square"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td
+                  class="admin-empty-state"
+                  colspan="7"
+                >
+                  Aucune interaction produit
+                  sur cette période.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
             Engagement
           </h2>
 
