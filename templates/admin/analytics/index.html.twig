@@ -1,0 +1,601 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  Analytics
+{% endblock %}
+
+{% block admin_subtitle %}
+  Analyse des sessions ayant accepté
+  le suivi comportemental.
+{% endblock %}
+
+{% block admin_actions %}
+  <form
+    class="admin-analytics-period"
+    method="get"
+    action="{{ path(
+      'admin_analytics_index'
+    ) }}"
+  >
+    <label for="analytics-period">
+      Période
+    </label>
+
+    <select
+      id="analytics-period"
+      name="days"
+      onchange="this.form.submit()"
+    >
+      {% for period in periods %}
+        <option
+          value="{{ period }}"
+          {{ period == days
+            ? 'selected'
+            : ''
+          }}
+        >
+          {{ period }} jours
+        </option>
+      {% endfor %}
+    </select>
+
+    <noscript>
+      <button
+        class="admin-button admin-button-secondary"
+        type="submit"
+      >
+        Appliquer
+      </button>
+    </noscript>
+  </form>
+{% endblock %}
+
+{% block admin_body %}
+  <div class="admin-analytics">
+    <div class="admin-callout admin-callout-info">
+      <i
+        class="fa-solid fa-circle-info"
+        aria-hidden="true"
+      ></i>
+
+      <div>
+        <strong>
+          Données issues du tracking consenti
+        </strong>
+
+        <p>
+          Ces statistiques représentent uniquement
+          les visiteurs et sessions pour lesquels
+          le suivi comportemental est actif.
+          Elles ne correspondent donc pas au trafic
+          total du site.
+        </p>
+      </div>
+    </div>
+
+    <section
+      class="admin-analytics-kpis"
+      aria-label="Indicateurs principaux"
+    >
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-arrow-pointer"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Événements
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.totalEvents|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-users"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Visiteurs trackés
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.uniqueVisitors|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-window-restore"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Sessions trackées
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.uniqueSessions|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-user-check"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Utilisateurs identifiés
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.identifiedUsers|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-eye"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Vues produit
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.productViews|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-cart-plus"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Ajouts panier
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.cartAdds|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-credit-card"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Checkouts
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.checkoutStarts|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+
+      <article class="admin-kpi-card">
+        <div class="admin-kpi-icon">
+          <i
+            class="fa-solid fa-bag-shopping"
+            aria-hidden="true"
+          ></i>
+        </div>
+
+        <div>
+          <span class="admin-kpi-label">
+            Achats
+          </span>
+
+          <strong class="admin-kpi-value">
+            {{ overview.purchases|number_format(
+              0,
+              ',',
+              ' '
+            ) }}
+          </strong>
+        </div>
+      </article>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Conversion des sessions trackées
+          </h2>
+
+          <p>
+            Part des sessions trackées contenant
+            un événement d'achat.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-chart-line"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-analytics-conversion">
+        <strong>
+          {{ overview.trackedSessionConversionRate
+            |number_format(
+              2,
+              ',',
+              ' '
+            )
+          }} %
+        </strong>
+
+        <span>
+          {{ overview.purchases }}
+          achat{{ overview.purchases > 1 ? 's' : '' }}
+          pour
+          {{ overview.uniqueSessions }}
+          session{{ overview.uniqueSessions > 1 ? 's' : '' }}
+          trackée{{ overview.uniqueSessions > 1 ? 's' : '' }}.
+        </span>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Funnel comportemental
+          </h2>
+
+          <p>
+            Sessions ayant progressé dans
+            l'ordre vue produit → panier →
+            checkout → achat.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-filter"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-funnel">
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Vues produit
+            </span>
+
+            <strong>
+              {{ funnel.productViewSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span style="--funnel-width:100%"></span>
+          </div>
+
+          <small>
+            Base du funnel
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Ajout panier
+            </span>
+
+            <strong>
+              {{ funnel.cartSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.viewToCartRate }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.viewToCartRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis la vue produit
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Checkout
+            </span>
+
+            <strong>
+              {{ funnel.checkoutSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.checkoutShareOfViews }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.cartToCheckoutRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis le panier
+          </small>
+        </div>
+
+        <div class="admin-funnel-step">
+          <div class="admin-funnel-heading">
+            <span>
+              Achat
+            </span>
+
+            <strong>
+              {{ funnel.purchaseSessions }}
+            </strong>
+          </div>
+
+          <div class="admin-funnel-track">
+            <span
+              style="--funnel-width:{{ funnel.viewToPurchaseRate }}%"
+            ></span>
+          </div>
+
+          <small>
+            {{ funnel.checkoutToPurchaseRate
+              |number_format(2, ',', ' ')
+            }} %
+            depuis le checkout
+          </small>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Produits les plus engagés
+          </h2>
+
+          <p>
+            Classement basé sur les interactions
+            comportementales trackées.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-ranking-star"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>
+                Produit
+              </th>
+
+              <th>
+                Vues
+              </th>
+
+              <th>
+                Ajouts panier
+              </th>
+
+              <th>
+                Taux panier
+              </th>
+
+              <th>
+                Favoris
+              </th>
+
+              <th>
+                Clics recommandations
+              </th>
+
+              <th class="admin-table-actions-heading">
+                Action
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for product in topProducts %}
+              <tr>
+                <td>
+                  <strong>
+                    {{ product.name }}
+                  </strong>
+                </td>
+
+                <td>
+                  {{ product.views }}
+                </td>
+
+                <td>
+                  {{ product.cartAdds }}
+                </td>
+
+                <td>
+                  {{ product.cartRate
+                    |number_format(
+                      2,
+                      ',',
+                      ' '
+                    )
+                  }} %
+                </td>
+
+                <td>
+                  {{ product.favoriteAdds }}
+                </td>
+
+                <td>
+                  {{ product.recommendationClicks }}
+                </td>
+
+                <td>
+                  <div class="admin-row-actions">
+                    <a
+                      class="admin-icon-button"
+                      href="{{ path(
+                        'admin_product_edit',
+                        {
+                          id: product.id
+                        }
+                      ) }}"
+                      title="Voir le produit"
+                    >
+                      <i
+                        class="fa-solid fa-arrow-up-right-from-square"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td
+                  class="admin-empty-state"
+                  colspan="7"
+                >
+                  Aucune interaction produit
+                  sur cette période.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Engagement
+          </h2>
+
+          <p>
+            Interactions comportementales
+            complémentaires.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-heart-pulse"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <dl class="admin-analytics-engagement">
+        <div>
+          <dt>
+            Favoris ajoutés
+          </dt>
+
+          <dd>
+            {{ overview.favoriteAdds }}
+          </dd>
+        </div>
+
+        <div>
+          <dt>
+            Clics recommandations
+          </dt>
+
+          <dd>
+            {{ overview.recommendationClicks }}
+          </dd>
+        </div>
+
+        <div>
+          <dt>
+            Clics offres spéciales
+          </dt>
+
+          <dd>
+            {{ overview.specialOfferClicks }}
+          </dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+{% endblock %}
