@@ -111,4 +111,25 @@ final class FavoriteRepository extends ServiceEntityRepository
             $rows
         );
     }
+
+/**
+ * @return list<Favorite>
+ */
+public function findForProduct(
+    Product $product
+): array {
+    return $this
+        ->createQueryBuilder('favorite')
+        ->addSelect('user')
+        ->join('favorite.user', 'user')
+        ->andWhere(
+            'favorite.product = :product'
+        )
+        ->setParameter(
+            'product',
+            $product
+        )
+        ->getQuery()
+        ->getResult();
+}
 }
