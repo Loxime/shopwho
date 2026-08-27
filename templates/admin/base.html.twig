@@ -37,6 +37,20 @@
     Offres spéciales
   </span>
 </a>
+<a
+  class="admin-nav-item{{ currentRoute starts with 'admin_analytics_' ? ' is-active' : '' }}"
+  href="{{ path('admin_analytics_index') }}"
+  {{ currentRoute starts with 'admin_analytics_' ? ' aria-current="page"' : '' }}
+>
+  <i
+    class="fa-solid fa-chart-column"
+    aria-hidden="true"
+  ></i>
+
+  <span>
+    Analytics
+  </span>
+</a>
       <a class="admin-nav-item{{ currentRoute starts with 'admin_data_reset' ? ' is-active' : '' }}" href="{{ path('admin_data_reset') }}"{{ currentRoute starts with 'admin_data_reset' ? ' aria-current="page"' : '' }}>
         <i class="fa-solid fa-database" aria-hidden="true"></i><span>Données importées</span>
       </a>
