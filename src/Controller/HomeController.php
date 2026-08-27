@@ -7,6 +7,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
 use App\Service\RecommendationService;
+use App\Repository\SpecialOfferRepository;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +24,7 @@ class HomeController extends AbstractController
         ReviewRepository $reviews,
         RecommendationService $recommendationService,
         TrackingService $tracking,
+        SpecialOfferRepository $specialOffers,
     ): Response {
         $query = trim(
             (string) $request->query->get('q', '')
@@ -95,6 +97,7 @@ class HomeController extends AbstractController
                 $ratingProductIds[$productId] = true;
             }
         }
+        $homepageOffers = $specialOffers->findActiveHomepageOffers(8);
 
         return $this->render(
             'home/index.html.twig',
@@ -102,6 +105,7 @@ class HomeController extends AbstractController
                 'products' => $catalogProducts,
                 'recommendations' =>
                     $recommendations,
+                'specialOffers' => $homepageOffers,
                 'productRatingStats' =>
                     $reviews
                         ->getRatingStatsByProductIds(

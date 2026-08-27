@@ -39,6 +39,157 @@
     </div>
   </section>
 
+  {% if specialOffers is not empty %}
+  <section
+    class="section special-offers-section"
+    aria-labelledby="special-offers-title"
+  >
+    <div class="container">
+      <div class="special-offers-heading">
+        <div>
+          <p class="special-offers-eyebrow">
+            En ce moment
+          </p>
+
+          <h2 id="special-offers-title">
+            Nos offres spéciales
+          </h2>
+
+          <p class="muted">
+            Découvrez les sélections et avantages
+            mis en avant sur Shopwho.
+          </p>
+        </div>
+      </div>
+
+      {% set primaryOffers =
+        specialOffers|slice(0, 3)
+      %}
+
+      {% set secondaryOffers =
+        specialOffers|slice(3, 5)
+      %}
+
+      <div class="special-offers-primary">
+        {% for offer in primaryOffers %}
+          {% set offerUrl =
+            offer.targetUrl
+              ?? (
+                offer.targetCategory
+                  ? path(
+                      'app_home',
+                      {
+                        category:
+                          offer.targetCategory.slug
+                      }
+                    )
+                  : null
+              )
+          %}
+
+          <article
+            class="special-offer-card special-offer-card-primary"
+            style="
+              --offer-background: {{ offer.backgroundColor }};
+              --offer-text: {{ offer.textColor }};
+            "
+          >
+            <div class="special-offer-card-content">
+              {% if offer.targetCategory %}
+                <span class="special-offer-category">
+                  {{ offer.targetCategory.name }}
+                </span>
+              {% endif %}
+
+              <h3>
+                {{ offer.title }}
+              </h3>
+
+              <p>
+                {{ offer.content }}
+              </p>
+
+              {% if offerUrl %}
+                <a
+                  class="special-offer-cta"
+                  href="{{ offerUrl }}"
+                >
+                  {{ offer.ctaLabel ?? 'Découvrir' }}
+
+                  <i
+                    class="fa-solid fa-arrow-right"
+                    aria-hidden="true"
+                  ></i>
+                </a>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      {% if secondaryOffers is not empty %}
+        <div class="special-offers-secondary">
+          {% for offer in secondaryOffers %}
+            {% set offerUrl =
+              offer.targetUrl
+                ?? (
+                  offer.targetCategory
+                    ? path(
+                        'app_home',
+                        {
+                          category:
+                            offer.targetCategory.slug
+                        }
+                      )
+                    : null
+                )
+            %}
+
+            <article
+              class="special-offer-card special-offer-card-secondary"
+              style="
+                --offer-background: {{ offer.backgroundColor }};
+                --offer-text: {{ offer.textColor }};
+              "
+            >
+              <div class="special-offer-card-content">
+                {% if offer.targetCategory %}
+                  <span class="special-offer-category">
+                    {{ offer.targetCategory.name }}
+                  </span>
+                {% endif %}
+
+                <h3>
+                  {{ offer.title }}
+                </h3>
+
+                <p>
+                  {{ offer.content }}
+                </p>
+
+                {% if offerUrl %}
+                  <a
+                    class="special-offer-cta"
+                    href="{{ offerUrl }}"
+                  >
+                    {{ offer.ctaLabel ?? 'Découvrir' }}
+
+                    <i
+                      class="fa-solid fa-arrow-right"
+                      aria-hidden="true"
+                    ></i>
+                  </a>
+                {% endif %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endif %}
+
+
   {% if recommendations is not empty %}
     {% set primaryRecommendationStrategy =
       recommendations|first.strategy
