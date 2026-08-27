@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\ReviewType;
 use App\Repository\OrderRepository;
 use App\Repository\ReviewRepository;
+use App\Repository\FavoriteRepository;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,10 +19,12 @@ class ProductController extends AbstractController
 {
     #[Route('/produit/{slug}', name: 'app_product_show', methods: ['GET'])]
 public function show(
-    #[MapEntity(mapping: ['slug' => 'slug'])] Product $product,
+    #[MapEntity(mapping: ['slug' => 'slug'])]
+    Product $product,
     TrackingService $tracking,
     ReviewRepository $reviews,
     OrderRepository $orders,
+    FavoriteRepository $favorites,
 ): Response {
     if (!$product->isActive()) {
         throw $this->createNotFoundException();
@@ -33,6 +36,12 @@ public function show(
     ]);
 
     $user = $this->getUser();
+    $isFavorite =
+        $user instanceof User
+        && $favorites->isFavorite(
+            $user,
+            $product
+        );
     $userReview = $user instanceof User ? $reviews->findOneByUserAndProduct($user, $product) : null;
     $canReview = $user instanceof User && !$userReview && $orders->hasUserPurchasedProduct($user, $product);
     $reviewForm = $canReview ? $this->createForm(ReviewType::class, new Review($user, $product, 5), [
@@ -46,6 +55,7 @@ public function show(
         'userReview' => $userReview,
         'canReview' => $canReview,
         'reviewForm' => $reviewForm,
+        'isFavorite' => $isFavorite,
     ]);
 }
 }
