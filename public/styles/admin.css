@@ -417,3 +417,35 @@ button,input,select,textarea{font:inherit}
     grid-template-columns:1fr 1fr;
   }
 }
+
+.admin-data-import-templates{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:20px 24px;
+  border-top:1px solid var(--admin-border);
+}
+
+.admin-data-import-templates p{
+  margin:4px 0 0;
+  color:var(--admin-muted);
+}
+
+.admin-data-import-template-actions{
+  display:flex;
+  gap:8px;
+  flex-shrink:0;
+}
+
+@media(max-width:700px){
+  .admin-data-import-templates{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-data-import-template-actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+}

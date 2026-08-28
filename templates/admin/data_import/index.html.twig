@@ -127,6 +127,72 @@
         </button>
       </div>
     </form>
+
+    <div class="admin-data-import-templates">
+  <div>
+    <strong>Modèle du type sélectionné</strong>
+
+    <p>
+      Téléchargez un exemple déjà structuré
+      avant de préparer vos données.
+    </p>
+  </div>
+
+  <div class="admin-data-import-template-actions">
+    <a
+      class="admin-button admin-button-secondary"
+      href="{{ path(
+        'admin_data_import_template',
+        {
+          type: type,
+          format: 'json'
+        }
+      ) }}"
+    >
+      <i
+        class="fa-solid fa-file-code"
+        aria-hidden="true"
+      ></i>
+
+      Modèle JSON
+    </a>
+
+    <a
+      class="admin-button admin-button-secondary"
+      href="{{ path(
+        'admin_data_import_template',
+        {
+          type: type,
+          format: 'xlsx'
+        }
+      ) }}"
+    >
+      <i
+        class="fa-solid fa-file-excel"
+        aria-hidden="true"
+      ></i>
+
+      Modèle XLSX
+    </a>
+  </div>
+</div>
+
+<aside class="admin-callout admin-callout-info">
+  <i
+    class="fa-solid fa-circle-info"
+    aria-hidden="true"
+  ></i>
+
+  <div>
+    <strong>Dépendances entre les données</strong>
+
+    <p>
+      Les catégories des produits doivent déjà exister.
+      Les commandes référencent des utilisateurs et produits
+      existants. Un avis nécessite également un achat vérifié.
+    </p>
+  </div>
+</aside>
   </section>
 
   {% if result %}

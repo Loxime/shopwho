@@ -12,17 +12,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class ImportManager
 {
-    public const SUPPORTED_TYPES = [
-        'users',
-        'products',
-        'orders',
-        'reviews',
-    ];
+    public const SUPPORTED_TYPES = ImportSchema::TYPES;
 
-    public const SUPPORTED_EXTENSIONS = [
-        'json',
-        'xlsx',
-    ];
+    public const SUPPORTED_EXTENSIONS = ImportSchema::FORMATS;
 
     /**
      * @param iterable<ImportReaderInterface> $readers

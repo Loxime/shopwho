@@ -9,6 +9,10 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Import\ImportSchema;
+use App\Import\ImportTemplateGenerator;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 #[Route('/admin/data-import')]
 final class AdminDataImportController extends AbstractController
@@ -185,5 +189,67 @@ final class AdminDataImportController extends AbstractController
                     ImportManager::SUPPORTED_TYPES,
             ]
         );
+    }
+
+    #[Route(
+        '/template/{type}.{format}',
+        name: 'admin_data_import_template',
+        methods: ['GET']
+    )]
+    public function template(
+        string $type,
+        string $format,
+        ImportTemplateGenerator $templates
+    ): Response {
+        if (
+            !in_array(
+                $type,
+                ImportSchema::TYPES,
+                true
+            )
+            || !in_array(
+                $format,
+                ImportSchema::FORMATS,
+                true
+            )
+        ) {
+            throw $this
+                ->createNotFoundException();
+        }
+
+        $filename = sprintf(
+            'shopwho-%s-template.%s',
+            $type,
+            $format
+        );
+
+        if ('json' === $format) {
+            $response = new Response(
+                $templates->json($type)
+            );
+
+            $response->headers->set(
+                'Content-Type',
+                'application/json; charset=UTF-8'
+            );
+        } else {
+            $response = new BinaryFileResponse(
+                $templates->xlsx($type)
+            );
+
+            $response->deleteFileAfterSend(
+                true
+            );
+        }
+
+        $response->headers->set(
+            'Content-Disposition',
+            HeaderUtils::makeDisposition(
+                HeaderUtils::DISPOSITION_ATTACHMENT,
+                $filename
+            )
+        );
+
+        return $response;
     }
 }
