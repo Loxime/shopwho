@@ -127,7 +127,7 @@
         </button>
       </div>
     </form>
-
+    
     <div class="admin-data-import-templates">
   <div>
     <strong>Modèle du type sélectionné</strong>
@@ -211,33 +211,33 @@
       </div>
 
       <div class="admin-data-import-stats">
-        <div>
-          <strong>{{ result.total }}</strong>
-          <span>Total</span>
+          <div>
+            <strong>{{ result.getTotal() }}</strong>
+            <span>Total</span>
+          </div>
+
+          <div>
+            <strong>{{ result.getCreated() }}</strong>
+            <span>Créés</span>
+          </div>
+
+          <div>
+            <strong>{{ result.getUpdated() }}</strong>
+            <span>Mis à jour</span>
+          </div>
+
+          <div>
+            <strong>{{ result.getSkipped() }}</strong>
+            <span>Ignorés</span>
+          </div>
+
+          <div>
+            <strong>{{ result.getFailed() }}</strong>
+            <span>Erreurs</span>
+          </div>
         </div>
 
-        <div>
-          <strong>{{ result.created }}</strong>
-          <span>Créés</span>
-        </div>
-
-        <div>
-          <strong>{{ result.updated }}</strong>
-          <span>Mis à jour</span>
-        </div>
-
-        <div>
-          <strong>{{ result.skipped }}</strong>
-          <span>Ignorés</span>
-        </div>
-
-        <div>
-          <strong>{{ result.failed }}</strong>
-          <span>Erreurs</span>
-        </div>
-      </div>
-
-      {% if result.errors %}
+      {% if result.getErrors() %}
         <div class="admin-table-scroll">
           <table class="admin-table">
             <thead>
@@ -249,7 +249,7 @@
             </thead>
 
             <tbody>
-              {% for error in result.errors %}
+              {% for error in result.getErrors() %}
                 <tr>
                   <td>{{ error.record }}</td>
 
