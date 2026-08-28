@@ -3,6 +3,8 @@
 namespace App\Tests\Functional;
 
 use App\Entity\User;
+use App\Entity\Category;
+use App\Enum\DataOrigin;
 use App\Import\DTO\ImportDtoFactory;
 use App\Import\ImportTemplateGenerator;
 use App\Import\Reader\JsonImportReader;
@@ -490,6 +492,430 @@ final class AdminDataImportTest extends WebTestCase
                 ->items
         );
     }
+
+    public function testAdminCanImportJsonCategory(): void
+    {
+        $client = static::createClient();
+        $em = $this->em();
+
+        $suffix = strtolower(
+            bin2hex(random_bytes(6))
+        );
+
+        $admin = $this->createAdmin(
+            $em,
+            $suffix
+        );
+
+        $externalRef = 'CAT-WEB-IMPORT-'.$suffix;
+        $slug = 'category-import-'.$suffix;
+
+        $client->loginUser($admin);
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/data-import'
+        );
+
+        $token = (string) $crawler
+            ->filter('input[name="_token"]')
+            ->attr('value');
+
+        $file = $this->createCategoryJson(
+            $externalRef,
+            'Catégorie importée',
+            $slug
+        );
+
+        try {
+            $client->request(
+                'POST',
+                '/admin/data-import',
+                [
+                    '_token' => $token,
+                    'type' => 'categories',
+                    'mode' => 'import',
+                ],
+                [
+                    'import_file' => new UploadedFile(
+                        $file,
+                        'categories.json',
+                        'application/json',
+                        null,
+                        true
+                    ),
+                ]
+            );
+        } finally {
+            @unlink($file);
+        }
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(2) strong',
+            '1'
+        );
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(5) strong',
+            '0'
+        );
+
+        $em->clear();
+
+        $category = $em
+            ->getRepository(Category::class)
+            ->findOneBy([
+                'externalRef' => $externalRef,
+            ]);
+
+        self::assertInstanceOf(
+            Category::class,
+            $category
+        );
+
+        self::assertSame(
+            DataOrigin::Imported,
+            $category->getDataOrigin()
+        );
+
+        self::assertSame(
+            'Catégorie importée',
+            $category->getName()
+        );
+
+        self::assertSame(
+            $slug,
+            $category->getSlug()
+        );
+
+        $this->removeCategory(
+            $em,
+            $externalRef
+        );
+
+        $this->removeUser(
+            $em,
+            $admin->getEmail()
+        );
+    }
+
+    public function testImportUpdatesExistingImportedCategory(): void
+    {
+        $client = static::createClient();
+        $em = $this->em();
+
+        $suffix = strtolower(
+            bin2hex(random_bytes(6))
+        );
+
+        $admin = $this->createAdmin(
+            $em,
+            $suffix
+        );
+
+        $externalRef = 'CAT-WEB-UPDATE-'.$suffix;
+
+        $category = (new Category())
+            ->setExternalRef($externalRef)
+            ->setDataOrigin(DataOrigin::Imported)
+            ->setName('Ancien nom')
+            ->setSlug('old-category-'.$suffix)
+            ->setIcon(null)
+            ->setIsFeatured(false)
+            ->setShowInNavigation(false)
+            ->setNavigationPosition(0);
+
+        $em->persist($category);
+        $em->flush();
+
+        $client->loginUser($admin);
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/data-import'
+        );
+
+        $token = (string) $crawler
+            ->filter('input[name="_token"]')
+            ->attr('value');
+
+        $newSlug = 'updated-category-'.$suffix;
+
+        $file = $this->createCategoryJson(
+            $externalRef,
+            'Nouveau nom',
+            $newSlug,
+            'fa-solid fa-star',
+            true,
+            true,
+            12
+        );
+
+        try {
+            $client->request(
+                'POST',
+                '/admin/data-import',
+                [
+                    '_token' => $token,
+                    'type' => 'categories',
+                    'mode' => 'import',
+                ],
+                [
+                    'import_file' => new UploadedFile(
+                        $file,
+                        'categories.json',
+                        'application/json',
+                        null,
+                        true
+                    ),
+                ]
+            );
+        } finally {
+            @unlink($file);
+        }
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(3) strong',
+            '1'
+        );
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(5) strong',
+            '0'
+        );
+
+        $em->clear();
+
+        $updated = $em
+            ->getRepository(Category::class)
+            ->findOneBy([
+                'externalRef' => $externalRef,
+            ]);
+
+        self::assertInstanceOf(
+            Category::class,
+            $updated
+        );
+
+        self::assertSame(
+            'Nouveau nom',
+            $updated->getName()
+        );
+
+        self::assertSame(
+            $newSlug,
+            $updated->getSlug()
+        );
+
+        self::assertSame(
+            'fa-solid fa-star',
+            $updated->getIcon()
+        );
+
+        self::assertTrue(
+            $updated->isFeatured()
+        );
+
+        self::assertTrue(
+            $updated->isShowInNavigation()
+        );
+
+        self::assertSame(
+            12,
+            $updated->getNavigationPosition()
+        );
+
+        $this->removeCategory(
+            $em,
+            $externalRef
+        );
+
+        $this->removeUser(
+            $em,
+            $admin->getEmail()
+        );
+    }
+
+    public function testImportCannotOverwriteNativeCategorySlug(): void
+    {
+        $client = static::createClient();
+        $em = $this->em();
+
+        $suffix = strtolower(
+            bin2hex(random_bytes(6))
+        );
+
+        $admin = $this->createAdmin(
+            $em,
+            $suffix
+        );
+
+        $slug = 'native-category-'.$suffix;
+        $externalRef = 'CAT-CONFLICT-'.$suffix;
+
+        $nativeCategory = (new Category())
+            ->setName('Catégorie native')
+            ->setSlug($slug)
+            ->setDataOrigin(DataOrigin::Native);
+
+        $em->persist($nativeCategory);
+        $em->flush();
+
+        $client->loginUser($admin);
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/data-import'
+        );
+
+        $token = (string) $crawler
+            ->filter('input[name="_token"]')
+            ->attr('value');
+
+        $file = $this->createCategoryJson(
+            $externalRef,
+            'Catégorie importée',
+            $slug
+        );
+
+        try {
+            $client->request(
+                'POST',
+                '/admin/data-import',
+                [
+                    '_token' => $token,
+                    'type' => 'categories',
+                    'mode' => 'import',
+                ],
+                [
+                    'import_file' => new UploadedFile(
+                        $file,
+                        'categories.json',
+                        'application/json',
+                        null,
+                        true
+                    ),
+                ]
+            );
+        } finally {
+            @unlink($file);
+        }
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(2) strong',
+            '0'
+        );
+
+        self::assertSelectorTextSame(
+            '.admin-data-import-stats > div:nth-child(5) strong',
+            '1'
+        );
+
+        $em->clear();
+
+        self::assertNull(
+            $em->getRepository(Category::class)
+                ->findOneBy([
+                    'externalRef' => $externalRef,
+                ])
+        );
+
+        $nativeCategory = $em
+            ->getRepository(Category::class)
+            ->findOneBy([
+                'slug' => $slug,
+            ]);
+
+        self::assertInstanceOf(
+            Category::class,
+            $nativeCategory
+        );
+
+        self::assertSame(
+            DataOrigin::Native,
+            $nativeCategory->getDataOrigin()
+        );
+
+        self::assertSame(
+            'Catégorie native',
+            $nativeCategory->getName()
+        );
+
+        $em->remove($nativeCategory);
+        $em->flush();
+
+        $this->removeUser(
+            $em,
+            $admin->getEmail()
+        );
+    }
+
+    private function createCategoryJson(
+        string $externalRef,
+        string $name,
+        string $slug,
+        ?string $icon = null,
+        bool $isFeatured = false,
+        bool $showInNavigation = true,
+        int $navigationPosition = 0
+    ): string {
+        $file = sprintf(
+            '%s/shopwho-category-import-%s.json',
+            sys_get_temp_dir(),
+            bin2hex(random_bytes(6))
+        );
+
+        file_put_contents(
+            $file,
+            json_encode(
+                [
+                    'categories' => [
+                        [
+                            'externalRef' => $externalRef,
+                            'name' => $name,
+                            'slug' => $slug,
+                            'icon' => $icon,
+                            'isFeatured' => $isFeatured,
+                            'showInNavigation' => $showInNavigation,
+                            'navigationPosition' => $navigationPosition,
+                        ],
+                    ],
+                ],
+                JSON_THROW_ON_ERROR
+                | JSON_PRETTY_PRINT
+                | JSON_UNESCAPED_UNICODE
+            )
+        );
+
+        return $file;
+    }
+
+    private function removeCategory(
+        EntityManagerInterface $em,
+        string $externalRef
+    ): void {
+        $em->clear();
+
+        $category = $em
+            ->getRepository(Category::class)
+            ->findOneBy([
+                'externalRef' => $externalRef,
+            ]);
+
+        if (!$category instanceof Category) {
+            return;
+        }
+
+        $em->remove($category);
+        $em->flush();
+    }
+
 
     private function em(): EntityManagerInterface
     {
