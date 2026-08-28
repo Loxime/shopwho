@@ -25,12 +25,12 @@ class Review
     private ?string $externalRef = null;
 
     #[ORM\ManyToOne(inversedBy: 'reviews')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private User $user;
 
     #[ORM\ManyToOne(inversedBy: 'reviews')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Assert\NotNull]
     private Product $product;
 

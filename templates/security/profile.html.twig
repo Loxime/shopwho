@@ -11,6 +11,16 @@
     <div><dt>Adresse e-mail</dt><dd>{{ user.email }}</dd></div>
     <div><dt>Compte créé le</dt><dd>{{ user.createdAt|date('d/m/Y') }}</dd></div>
   </dl>
+  <div class="actions profile-actions">
+    <a class="btn" href="{{ path('app_profile_edit') }}">
+      <i class="fa-solid fa-pen" aria-hidden="true"></i>
+      Modifier mes informations
+    </a>
+    <a class="btn" href="{{ path('app_profile_addresses') }}">
+      <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+    Gérer mes adresses
+    </a>
+  </div>
   <section class="section" aria-labelledby="recent-orders-title">
     <h2 id="recent-orders-title">Mes commandes récentes</h2>
     {% if orders is empty %}
@@ -27,5 +37,18 @@
     {% endif %}
     <a class="btn" href="{{ path('app_profile_orders') }}">Voir toutes mes commandes</a>
   </section>
+      <section class="profile-danger-zone">
+      <h2>Zone dangereuse</h2>
+
+      <p class="muted">
+        La suppression de votre compte est définitive.
+      </p>
+
+      <a class="btn danger" href="{{ path('app_profile_delete') }}">
+        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+        Supprimer mon compte
+      </a>
+    </section>
 </div></section>
+
 {% endblock %}

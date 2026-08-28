@@ -5,7 +5,7 @@ namespace App\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: \App\Repository\TrackingEventRepository::class)]
 #[ORM\Table(name: 'tracking_event')]
 #[ORM\Index(columns: ['session_id', 'occurred_at'], name: 'idx_tracking_session_time')]
 #[ORM\Index(columns: ['event_type', 'occurred_at'], name: 'idx_tracking_type_time')]

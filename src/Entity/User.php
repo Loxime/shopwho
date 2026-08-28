@@ -52,11 +52,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Review::class)]
     private Collection $reviews;
 
+    /** @var Collection<int, Favorite> */
+    #[ORM\OneToMany(
+        mappedBy: 'user',
+        targetEntity: Favorite::class,
+        orphanRemoval: true
+    )]
+    private Collection $favorites;
+
+    /** @var Collection<int, Notification> */
+    #[ORM\OneToMany(
+        mappedBy: 'user',
+        targetEntity: Notification::class,
+        orphanRemoval: true
+    )]
+    private Collection $notifications;
+
     public function __construct(?\DateTimeImmutable $createdAt = null)
     {
         $this->createdAt = $createdAt ?? new \DateTimeImmutable();
         $this->orders = new ArrayCollection();
         $this->reviews = new ArrayCollection();
+        $this->favorites = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -188,6 +206,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /** @return Collection<int, Review> */
     public function getReviews(): Collection { return $this->reviews; }
 
+    /**
+     * @return Collection<int, Favorite>
+     */
+    public function getFavorites(): Collection
+    {
+        return $this->favorites;
+    }
+    
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+        
     public function eraseCredentials(): void
     {
     }

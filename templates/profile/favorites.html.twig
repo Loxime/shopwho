@@ -1,0 +1,162 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+  Mes favoris — Shopwho
+{% endblock %}
+
+{% block body %}
+  <section class="section">
+    <div class="container">
+      <div class="profile-page-heading">
+        <div>
+          <p class="muted">
+            Mon compte
+          </p>
+
+          <h1>
+            Mes favoris
+          </h1>
+
+          <p>
+            Retrouvez ici les produits que vous
+            souhaitez conserver pour plus tard.
+          </p>
+        </div>
+      </div>
+
+      {% for message in app.flashes('success') %}
+        <div class="flash">
+          {{ message }}
+        </div>
+      {% endfor %}
+
+      {% if favorites is empty %}
+        <div class="favorites-empty">
+          <i
+            class="fa-regular fa-heart"
+            aria-hidden="true"
+          ></i>
+
+          <h2>
+            Aucun favori pour le moment
+          </h2>
+
+          <p class="muted">
+            Ajoutez des produits depuis leur fiche
+            pour les retrouver ici.
+          </p>
+
+          <a
+            class="btn orange"
+            href="{{ path('app_home') }}"
+          >
+            Découvrir les produits
+          </a>
+        </div>
+      {% else %}
+        <div class="grid favorites-grid">
+          {% for favorite in favorites %}
+            {% set product =
+              favorite.product
+            %}
+
+            <article class="card favorite-card">
+              <a
+                href="{{ path(
+                  'app_product_show',
+                  {
+                    slug: product.slug
+                  }
+                ) }}"
+              >
+                {% if product.imageUrl %}
+                  <img
+                    src="{{ product.imageUrl }}"
+                    alt="{{ product.name }}"
+                  >
+                {% else %}
+                  <div
+                    class="product-image-placeholder"
+                    aria-hidden="true"
+                  >
+                    🛍️
+                  </div>
+                {% endif %}
+
+                <div class="card-body">
+                  <div class="muted">
+                    {{ product.category.name }}
+                  </div>
+
+                  <h3>
+                    {{ product.name }}
+                  </h3>
+
+                  <p class="card-description">
+                    {{ product.description|slice(0, 60) }}
+                    {%- if product.description|length > 60 -%}
+                      …
+                    {%- endif -%}
+                  </p>
+
+                  <div class="price">
+                    {{ product.price|number_format(
+                      2,
+                      ',',
+                      ' '
+                    ) }}
+                    €
+                  </div>
+                </div>
+              </a>
+
+              <div class="favorite-card-actions">
+                <form
+                  method="post"
+                  action="{{ path(
+                    'app_profile_favorite_toggle',
+                    {
+                      id: product.id
+                    }
+                  ) }}"
+                >
+                  <input
+                    type="hidden"
+                    name="_token"
+                    value="{{ csrf_token(
+                      'toggle-favorite-' ~ product.id
+                    ) }}"
+                  >
+
+                  <input
+                    type="hidden"
+                    name="source"
+                    value="favorites"
+                  >
+
+                  <input
+                    type="hidden"
+                    name="redirect"
+                    value="favorites"
+                  >
+
+                  <button
+                    class="btn favorite-button is-favorite"
+                    type="submit"
+                  >
+                    <i
+                      class="fa-solid fa-heart"
+                      aria-hidden="true"
+                    ></i>
+
+                    Retirer
+                  </button>
+                </form>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

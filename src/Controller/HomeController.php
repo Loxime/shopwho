@@ -2,8 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductRepository;
+use App\Repository\ReviewRepository;
+use App\Service\RecommendationService;
+use App\Repository\SpecialOfferRepository;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,20 +17,112 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route('/', name: 'app_home', methods: ['GET'])]
-    public function index(Request $request, ProductRepository $products, CategoryRepository $categories, TrackingService $tracking): Response
-    {
-        $query = trim((string) $request->query->get('q', '')) ?: null;
-        $category = trim((string) $request->query->get('category', '')) ?: null;
+    public function index(
+        Request $request,
+        ProductRepository $products,
+        CategoryRepository $categories,
+        ReviewRepository $reviews,
+        RecommendationService $recommendationService,
+        TrackingService $tracking,
+        SpecialOfferRepository $specialOffers,
+    ): Response {
+        $query = trim(
+            (string) $request->query->get('q', '')
+        ) ?: null;
 
-        $tracking->track('PAGE_VIEW', null, ['page' => 'catalog']);
-        if ($query) { $tracking->track('SEARCH', null, ['query' => $query]); }
-        if ($category) { $tracking->track('CATEGORY_VIEW', null, ['category' => $category]); }
+        $category = trim(
+            (string) $request->query->get('category', '')
+        ) ?: null;
 
-        return $this->render('home/index.html.twig', [
-            'products' => $products->findCatalog($query, $category),
-            'categories' => $categories->findBy([], ['name' => 'ASC']),
-            'query' => $query,
-            'category' => $category,
-        ]);
+        $tracking->track(
+            'PAGE_VIEW',
+            null,
+            [
+                'page' => 'catalog',
+            ]
+        );
+
+        if ($query) {
+            $tracking->track(
+                'SEARCH',
+                null,
+                [
+                    'query' => $query,
+                ]
+            );
+        }
+
+        if ($category) {
+            $tracking->track(
+                'CATEGORY_VIEW',
+                null,
+                [
+                    'category' => $category,
+                ]
+            );
+        }
+
+        $catalogProducts = $products->findCatalog(
+            $query,
+            $category
+        );
+
+        $user = $this->getUser();
+
+        if (!$user instanceof User) {
+            $user = null;
+        }
+
+        $recommendations =
+            $recommendationService->recommend(
+                $user,
+                8
+            );
+
+        $ratingProductIds = [];
+
+        foreach ($catalogProducts as $product) {
+            $productId = $product->getId();
+
+            if ($productId !== null) {
+                $ratingProductIds[$productId] = true;
+            }
+        }
+
+        foreach ($recommendations as $recommendation) {
+            $productId =
+                $recommendation->product->getId();
+
+            if ($productId !== null) {
+                $ratingProductIds[$productId] = true;
+            }
+        }
+        $homepageOffers = $specialOffers->findActiveHomepageOffers(8);
+
+        return $this->render(
+            'home/index.html.twig',
+            [
+                'products' => $catalogProducts,
+                'recommendations' =>
+                    $recommendations,
+                'specialOffers' => $homepageOffers,
+                'productRatingStats' =>
+                    $reviews
+                        ->getRatingStatsByProductIds(
+                            array_keys(
+                                $ratingProductIds
+                            )
+                        ),
+                'categories' =>
+                    $categories->findBy(
+                        [],
+                        [
+                            'name' => 'ASC',
+                        ]
+                    ),
+                'query' => $query,
+                'category' => $category,
+            ]
+        );
     }
 }

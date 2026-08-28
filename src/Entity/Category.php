@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use App\Enum\DataOrigin;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\Table(name: 'category')]
@@ -18,6 +19,12 @@ class Category
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\Column(length: 180, unique: true, nullable: true)]
+    private ?string $externalRef = null;
+
+    #[ORM\Column(length: 20, enumType: DataOrigin::class)]
+    private DataOrigin $dataOrigin = DataOrigin::Native;
 
     #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
@@ -60,6 +67,34 @@ class Category
     }
 
     public function getId(): ?int { return $this->id; }
+
+    public function getExternalRef(): ?string
+    {
+        return $this->externalRef;
+    }
+
+    public function setExternalRef(?string $externalRef): self
+    {
+        $this->externalRef = null === $externalRef
+            || '' === trim($externalRef)
+            ? null
+            : trim($externalRef);
+
+        return $this;
+    }
+
+    public function getDataOrigin(): DataOrigin
+    {
+        return $this->dataOrigin;
+    }
+
+    public function setDataOrigin(DataOrigin $dataOrigin): self
+    {
+        $this->dataOrigin = $dataOrigin;
+
+        return $this;
+    }
+
     public function getName(): string { return $this->name; }
     public function setName(string $name): self { $this->name = trim($name); $this->touch(); return $this; }
     public function getSlug(): string { return $this->slug; }

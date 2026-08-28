@@ -10,12 +10,16 @@
     <h1 id="login-title">Connexion</h1>
     <p class="muted">Connectez-vous à votre compte Shopwho.</p>
     {% if error %}<div class="login-error">Identifiants incorrects.</div>{% endif %}
+    {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
     <form method="post" action="{{ path('app_login') }}">
       <div class="form-row"><label for="username">Adresse e-mail</label><input id="username" type="email" name="_username" value="{{ last_username }}" autocomplete="email" required autofocus></div>
       <div class="form-row"><label for="password">Mot de passe</label><input id="password" type="password" name="_password" autocomplete="current-password" required></div>
       <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
       <button class="btn orange customer-login-submit" type="submit">Se connecter</button>
     </form>
+    <p class="customer-login-switch">Pas encore de compte ?
+     <a href="{{ path('app_register') }}">Inscrivez-vous ici</a>
+    </p>
   </section>
 </div>
 {% endblock %}

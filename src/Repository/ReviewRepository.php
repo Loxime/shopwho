@@ -5,6 +5,8 @@ namespace App\Repository;
 use App\Entity\Product;
 use App\Entity\Review;
 use App\Entity\User;
+use App\Review\AdminReviewFilter;
+use App\Review\AdminReviewPage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -59,5 +61,157 @@ class ReviewRepository extends ServiceEntityRepository
             'average' => null === $result['average'] ? null : (float) $result['average'],
             'count' => (int) $result['reviewCount'],
         ];
+    }
+
+    /**
+     * @param list<int> $productIds
+     *
+     * @return array<int, array{average: float, count: int}>
+     */
+    public function getRatingStatsByProductIds(array $productIds): array
+    {
+        if ($productIds === []) {
+            return [];
+        }
+
+        $rows = $this->createQueryBuilder('review')
+            ->select(
+                'IDENTITY(review.product) AS productId',
+                'AVG(review.rating) AS average',
+                'COUNT(review.id) AS reviewCount'
+            )
+            ->andWhere('IDENTITY(review.product) IN (:productIds)')
+            ->setParameter('productIds', $productIds)
+            ->groupBy('review.product')
+            ->getQuery()
+            ->getArrayResult();
+
+        $stats = [];
+
+        foreach ($rows as $row) {
+            $stats[(int) $row['productId']] = [
+                'average' => (float) $row['average'],
+                'count' => (int) $row['reviewCount'],
+            ];
+        }
+
+        return $stats;
+    }
+
+    public function searchForAdmin(
+        AdminReviewFilter $filter
+    ): AdminReviewPage {
+        $qb = $this->createQueryBuilder(
+            'review'
+        )
+            ->addSelect('user')
+            ->addSelect('product')
+            ->join(
+                'review.user',
+                'user'
+            )
+            ->join(
+                'review.product',
+                'product'
+            );
+
+        if (null !== $filter->search) {
+            $qb
+                ->andWhere(
+                    $qb->expr()->orX(
+                        'LOWER(product.name) LIKE :search',
+                        'LOWER(product.slug) LIKE :search',
+                        'LOWER(user.email) LIKE :search',
+                        'LOWER(user.firstName) LIKE :search',
+                        'LOWER(user.lastName) LIKE :search',
+                        'LOWER(review.comment) LIKE :search'
+                    )
+                )
+                ->setParameter(
+                    'search',
+                    '%'.mb_strtolower(
+                        $filter->search
+                    ).'%'
+                );
+        }
+
+        if (null !== $filter->rating) {
+            $qb
+                ->andWhere(
+                    'review.rating = :rating'
+                )
+                ->setParameter(
+                    'rating',
+                    $filter->rating
+                );
+        }
+
+        if (
+            AdminReviewFilter::SOURCE_NATIVE
+            === $filter->source
+        ) {
+            $qb->andWhere(
+                'review.externalRef IS NULL'
+            );
+        }
+
+        if (
+            AdminReviewFilter::SOURCE_IMPORTED
+            === $filter->source
+        ) {
+            $qb->andWhere(
+                'review.externalRef IS NOT NULL'
+            );
+        }
+
+        $countQb = clone $qb;
+
+        $total = (int) $countQb
+            ->select(
+                'COUNT(review.id)'
+            )
+            ->resetDQLPart(
+                'orderBy'
+            )
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $pageCount = max(
+            1,
+            (int) ceil(
+                $total / $filter->perPage
+            )
+        );
+
+        $page = min(
+            $filter->page,
+            $pageCount
+        );
+
+        $items = $qb
+            ->orderBy(
+                'review.createdAt',
+                'DESC'
+            )
+            ->addOrderBy(
+                'review.id',
+                'DESC'
+            )
+            ->setFirstResult(
+                ($page - 1)
+                * $filter->perPage
+            )
+            ->setMaxResults(
+                $filter->perPage
+            )
+            ->getQuery()
+            ->getResult();
+
+        return new AdminReviewPage(
+            $items,
+            $total,
+            $page,
+            $filter->perPage
+        );
     }
 }

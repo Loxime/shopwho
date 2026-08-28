@@ -1,0 +1,398 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  Avis clients
+{% endblock %}
+
+{% block admin_subtitle %}
+  Consultation et recherche dans les avis produits
+{% endblock %}
+
+{% block admin_body %}
+  <div class="admin-review-page">
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>Filtres</h2>
+          <p>
+            Recherchez par produit, client
+            ou contenu de l'avis.
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-filter"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <form
+        class="admin-review-filters"
+        method="get"
+        action="{{ path('admin_review_index') }}"
+      >
+        <div class="admin-review-filter-search">
+          <label for="review-search">
+            Recherche
+          </label>
+
+          <input
+            id="review-search"
+            type="search"
+            name="q"
+            value="{{ filter.search ?? '' }}"
+            placeholder="Produit, client, commentaire…"
+          >
+        </div>
+
+        <div>
+          <label for="review-rating">
+            Note
+          </label>
+
+          <select
+            id="review-rating"
+            name="rating"
+          >
+            <option value="">
+              Toutes
+            </option>
+
+            {% for rating in 5..1 %}
+              <option
+                value="{{ rating }}"
+                {{ filter.rating == rating
+                  ? 'selected'
+                  : ''
+                }}
+              >
+                {{ rating }}/5
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label for="review-source">
+            Origine
+          </label>
+
+          <select
+            id="review-source"
+            name="source"
+          >
+            <option
+              value="all"
+              {{ filter.source == 'all'
+                ? 'selected'
+                : ''
+              }}
+            >
+              Toutes
+            </option>
+
+            <option
+              value="native"
+              {{ filter.source == 'native'
+                ? 'selected'
+                : ''
+              }}
+            >
+              Native
+            </option>
+
+            <option
+              value="imported"
+              {{ filter.source == 'imported'
+                ? 'selected'
+                : ''
+              }}
+            >
+              Importée
+            </option>
+          </select>
+        </div>
+
+        <div class="admin-review-filter-actions">
+          <button
+            class="admin-button admin-button-primary"
+            type="submit"
+          >
+            <i
+              class="fa-solid fa-magnifying-glass"
+              aria-hidden="true"
+            ></i>
+
+            Filtrer
+          </button>
+
+          <a
+            class="admin-button admin-button-secondary"
+            href="{{ path('admin_review_index') }}"
+          >
+            Réinitialiser
+          </a>
+        </div>
+      </form>
+    </section>
+
+    <section
+      class="admin-card"
+      aria-labelledby="reviews-list-title"
+    >
+      <div class="admin-card-header">
+        <div>
+          <h2 id="reviews-list-title">
+            Tous les avis
+          </h2>
+
+          <p>
+            {% if reviewPage.total > 0 %}
+              {{ reviewPage.firstItemNumber }}
+              à
+              {{ reviewPage.lastItemNumber }}
+              sur
+              {{ reviewPage.total }}
+              avis
+            {% else %}
+              Aucun avis
+            {% endif %}
+          </p>
+        </div>
+
+        <i
+          class="fa-solid fa-star"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="admin-table-scroll">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">
+                Produit
+              </th>
+
+              <th scope="col">
+                Client
+              </th>
+
+              <th scope="col">
+                Note
+              </th>
+
+              <th scope="col">
+                Commentaire
+              </th>
+
+              <th scope="col">
+                Origine
+              </th>
+
+              <th scope="col">
+                Date
+              </th>
+
+              <th
+                scope="col"
+                class="admin-table-actions-heading"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for review in reviewPage.items %}
+              <tr>
+                <td>
+                  <a
+                    class="admin-review-product-link"
+                    href="{{ path(
+                      'admin_product_edit',
+                      {id: review.product.id}
+                    ) }}"
+                  >
+                    <strong>
+                      {{ review.product.name }}
+                    </strong>
+                  </a>
+                </td>
+
+                <td>
+                  <div class="admin-review-user">
+                    <strong>
+                      {{ review.user.displayName }}
+                    </strong>
+
+                    <small>
+                      {{ review.user.email }}
+                    </small>
+                  </div>
+                </td>
+
+                <td class="admin-table-nowrap">
+                  <span
+                    class="admin-review-rating"
+                    aria-label="{{ review.rating }} sur 5"
+                  >
+                    {% for star in 1..5 %}
+                      <i
+                        class="{{ star <= review.rating
+                          ? 'fa-solid'
+                          : 'fa-regular'
+                        }} fa-star"
+                        aria-hidden="true"
+                      ></i>
+                    {% endfor %}
+                  </span>
+                </td>
+
+                <td class="admin-review-comment">
+                  {% if review.comment %}
+                    {{ review.comment|slice(0, 140) }}
+
+                    {% if review.comment|length > 140 %}
+                      …
+                    {% endif %}
+                  {% else %}
+                    <span class="admin-review-empty">
+                      Aucun commentaire
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if review.externalRef %}
+                    <span
+                      class="admin-badge admin-badge-accent"
+                    >
+                      Importée
+                    </span>
+                  {% else %}
+                    <span
+                      class="admin-badge admin-badge-muted"
+                    >
+                      Native
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td class="admin-table-nowrap">
+                  {{ review.createdAt|date('d/m/Y H:i') }}
+                </td>
+
+                <td>
+                  <div class="admin-row-actions">
+                    <a
+                      class="admin-icon-button"
+                      href="{{ path(
+                        'admin_product_edit',
+                        {id: review.product.id}
+                      ) }}"
+                      title="Ouvrir le produit"
+                      aria-label="Ouvrir le produit {{ review.product.name }}"
+                    >
+                      <i
+                        class="fa-solid fa-pen-to-square"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+
+                    {% if review.product.active %}
+                      <a
+                        class="admin-icon-button"
+                        href="{{ path(
+                          'app_product_show',
+                          {slug: review.product.slug}
+                        ) }}"
+                        title="Voir sur la boutique"
+                        aria-label="Voir {{ review.product.name }} sur la boutique"
+                      >
+                        <i
+                          class="fa-solid fa-arrow-up-right-from-square"
+                          aria-hidden="true"
+                        ></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td
+                  class="admin-empty-state"
+                  colspan="7"
+                >
+                  Aucun avis ne correspond
+                  aux filtres sélectionnés.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if reviewPage.pageCount > 1 %}
+        <nav
+          class="admin-pagination"
+          aria-label="Pagination des avis"
+        >
+          <div class="admin-pagination-summary">
+            Page
+            <strong>{{ reviewPage.page }}</strong>
+            sur
+            <strong>{{ reviewPage.pageCount }}</strong>
+          </div>
+
+          <div class="admin-pagination-actions">
+            {% if reviewPage.hasPrevious %}
+              <a
+                class="admin-button admin-button-secondary"
+                href="{{ path(
+                  'admin_review_index',
+                  {
+                    q: filter.search,
+                    rating: filter.rating,
+                    source: filter.source,
+                    page: reviewPage.previousPage
+                  }
+                ) }}"
+              >
+                <i
+                  class="fa-solid fa-chevron-left"
+                  aria-hidden="true"
+                ></i>
+
+                Précédent
+              </a>
+            {% endif %}
+
+            {% if reviewPage.hasNext %}
+              <a
+                class="admin-button admin-button-secondary"
+                href="{{ path(
+                  'admin_review_index',
+                  {
+                    q: filter.search,
+                    rating: filter.rating,
+                    source: filter.source,
+                    page: reviewPage.nextPage
+                  }
+                ) }}"
+              >
+                Suivant
+
+                <i
+                  class="fa-solid fa-chevron-right"
+                  aria-hidden="true"
+                ></i>
+              </a>
+            {% endif %}
+          </div>
+        </nav>
+      {% endif %}
+    </section>
+  </div>
+{% endblock %}
