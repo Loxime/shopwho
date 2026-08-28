@@ -8,6 +8,7 @@ final class ImportSchema
 {
     public const TYPES = [
         'users',
+        'categories',
         'products',
         'orders',
         'reviews',
@@ -25,6 +26,15 @@ final class ImportSchema
             'firstName',
             'lastName',
             'createdAt',
+        ],
+        'categories' => [
+            'externalRef',
+            'name',
+            'slug',
+            'icon',
+            'isFeatured',
+            'showInNavigation',
+            'navigationPosition',
         ],
         'products' => [
             'externalRef',
@@ -69,6 +79,15 @@ final class ImportSchema
             'firstName' => 'Alice',
             'lastName' => 'Martin',
             'createdAt' => '2026-08-01T10:00:00+00:00',
+        ],
+        'categories' => [
+            'externalRef' => 'CAT-EXAMPLE-001',
+            'name' => 'Catégorie exemple',
+            'slug' => 'categorie-exemple',
+            'icon' => 'fa-solid fa-box',
+            'isFeatured' => true,
+            'showInNavigation' => true,
+            'navigationPosition' => 10,
         ],
         'products' => [
             'externalRef' => 'PROD-EXAMPLE-001',
