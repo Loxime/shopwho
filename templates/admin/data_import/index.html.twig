@@ -1,0 +1,205 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  Import de données
+{% endblock %}
+
+{% block admin_subtitle %}
+  Import JSON ou XLSX de données synthétiques ou pseudonymisées
+{% endblock %}
+
+{% block admin_body %}
+  <section class="admin-card">
+    <div class="admin-card-header">
+      <div>
+        <h2>Importer un fichier</h2>
+        <p>
+          Prévisualisez d'abord l'import pour vérifier
+          les données sans modifier la base.
+        </p>
+      </div>
+
+      <i
+        class="fa-solid fa-file-import"
+        aria-hidden="true"
+      ></i>
+    </div>
+
+    <form
+      method="post"
+      enctype="multipart/form-data"
+      class="admin-data-import-form"
+    >
+      <input
+        type="hidden"
+        name="_token"
+        value="{{ csrf_token('admin-data-import') }}"
+      >
+
+      <div>
+        <label for="import-type">
+          Type de données
+        </label>
+
+        <select
+          id="import-type"
+          name="type"
+          required
+        >
+          <option
+            value="users"
+            {{ type == 'users' ? 'selected' : '' }}
+          >
+            Utilisateurs
+          </option>
+
+          <option
+            value="products"
+            {{ type == 'products' ? 'selected' : '' }}
+          >
+            Produits
+          </option>
+
+          <option
+            value="orders"
+            {{ type == 'orders' ? 'selected' : '' }}
+          >
+            Commandes
+          </option>
+
+          <option
+            value="reviews"
+            {{ type == 'reviews' ? 'selected' : '' }}
+          >
+            Avis clients
+          </option>
+        </select>
+      </div>
+
+      <div>
+        <label for="import-file">
+          Fichier
+        </label>
+
+        <input
+          id="import-file"
+          type="file"
+          name="import_file"
+          accept=".json,.xlsx"
+          required
+        >
+
+        <small>
+          JSON ou XLSX — 10 MB maximum
+        </small>
+      </div>
+
+      <div class="admin-data-import-actions">
+        <button
+          class="admin-button admin-button-secondary"
+          type="submit"
+          name="mode"
+          value="preview"
+        >
+          <i
+            class="fa-solid fa-magnifying-glass"
+            aria-hidden="true"
+          ></i>
+
+          Prévisualiser
+        </button>
+
+        <button
+          class="admin-button admin-button-primary"
+          type="submit"
+          name="mode"
+          value="import"
+          onclick="return confirm(
+            'Importer réellement ces données ?'
+          )"
+        >
+          <i
+            class="fa-solid fa-file-arrow-up"
+            aria-hidden="true"
+          ></i>
+
+          Importer
+        </button>
+      </div>
+    </form>
+  </section>
+
+  {% if result %}
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>Résultat</h2>
+
+          <p>
+            {{ mode == 'preview'
+              ? 'Prévisualisation sans écriture'
+              : 'Import réel'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <div class="admin-data-import-stats">
+        <div>
+          <strong>{{ result.total }}</strong>
+          <span>Total</span>
+        </div>
+
+        <div>
+          <strong>{{ result.created }}</strong>
+          <span>Créés</span>
+        </div>
+
+        <div>
+          <strong>{{ result.updated }}</strong>
+          <span>Mis à jour</span>
+        </div>
+
+        <div>
+          <strong>{{ result.skipped }}</strong>
+          <span>Ignorés</span>
+        </div>
+
+        <div>
+          <strong>{{ result.failed }}</strong>
+          <span>Erreurs</span>
+        </div>
+      </div>
+
+      {% if result.errors %}
+        <div class="admin-table-scroll">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th scope="col">Ligne</th>
+                <th scope="col">Référence</th>
+                <th scope="col">Erreur</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for error in result.errors %}
+                <tr>
+                  <td>{{ error.record }}</td>
+
+                  <td>
+                    {{ error.externalRef ?? '—' }}
+                  </td>
+
+                  <td>
+                    {{ error.message }}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

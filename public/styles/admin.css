@@ -338,3 +338,82 @@ button,input,select,textarea{font:inherit}
     grid-template-columns:1fr 1fr;
   }
 }
+
+.admin-data-import-form{
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) minmax(300px,2fr);
+  gap:20px;
+  padding:24px;
+}
+
+.admin-data-import-form>div{
+  display:grid;
+  gap:8px;
+}
+
+.admin-data-import-form label{
+  font-size:13px;
+  font-weight:700;
+}
+
+.admin-data-import-form select,
+.admin-data-import-form input[type="file"]{
+  width:100%;
+  min-height:42px;
+  padding:10px 12px;
+  background:#fff;
+  border:1px solid #cbd5e1;
+  border-radius:9px;
+}
+
+.admin-data-import-form small{
+  color:var(--admin-muted);
+}
+
+.admin-data-import-actions{
+  grid-column:1/-1;
+  display:flex!important;
+  flex-direction:row;
+  justify-content:flex-end;
+  gap:10px!important;
+}
+
+.admin-data-import-stats{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+  padding:24px;
+}
+
+.admin-data-import-stats>div{
+  display:grid;
+  gap:4px;
+  padding:16px;
+  background:#f8fafc;
+  border:1px solid var(--admin-border);
+  border-radius:10px;
+}
+
+.admin-data-import-stats strong{
+  font-size:24px;
+}
+
+.admin-data-import-stats span{
+  color:var(--admin-muted);
+  font-size:13px;
+}
+
+@media(max-width:850px){
+  .admin-data-import-form{
+    grid-template-columns:1fr;
+  }
+
+  .admin-data-import-actions{
+    grid-column:auto;
+    flex-direction:column;
+  }
+
+  .admin-data-import-stats{
+    grid-template-columns:1fr 1fr;
+  }
+}
