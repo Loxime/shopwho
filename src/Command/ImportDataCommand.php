@@ -14,7 +14,7 @@ final class ImportDataCommand extends Command
     public function __construct(private readonly ImportManager $manager) { parent::__construct(); }
     protected function configure(): void
     {
-        $this->addArgument('type', InputArgument::REQUIRED, 'users, products, orders or reviews')->addArgument('file', InputArgument::REQUIRED, 'JSON or XLSX file')->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run all checks and roll back database changes')->addOption('report', null, InputOption::VALUE_REQUIRED, 'Write the import report as JSON');
+        $this->addArgument('type', InputArgument::REQUIRED, 'users, categories, products, orders or reviews')->addArgument('file', InputArgument::REQUIRED, 'JSON or XLSX file')->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run all checks and roll back database changes')->addOption('report', null, InputOption::VALUE_REQUIRED, 'Write the import report as JSON');
     }
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

@@ -6,8 +6,10 @@ use App\Import\Exception\ImportException;
 use App\Import\ImportError;
 use App\Import\ImportPayload;
 use OpenSpout\Reader\XLSX\Reader;
+use App\Import\ImportSchema;
+
 final readonly class XlsxImportReader implements ImportReaderInterface {
- private const HEADERS=['users'=>['externalRef','email','firstName','lastName','createdAt'],'products'=>['externalRef','name','slug','description','priceCents','stock','categorySlug','imageUrl','isActive'],'orders'=>['externalRef','userExternalRef','status','orderedAt','totalCents'],'order_items'=>['orderExternalRef','productExternalRef','productNameSnapshot','productSlugSnapshot','quantity','unitPriceCents'],'reviews'=>['externalRef','userExternalRef','productExternalRef','rating','comment','createdAt']];
+
  public function __construct(private ImportDtoFactory $factory){}
  public function supports(string $extension):bool{return 'xlsx'===strtolower($extension);}
  public function read(string $type,string $file):ImportPayload {
@@ -19,7 +21,7 @@ final readonly class XlsxImportReader implements ImportReaderInterface {
   return new ImportPayload($type,$records,$errors);
  }
  /** @return array{records:list<object>,errors:list<ImportError>,refs:array<string,true>} */
- private function readSheet(object $sheet,string $type):array {$headers=null;$out=[];$errors=[];$refs=[];$line=0;foreach($sheet->getRowIterator() as $row){$line++;$values=$row->toArray();if(array_filter($values,static fn($v)=>null!==$v&&''!==trim((string)$v))===[])continue;if(null===$headers){$headers=array_map(static fn($v)=>trim((string)$v),$values);$missing=array_diff(self::HEADERS[$type],$headers);if($missing)throw new ImportException(sprintf('Sheet "%s": missing header(s): %s.',$type,implode(', ',$missing)));continue;}$assoc=[];foreach($headers as $i=>$header){if(''!==$header)$assoc[$header]=$values[$i]??null;}$assoc['_record']=$line;$ref=$this->reference($assoc,'order_items'===$type?'orderExternalRef':'externalRef');if('orders'===$type&&null!==$ref)$refs[$ref]=true;try{$out[]=$this->factory->create($type,$assoc,$line);}catch(ImportException $e){$errors[]=new ImportError($line,$ref,$e->getMessage());}}if(null===$headers)throw new ImportException(sprintf('Sheet "%s" is empty.',$type));return ['records'=>$out,'errors'=>$errors,'refs'=>$refs];}
+ private function readSheet(object $sheet,string $type):array {$headers=null;$out=[];$errors=[];$refs=[];$line=0;foreach($sheet->getRowIterator() as $row){$line++;$values=$row->toArray();if(array_filter($values,static fn($v)=>null!==$v&&''!==trim((string)$v))===[])continue;if(null===$headers){$headers=array_map(static fn($v)=>trim((string)$v),$values);$missing = array_diff(ImportSchema::fieldsFor($type),$headers); if($missing)throw new ImportException(sprintf('Sheet "%s": missing header(s): %s.',$type,implode(', ',$missing)));continue;}$assoc=[];foreach($headers as $i=>$header){if(''!==$header)$assoc[$header]=$values[$i]??null;}$assoc['_record']=$line;$ref=$this->reference($assoc,'order_items'===$type?'orderExternalRef':'externalRef');if('orders'===$type&&null!==$ref)$refs[$ref]=true;try{$out[]=$this->factory->create($type,$assoc,$line);}catch(ImportException $e){$errors[]=new ImportError($line,$ref,$e->getMessage());}}if(null===$headers)throw new ImportException(sprintf('Sheet "%s" is empty.',$type));return ['records'=>$out,'errors'=>$errors,'refs'=>$refs];}
  /** @param list<OrderImportDto> $orders @param list<ImportError> $errors @param array<string,true> $knownOrderRefs @param array{records:list<object>,errors:list<ImportError>,refs:array<string,true>} $itemSheet @return array{list<OrderImportDto>,list<ImportError>} */
  private function assembleOrders(array $orders,array $errors,array $knownOrderRefs,array $itemSheet):array
  {
