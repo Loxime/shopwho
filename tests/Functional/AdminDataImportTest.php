@@ -394,7 +394,7 @@ final class AdminDataImportTest extends WebTestCase
         );
     }
 
-    public function testInvalidTemplateTypeReturns404(): void
+    public function testUnsupportedTemplateTypeReturns404(): void
     {
         $client = static::createClient();
         $em = $this->em();
@@ -407,7 +407,7 @@ final class AdminDataImportTest extends WebTestCase
 
         $client->request(
             'GET',
-            '/admin/data-import/template/categories.json'
+            '/admin/data-import/template/suppliers.json'
         );
 
         self::assertResponseStatusCodeSame(
