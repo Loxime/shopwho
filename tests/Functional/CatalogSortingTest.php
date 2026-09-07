@@ -188,6 +188,351 @@ final class CatalogSortingTest extends WebTestCase
         );
     }
 
+    public function testCatalogCanFilterByMinimumPrice(): void
+    {
+        $client = static::createClient();
+
+        [$query, $products] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'min_price' => '15',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                $products['gamma']->getName(),
+                $products['beta']->getName(),
+            ],
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+    }
+
+    public function testCatalogCanFilterByMaximumPrice(): void
+    {
+        $client = static::createClient();
+
+        [$query, $products] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'max_price' => '20',
+                'sort' => 'price_asc',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                $products['alpha']->getName(),
+                $products['beta']->getName(),
+            ],
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+    }
+
+    public function testCatalogCanFilterByPriceRange(): void
+    {
+        $client = static::createClient();
+
+        [$query, $products] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'min_price' => '15',
+                'max_price' => '25',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                $products['beta']->getName(),
+            ],
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+    }
+
+    public function testCatalogCanOnlyDisplayProductsInStock(): void
+    {
+        $client = static::createClient();
+
+        [$query, $products] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'in_stock' => '1',
+                'sort' => 'price_asc',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                $products['alpha']->getName(),
+                $products['beta']->getName(),
+            ],
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+    }
+
+    public function testCatalogCombinesSortingAndFilters(): void
+    {
+        $client = static::createClient();
+
+        [$query, $products, $category] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'category' =>
+                    $category->getSlug(),
+                'max_price' => '25',
+                'in_stock' => '1',
+                'sort' => 'price_desc',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSame(
+            [
+                $products['beta']->getName(),
+                $products['alpha']->getName(),
+            ],
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+
+        $form = $crawler
+            ->filter(
+                'form.catalog-controls'
+            )
+            ->form();
+
+        $values = $form->getValues();
+
+        self::assertSame(
+            $query,
+            $values['q']
+        );
+
+        self::assertSame(
+            $category->getSlug(),
+            $values['category']
+        );
+
+        self::assertSame(
+            'price_desc',
+            $values['sort']
+        );
+
+        self::assertSame(
+            '25',
+            $values['max_price']
+        );
+
+        self::assertSame(
+            '1',
+            $values['in_stock']
+        );
+    }
+
+    public function testInvalidCatalogFiltersAreIgnored(): void
+    {
+        $client = static::createClient();
+
+        [$query] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'min_price' => 'not-a-price',
+                'max_price' => '-50',
+                'in_stock' => 'invalid',
+                'sort' => 'invalid-sort',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertCount(
+            3,
+            $this->catalogProductNames(
+                $crawler
+            )
+        );
+
+        self::assertSelectorCount(
+            0,
+            '.catalog-filter-reset'
+        );
+
+        self::assertSame(
+            'newest',
+            $crawler
+                ->filter(
+                    '#catalog-sort option[selected]'
+                )
+                ->attr('value')
+        );
+    }
+
+    public function testCatalogFiltersCanBeResetWithoutLosingContext(): void
+    {
+        $client = static::createClient();
+
+        [$query, , $category] =
+            $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'q' => $query,
+                'category' =>
+                    $category->getSlug(),
+                'sort' => 'price_desc',
+                'min_price' => '15',
+                'max_price' => '25',
+                'in_stock' => '1',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $reset = $crawler->filter(
+            '.catalog-filter-reset'
+        );
+
+        self::assertCount(
+            1,
+            $reset
+        );
+
+        $href = (string) $reset->attr(
+            'href'
+        );
+
+        $queryString = parse_url(
+            $href,
+            PHP_URL_QUERY
+        );
+
+        $parameters = [];
+
+        parse_str(
+            is_string($queryString)
+                ? $queryString
+                : '',
+            $parameters
+        );
+
+        self::assertSame(
+            $query,
+            $parameters['q'] ?? null
+        );
+
+        self::assertSame(
+            $category->getSlug(),
+            $parameters['category'] ?? null
+        );
+
+        self::assertSame(
+            'price_desc',
+            $parameters['sort'] ?? null
+        );
+
+        self::assertArrayNotHasKey(
+            'min_price',
+            $parameters
+        );
+
+        self::assertArrayNotHasKey(
+            'max_price',
+            $parameters
+        );
+
+        self::assertArrayNotHasKey(
+            'in_stock',
+            $parameters
+        );
+    }
+
+    public function testFiltersHaveDedicatedEmptyState(): void
+    {
+        $client = static::createClient();
+
+        $this->createCatalog();
+
+        $crawler = $client->request(
+            'GET',
+            '/?'.http_build_query([
+                'min_price' => '999',
+            ])
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            0,
+            '#catalogue .js-product-card'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Aucun produit ne correspond aux filtres'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Modifiez ou réinitialisez les filtres'
+        );
+
+        self::assertSelectorExists(
+            '#catalogue [data-empty-filter-reset]'
+        );
+
+        $reset = $crawler->filter(
+            '#catalogue [data-empty-filter-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $reset
+        );
+    }
+
     /**
      * @return array{
      *     string,
@@ -234,6 +579,8 @@ final class CatalogSortingTest extends WebTestCase
             3000,
             $category
         );
+
+        $gamma->setStock(0);
 
         $this->em()->persist(
             $category
