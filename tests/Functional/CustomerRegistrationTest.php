@@ -43,6 +43,25 @@ class CustomerRegistrationTest extends WebTestCase
         self::assertSelectorExists('form');
     }
 
+    public function testRegistrationExposesPasswordRequirements(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/inscription');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains(
+            'body',
+            '12 caractères minimum.'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_first[minlength="12"]'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_second[minlength="12"]'
+        );
+    }
+
     public function testCustomerCanRegister(): void
     {
         $client = static::createClient();
