@@ -36,6 +36,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'address-line1',
+                    'data-address-line1' => '',
                 ],
             ])
             ->add('line2', TextType::class, [
@@ -51,6 +52,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'postal-code',
+                    'data-address-postal-code' => '',
                 ],
             ])
             ->add('city', TextType::class, [
@@ -58,6 +60,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'address-level2',
+                    'data-address-city' => '',
                 ],
             ])
             ->add('countryCode', CountryType::class, [
@@ -71,6 +74,7 @@ class CustomerAddressType extends AbstractType
                 ],
                 'attr' => [
                     'autocomplete' => 'country',
+                    'data-address-country' => '',
                 ],
             ]);
     }

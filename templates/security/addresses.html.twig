@@ -52,7 +52,14 @@
           </div>
         </div>
 
-        {{ form_start(shippingForm) }}
+        {{ form_start(shippingForm, {
+          attr: {
+            'data-address-autocomplete': '',
+            'data-address-lookup-url': path(
+              'app_profile_address_autocomplete'
+            )
+          }
+        }) }}
 
           {{ form_errors(shippingForm) }}
 
@@ -94,6 +101,19 @@
             </div>
           </div>
 
+          <div
+            class="address-autocomplete-feedback"
+            data-address-feedback
+            aria-live="polite"
+          ></div>
+
+          <div
+            class="address-suggestions"
+            data-address-suggestions
+            role="listbox"
+            hidden
+          ></div>
+
           <div class="form-row">
             {{ form_label(shippingForm.countryCode) }}
             {{ form_widget(shippingForm.countryCode) }}
@@ -120,7 +140,14 @@
           </div>
         </div>
 
-        {{ form_start(billingForm) }}
+        {{ form_start(billingForm, {
+          attr: {
+            'data-address-autocomplete': '',
+            'data-address-lookup-url': path(
+              'app_profile_address_autocomplete'
+            )
+          }
+        }) }}
 
           {{ form_errors(billingForm) }}
 
@@ -162,6 +189,19 @@
             </div>
           </div>
 
+          <div
+            class="address-autocomplete-feedback"
+            data-address-feedback
+            aria-live="polite"
+          ></div>
+
+          <div
+            class="address-suggestions"
+            data-address-suggestions
+            role="listbox"
+            hidden
+          ></div>
+
           <div class="form-row">
             {{ form_label(billingForm.countryCode) }}
             {{ form_widget(billingForm.countryCode) }}
@@ -186,4 +226,11 @@
 
   </div>
 </section>
+{% endblock %}
+
+{% block javascripts %}
+  <script
+    src="/js/address-autocomplete.js"
+    defer
+  ></script>
 {% endblock %}

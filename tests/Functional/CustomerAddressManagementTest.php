@@ -494,6 +494,102 @@ class CustomerAddressManagementTest extends WebTestCase
         );
     }
 
+    public function testAddressPageExposesAutocompleteControls(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-autocomplete-ui@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $client->request(
+            'GET',
+            '/profil/adresses'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            2,
+            'form[data-address-autocomplete]'
+        );
+
+        self::assertSelectorCount(
+            2,
+            '[data-address-feedback]'
+        );
+
+        self::assertSelectorCount(
+            2,
+            '[data-address-suggestions]'
+        );
+
+        self::assertSelectorExists(
+            'script[src="/js/address-autocomplete.js"]'
+        );
+    }
+
+    public function testAuthenticatedCustomerCanLookupAddressSuggestions(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-autocomplete-api@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $client->request(
+            'GET',
+            '/profil/adresses/recherche',
+            [
+                'q' => '10 rue des Tests 63000 Clermont-Ferrand',
+            ]
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseFormatSame('json');
+
+        $payload = json_decode(
+            $client->getResponse()->getContent(),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        self::assertTrue(
+            $payload['available']
+        );
+
+        self::assertCount(
+            1,
+            $payload['suggestions']
+        );
+
+        self::assertSame(
+            'Adresse 63000 Clermont-Ferrand',
+            $payload['suggestions'][0]['label']
+        );
+
+        self::assertSame(
+            '63000',
+            $payload['suggestions'][0]['postalCode']
+        );
+
+        self::assertSame(
+            'Clermont-Ferrand',
+            $payload['suggestions'][0]['city']
+        );
+    }
+
     public function testDeletingAccountDeletesCustomerAddresses(): void
     {
         $client = static::createClient();
