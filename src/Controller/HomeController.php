@@ -56,6 +56,31 @@ class HomeController extends AbstractController
             $sort = 'newest';
         }
 
+        $minPriceCents =
+            $this->priceFilterToCents(
+                $request->query->get(
+                    'min_price'
+                )
+            );
+
+        $maxPriceCents =
+            $this->priceFilterToCents(
+                $request->query->get(
+                    'max_price'
+                )
+            );
+
+        $inStockOnly =
+            (string) $request->query->get(
+                'in_stock',
+                ''
+            ) === '1';
+
+        $hasCatalogFilters =
+            $minPriceCents !== null
+            || $maxPriceCents !== null
+            || $inStockOnly;
+
         $tracking->track(
             'PAGE_VIEW',
             null,
@@ -87,7 +112,10 @@ class HomeController extends AbstractController
         $catalogProducts = $products->findCatalog(
             $query,
             $category,
-            $sort
+            $sort,
+            $minPriceCents,
+            $maxPriceCents,
+            $inStockOnly
         );
 
         $user = $this->getUser();
@@ -146,7 +174,55 @@ class HomeController extends AbstractController
                 'query' => $query,
                 'category' => $category,
                 'sort' => $sort,
+                'minPriceCents' =>
+                    $minPriceCents,
+                'maxPriceCents' =>
+                    $maxPriceCents,
+                'inStockOnly' =>
+                    $inStockOnly,
+                'hasCatalogFilters' =>
+                    $hasCatalogFilters,
             ]
         );
     }
+    private function priceFilterToCents(
+        mixed $value
+    ): ?int {
+        if (!is_scalar($value)) {
+            return null;
+        }
+
+        $value = trim(
+            (string) $value
+        );
+
+        if ($value === '') {
+            return null;
+        }
+
+        $value = str_replace(
+            ',',
+            '.',
+            $value
+        );
+
+        $amount = filter_var(
+            $value,
+            FILTER_VALIDATE_FLOAT
+        );
+
+        if (
+            $amount === false
+            || $amount < 0
+            || $amount
+                > PHP_INT_MAX / 100
+        ) {
+            return null;
+        }
+
+        return (int) round(
+            $amount * 100
+        );
+    }
+
 }

@@ -446,6 +446,26 @@
         </div>
       </div>
 
+      {% set filterResetParams = {
+        sort: sort
+      } %}
+
+      {% if query %}
+        {% set filterResetParams =
+          filterResetParams|merge({
+            q: query
+          })
+        %}
+      {% endif %}
+
+      {% if category %}
+        {% set filterResetParams =
+          filterResetParams|merge({
+            category: category
+          })
+        %}
+      {% endif %}
+
       <div class="catalog-toolbar">
         <form
           class="catalog-controls"
@@ -515,12 +535,73 @@
             </select>
           </div>
 
+          <div class="catalog-control">
+            <label for="catalog-min-price">
+              Prix minimum
+            </label>
+
+            <input
+              id="catalog-min-price"
+              type="number"
+              name="min_price"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              value="{% if minPriceCents is not null %}{{ minPriceCents / 100 }}{% endif %}"
+              placeholder="0,00 €"
+            >
+          </div>
+
+          <div class="catalog-control">
+            <label for="catalog-max-price">
+              Prix maximum
+            </label>
+
+            <input
+              id="catalog-max-price"
+              type="number"
+              name="max_price"
+              min="0"
+              step="0.01"
+              inputmode="decimal"
+              value="{% if maxPriceCents is not null %}{{ maxPriceCents / 100 }}{% endif %}"
+              placeholder="100,00 €"
+            >
+          </div>
+
+          <label class="catalog-stock-filter">
+            <input
+              type="checkbox"
+              name="in_stock"
+              value="1"
+              {% if inStockOnly %}
+                checked
+              {% endif %}
+            >
+
+            <span>
+              En stock uniquement
+            </span>
+          </label>
+
           <button
             class="btn"
             type="submit"
           >
             Appliquer
           </button>
+
+          {% if hasCatalogFilters %}
+            <a
+              class="catalog-filter-reset"
+              href="{{ path(
+                'app_home',
+                filterResetParams
+              ) }}"
+            >
+              Réinitialiser les filtres
+            </a>
+          {% endif %}
         </form>
       </div>
 
@@ -666,6 +747,15 @@
                 Aucun produit actif n’est actuellement
                 disponible dans cette catégorie.
               </p>
+            {% elseif hasCatalogFilters %}
+              <h3>
+                Aucun produit ne correspond aux filtres
+              </h3>
+
+              <p class="muted">
+                Modifiez ou réinitialisez les filtres
+                pour élargir les résultats.
+              </p>
             {% else %}
               <h3>
                 Aucun produit disponible
@@ -677,8 +767,28 @@
               </p>
             {% endif %}
 
-            {% if query or category %}
+            {% if query
+              or category
+              or hasCatalogFilters
+            %}
               <div class="catalog-empty-actions">
+                {% if hasCatalogFilters %}
+                  <a
+                    class="btn"
+                    data-empty-filter-reset
+                    href="{{ path(
+                      'app_home',
+                      filterResetParams
+                    ) }}"
+                  >
+                    <i
+                      class="fa-solid fa-filter-circle-xmark"
+                      aria-hidden="true"
+                    ></i>
+
+                    Réinitialiser les filtres
+                  </a>
+                {% endif %}
                 {% if query %}
                   <a
                     class="btn"

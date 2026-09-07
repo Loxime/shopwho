@@ -1041,3 +1041,28 @@
   min-height:40px;
   padding:8px 34px 8px 10px;
 }
+
+.catalog-control input[type="number"]{
+  min-width:145px;
+  min-height:40px;
+  padding:8px 10px;
+}
+
+.catalog-stock-filter{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:40px;
+  cursor:pointer;
+}
+
+.catalog-stock-filter input{
+  width:18px;
+  height:18px;
+}
+
+.catalog-filter-reset{
+  align-self:center;
+  font-size:14px;
+  text-decoration:underline;
+}

@@ -19,7 +19,10 @@ class ProductRepository extends ServiceEntityRepository
     public function findCatalog(
         ?string $query = null,
         ?string $category = null,
-        string $sort = 'newest'
+        string $sort = 'newest',
+        ?int $minPriceCents = null,
+        ?int $maxPriceCents = null,
+        bool $inStockOnly = false
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->addSelect('c')
@@ -50,6 +53,34 @@ class ProductRepository extends ServiceEntityRepository
                     'category',
                     $category
                 );
+        }
+
+        if ($minPriceCents !== null) {
+            $qb
+                ->andWhere(
+                    'p.priceCents >= :minPrice'
+                )
+                ->setParameter(
+                    'minPrice',
+                    $minPriceCents
+                );
+        }
+
+        if ($maxPriceCents !== null) {
+            $qb
+                ->andWhere(
+                    'p.priceCents <= :maxPrice'
+                )
+                ->setParameter(
+                    'maxPrice',
+                    $maxPriceCents
+                );
+        }
+
+        if ($inStockOnly) {
+            $qb->andWhere(
+                'p.stock > 0'
+            );
         }
 
         match ($sort) {
