@@ -47,7 +47,8 @@ class CartController extends AbstractController
     #[Route('/panier/quantite/{id}', name: 'app_cart_update_quantity', requirements: ['id' => '\\d+'], methods: ['POST'])]
     public function updateQuantity(
         Product $product,
-        Request $request
+        Request $request,
+        TrackingService $tracking
     ): Response {
         $session = $request->getSession();
         $cart = $session->get('cart', []);
@@ -56,6 +57,8 @@ class CartController extends AbstractController
         if (!array_key_exists($productId, $cart)) {
             return $this->redirectToRoute('app_cart');
         }
+
+        $previousQuantity = (int) $cart[$productId];
 
         $rawQuantity = $request->request->get('quantity');
 
@@ -69,22 +72,52 @@ class CartController extends AbstractController
             return $this->redirectToRoute('app_cart');
         }
 
-        $quantity = (int) $rawQuantity;
+        $requestedQuantity = (int) $rawQuantity;
 
         if (
-            $quantity <= 0
+            $requestedQuantity <= 0
             || !$product->isActive()
             || $product->getStock() < 1
         ) {
             unset($cart[$productId]);
+
+            $newQuantity = 0;
         } else {
-            $cart[$productId] = min(
-                $quantity,
+            $newQuantity = min(
+                $requestedQuantity,
                 $product->getStock()
             );
+
+            $cart[$productId] = $newQuantity;
         }
 
         $session->set('cart', $cart);
+
+        if ($newQuantity !== $previousQuantity) {
+            $changeType = match (true) {
+                0 === $newQuantity => 'removal',
+                $newQuantity > $previousQuantity => 'increment',
+                default => 'decrement',
+            };
+
+            $eventType = 0 === $newQuantity
+                ? 'REMOVE_FROM_CART'
+                : 'CART_QUANTITY_CHANGED';
+
+            $tracking->track(
+                $eventType,
+                $productId,
+                [
+                    'source' => 'quantity_update',
+                    'change_type' => $changeType,
+                    'previous_quantity' => $previousQuantity,
+                    'new_quantity' => $newQuantity,
+                    'requested_quantity' => $requestedQuantity,
+                    'delta' => $newQuantity - $previousQuantity,
+                    'price_cents' => $product->getPriceCents(),
+                ]
+            );
+        }
 
         return $this->redirectToRoute('app_cart');
     }
