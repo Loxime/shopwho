@@ -1,0 +1,45 @@
+<fieldset class="review-rating-field">
+  <legend class="review-rating-legend">
+    Note
+  </legend>
+
+  <div
+    class="review-rating-stars"
+    aria-describedby="{{ ratingField.vars.id }}-help"
+  >
+    {% for choice in ratingField %}
+      {{ form_widget(
+        choice,
+        {
+          attr: {
+            class: 'review-rating-radio'
+          }
+        }
+      ) }}
+
+      <label
+        class="review-rating-star"
+        for="{{ choice.vars.id }}"
+        title="{{ choice.vars.label }}"
+        data-rating-value="{{ choice.vars.value }}"
+      >
+        <span aria-hidden="true">
+          ★
+        </span>
+
+        <span class="sr-only">
+          {{ choice.vars.label }}
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+
+  <p
+    id="{{ ratingField.vars.id }}-help"
+    class="review-rating-help muted"
+  >
+    Sélectionnez une note de 1 à 5 étoiles.
+  </p>
+
+  {{ form_errors(ratingField) }}
+</fieldset>
