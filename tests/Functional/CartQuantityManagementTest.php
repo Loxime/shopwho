@@ -204,6 +204,96 @@ final class CartQuantityManagementTest extends WebTestCase
         );
     }
 
+    public function testCartPageDisplaysQuantityControls(): void
+    {
+        $client = static::createClient();
+        $product = $this->createProduct(stock: 5);
+
+        $client->request(
+            'POST',
+            '/panier/ajouter/'.$product->getId()
+        );
+
+        $client->request(
+            'GET',
+            '/panier'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            1,
+            '[data-cart-quantity-controls]'
+        );
+
+        self::assertSelectorExists(
+            sprintf(
+                'input#cart-quantity-%d'
+                . '[name="quantity"]'
+                . '[type="number"]'
+                . '[value="1"]'
+                . '[min="0"]'
+                . '[max="5"]',
+                $product->getId()
+            )
+        );
+
+        self::assertSelectorCount(
+            3,
+            sprintf(
+                'form[action="/panier/quantite/%d"]',
+                $product->getId()
+            )
+        );
+
+        self::assertSelectorTextContains(
+            'body',
+            'Stock disponible : 5'
+        );
+    }
+
+    public function testIncreaseButtonIsDisabledAtStockLimit(): void
+    {
+        $client = static::createClient();
+        $product = $this->createProduct(stock: 2);
+
+        $client->request(
+            'POST',
+            '/panier/ajouter/'.$product->getId()
+        );
+
+        $client->request(
+            'POST',
+            '/panier/quantite/'.$product->getId(),
+            [
+                'quantity' => '2',
+            ]
+        );
+
+        $client->request(
+            'GET',
+            '/panier'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            sprintf(
+                'input#cart-quantity-%d[value="2"]',
+                $product->getId()
+            )
+        );
+
+        self::assertSelectorExists(
+            sprintf(
+                'form[action="/panier/quantite/%d"]'
+                . ' input[type="hidden"][value="3"]'
+                . ' + button[disabled]',
+                $product->getId()
+            )
+        );
+    }
+
     private function createProduct(
         int $stock
     ): Product {
