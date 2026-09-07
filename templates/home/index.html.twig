@@ -561,9 +561,44 @@
             </a>
           </article>
         {% else %}
-          <p>
-            Aucun produit ne correspond à la recherche.
-          </p>
+          <div
+            class="catalog-empty-state"
+            role="status"
+          >
+            <i
+              class="fa-solid fa-magnifying-glass"
+              aria-hidden="true"
+            ></i>
+
+            {% if query %}
+              <h3>
+                Aucun résultat pour « {{ query }} »
+              </h3>
+
+              <p class="muted">
+                Aucun produit du catalogue ne correspond
+                actuellement à cette recherche.
+              </p>
+            {% elseif category %}
+              <h3>
+                Aucun produit dans cette catégorie
+              </h3>
+
+              <p class="muted">
+                Aucun produit actif n’est actuellement
+                disponible dans cette catégorie.
+              </p>
+            {% else %}
+              <h3>
+                Aucun produit disponible
+              </h3>
+
+              <p class="muted">
+                Le catalogue ne contient actuellement
+                aucun produit disponible.
+              </p>
+            {% endif %}
+          </div>
         {% endfor %}
       </div>
     </div>

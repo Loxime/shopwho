@@ -142,6 +142,41 @@ class CatalogUxQuickWinsTest extends WebTestCase
         );
     }
 
+    public function testCatalogDisplaysDedicatedEmptySearchState(): void
+    {
+        $client = static::createClient();
+
+        $query = 'ux-no-result-'.bin2hex(
+            random_bytes(8)
+        );
+
+        $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            0,
+            '#catalogue .js-product-card'
+        );
+
+        self::assertSelectorExists(
+            '#catalogue .catalog-empty-state'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Aucun résultat pour « '.$query.' »'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Aucun produit du catalogue ne correspond'
+        );
+    }
+
     public function testProductPageDoesNotExposeStock(): void
     {
         $client = static::createClient();
