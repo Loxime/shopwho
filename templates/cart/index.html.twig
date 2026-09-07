@@ -31,7 +31,35 @@
           {% for line in lines %}
             <tr>
               <td>
-                {{ line.product.name }}
+                <a
+                  class="cart-product"
+                  href="{{ path(
+                    'app_product_show',
+                    {slug: line.product.slug}
+                  ) }}"
+                >
+                  <span class="cart-product-media">
+                    {% if line.product.imageUrl %}
+                      <img
+                        class="cart-product-thumbnail"
+                        src="{{ line.product.imageUrl }}"
+                        alt="{{ line.product.name }}"
+                        loading="lazy"
+                      >
+                    {% else %}
+                      <span
+                        class="cart-product-thumbnail-placeholder"
+                        aria-hidden="true"
+                      >
+                        <i class="fa-solid fa-image"></i>
+                      </span>
+                    {% endif %}
+                  </span>
+
+                  <span class="cart-product-name">
+                    {{ line.product.name }}
+                  </span>
+                </a>
               </td>
 
               <td>
