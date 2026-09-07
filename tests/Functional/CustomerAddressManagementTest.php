@@ -4,8 +4,10 @@ namespace App\Tests\Functional;
 
 use App\Address\FrenchAddressLookup;
 use App\Entity\Address;
+use App\Entity\Notification;
 use App\Entity\User;
 use App\Enum\AddressType;
+use App\Enum\NotificationType;
 use App\Kernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -189,6 +191,42 @@ class CustomerAddressManagementTest extends WebTestCase
         self::assertSame(
             'FR',
             $address['country_code']
+        );
+
+        self::assertSame(
+            1,
+            $this->countNotifications(
+                $user->getId()
+            )
+        );
+
+        $notification =
+            $this->findLatestNotification(
+                $user->getId()
+            );
+
+        self::assertInstanceOf(
+            Notification::class,
+            $notification
+        );
+
+        self::assertSame(
+            NotificationType::System,
+            $notification->getType()
+        );
+
+        self::assertSame(
+            'Adresse de livraison enregistrée',
+            $notification->getTitle()
+        );
+
+        self::assertSame(
+            '/profil/adresses',
+            $notification->getTargetUrl()
+        );
+
+        self::assertFalse(
+            $notification->isRead()
         );
     }
 
@@ -398,6 +436,47 @@ class CustomerAddressManagementTest extends WebTestCase
         self::assertSame(
             'Paris',
             $billing['city']
+        );
+
+        self::assertSame(
+            2,
+            $this->countNotifications(
+                $userId
+            )
+        );
+
+        $notification =
+            $this->findLatestNotification(
+                $userId
+            );
+
+        self::assertInstanceOf(
+            Notification::class,
+            $notification
+        );
+
+        self::assertSame(
+            NotificationType::System,
+            $notification->getType()
+        );
+
+        self::assertSame(
+            'Adresse de facturation enregistrée',
+            $notification->getTitle()
+        );
+
+        self::assertSame(
+            'Votre adresse de facturation a bien été enregistrée.',
+            $notification->getMessage()
+        );
+
+        self::assertSame(
+            '/profil/adresses',
+            $notification->getTargetUrl()
+        );
+
+        self::assertFalse(
+            $notification->isRead()
         );
     }
 
@@ -730,6 +809,52 @@ class CustomerAddressManagementTest extends WebTestCase
         self::assertSame(
             $shipping['country_code'],
             $billing['country_code']
+        );
+
+        /*
+         * La copie livraison -> facturation est une seule
+         * action utilisateur : elle ne doit donc produire
+         * qu'une seule notification.
+         */
+        self::assertSame(
+            1,
+            $this->countNotifications(
+                $userId
+            )
+        );
+
+        $notification =
+            $this->findLatestNotification(
+                $userId
+            );
+
+        self::assertInstanceOf(
+            Notification::class,
+            $notification
+        );
+
+        self::assertSame(
+            NotificationType::System,
+            $notification->getType()
+        );
+
+        self::assertSame(
+            'Adresses enregistrées',
+            $notification->getTitle()
+        );
+
+        self::assertSame(
+            'Vos adresses de livraison et de facturation ont bien été enregistrées.',
+            $notification->getMessage()
+        );
+
+        self::assertSame(
+            '/profil/adresses',
+            $notification->getTargetUrl()
+        );
+
+        self::assertFalse(
+            $notification->isRead()
         );
     }
 
@@ -1137,6 +1262,65 @@ class CustomerAddressManagementTest extends WebTestCase
                 '
                     SELECT COUNT(*)
                     FROM customer_address
+                    WHERE user_id = :userId
+                ',
+                [
+                    'userId' => $userId,
+                ]
+            );
+    }
+
+    private function findLatestNotification(
+        ?int $userId
+    ): ?Notification {
+        if ($userId === null) {
+            return null;
+        }
+
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(
+            EntityManagerInterface::class
+        );
+
+        $user = $em->find(
+            User::class,
+            $userId
+        );
+
+        if (!$user instanceof User) {
+            return null;
+        }
+
+        return $em
+            ->getRepository(Notification::class)
+            ->findOneBy(
+                [
+                    'user' => $user,
+                ],
+                [
+                    'id' => 'DESC',
+                ]
+            );
+    }
+
+    private function countNotifications(
+        ?int $userId
+    ): int {
+        if ($userId === null) {
+            return 0;
+        }
+
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(
+            EntityManagerInterface::class
+        );
+
+        return (int) $em
+            ->getConnection()
+            ->fetchOne(
+                '
+                    SELECT COUNT(*)
+                    FROM notification
                     WHERE user_id = :userId
                 ',
                 [
