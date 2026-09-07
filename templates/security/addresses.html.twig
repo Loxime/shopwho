@@ -120,6 +120,19 @@
             {{ form_errors(shippingForm.countryCode) }}
           </div>
 
+          <label class="address-copy-option">
+            <input
+              type="checkbox"
+              name="copy_shipping_to_billing"
+              value="1"
+            >
+
+            <span>
+              Utiliser également cette adresse
+              pour la facturation
+            </span>
+          </label>
+
           <button class="btn orange" type="submit">
             Enregistrer l’adresse de livraison
           </button>
