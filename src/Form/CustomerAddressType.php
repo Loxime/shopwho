@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Address;
+use App\Validator\ValidFrenchAddress;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -79,6 +80,9 @@ class CustomerAddressType extends AbstractType
     ): void {
         $resolver->setDefaults([
             'data_class' => Address::class,
+            'constraints' => [
+                new ValidFrenchAddress(),
+            ],
         ]);
     }
 }
