@@ -2,7 +2,9 @@
 
 namespace App\Tests\Functional;
 
+use App\Entity\Notification;
 use App\Entity\User;
+use App\Enum\NotificationType;
 use App\Kernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -85,11 +87,61 @@ class CustomerProfileManagementTest extends WebTestCase
             'new-profile@shopwho.local'
         );
 
+        self::assertSelectorTextContains(
+            '.notification-badge',
+            '1'
+        );
+
         $user = $this->findUser('new-profile@shopwho.local');
 
         self::assertNotNull($user);
         self::assertSame('Charlie', $user->getFirstName());
         self::assertSame('Shopwho', $user->getLastName());
+
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(
+            EntityManagerInterface::class
+        );
+
+        $notification = $em
+            ->getRepository(Notification::class)
+            ->findOneBy(
+                [
+                    'user' => $user,
+                ],
+                [
+                    'id' => 'DESC',
+                ]
+            );
+
+        self::assertInstanceOf(
+            Notification::class,
+            $notification
+        );
+
+        self::assertSame(
+            NotificationType::System,
+            $notification->getType()
+        );
+
+        self::assertSame(
+            'Profil mis à jour',
+            $notification->getTitle()
+        );
+
+        self::assertSame(
+            'Vos informations personnelles ont bien été enregistrées.',
+            $notification->getMessage()
+        );
+
+        self::assertSame(
+            '/profil',
+            $notification->getTargetUrl()
+        );
+
+        self::assertFalse(
+            $notification->isRead()
+        );
 
         /** @var UserPasswordHasherInterface $hasher */
         $hasher = static::getContainer()->get(
