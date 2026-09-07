@@ -43,14 +43,54 @@
 
       <div class="form-row">
         {{ form_label(registrationForm.plainPassword.first) }}
-        {{ form_widget(registrationForm.plainPassword.first) }}
+
+        <div class="password-field">
+          {{ form_widget(registrationForm.plainPassword.first) }}
+
+          <button
+            type="button"
+            class="password-visibility-toggle"
+            data-password-toggle
+            data-password-target="registration_plainPassword_first"
+            aria-controls="registration_plainPassword_first"
+            aria-pressed="false"
+            aria-label="Afficher le mot de passe"
+            title="Afficher le mot de passe"
+          >
+            <i
+              class="fa-solid fa-eye"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </div>
+
         {{ form_help(registrationForm.plainPassword.first) }}
         {{ form_errors(registrationForm.plainPassword.first) }}
       </div>
 
       <div class="form-row">
         {{ form_label(registrationForm.plainPassword.second) }}
-        {{ form_widget(registrationForm.plainPassword.second) }}
+
+        <div class="password-field">
+          {{ form_widget(registrationForm.plainPassword.second) }}
+
+          <button
+            type="button"
+            class="password-visibility-toggle"
+            data-password-toggle
+            data-password-target="registration_plainPassword_second"
+            aria-controls="registration_plainPassword_second"
+            aria-pressed="false"
+            aria-label="Afficher le mot de passe"
+            title="Afficher le mot de passe"
+          >
+            <i
+              class="fa-solid fa-eye"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </div>
+
         {{ form_errors(registrationForm.plainPassword.second) }}
       </div>
 
@@ -66,4 +106,11 @@
     </p>
   </section>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+  <script
+    src="/js/password-visibility.js"
+    defer
+  ></script>
 {% endblock %}

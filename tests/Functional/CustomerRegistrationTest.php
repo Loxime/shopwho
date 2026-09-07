@@ -62,6 +62,40 @@ class CustomerRegistrationTest extends WebTestCase
         );
     }
 
+    public function testRegistrationProvidesPasswordVisibilityControls(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/inscription');
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            '#registration_plainPassword_first[type="password"]'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_second[type="password"]'
+        );
+
+        self::assertSelectorExists(
+            'button[data-password-toggle]'
+            . '[data-password-target="registration_plainPassword_first"]'
+            . '[aria-controls="registration_plainPassword_first"]'
+            . '[aria-pressed="false"]'
+        );
+
+        self::assertSelectorExists(
+            'button[data-password-toggle]'
+            . '[data-password-target="registration_plainPassword_second"]'
+            . '[aria-controls="registration_plainPassword_second"]'
+            . '[aria-pressed="false"]'
+        );
+
+        self::assertSelectorExists(
+            'script[src="/js/password-visibility.js"]'
+        );
+    }
+
     public function testCustomerCanRegister(): void
     {
         $client = static::createClient();
