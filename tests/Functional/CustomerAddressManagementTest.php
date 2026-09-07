@@ -2,12 +2,15 @@
 
 namespace App\Tests\Functional;
 
+use App\Address\FrenchAddressLookup;
 use App\Entity\Address;
 use App\Entity\User;
 use App\Enum\AddressType;
 use App\Kernel;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -48,6 +51,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAnonymousUserCannotAccessAddresses(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $client->request('GET', '/profil/adresses');
 
@@ -57,6 +61,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAddressPagePrefillsCustomerIdentity(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-prefill@shopwho.local',
@@ -113,6 +118,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testCustomerCanCreateShippingAddress(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-shipping@shopwho.local',
@@ -189,6 +195,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testUpdatingShippingAddressDoesNotCreateDuplicate(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-update@shopwho.local',
@@ -282,6 +289,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testShippingAndBillingAddressesAreIndependent(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-independent@shopwho.local',
@@ -396,6 +404,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testInvalidAddressIsRejected(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-invalid@shopwho.local',
@@ -435,9 +444,156 @@ class CustomerAddressManagementTest extends WebTestCase
         );
     }
 
+    public function testFrenchAddressRejectsInconsistentCitySpelling(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-city-spelling@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $crawler = $client->request(
+            'GET',
+            '/profil/adresses'
+        );
+
+        $form = $crawler
+            ->filter(
+                'form[name="shipping_address"]'
+            )
+            ->form();
+
+        $client->submit($form, [
+            'shipping_address[firstName]' => 'Maxime',
+            'shipping_address[lastName]' => 'Falchero',
+            'shipping_address[line1]' => '10 rue des Tests',
+            'shipping_address[line2]' => '',
+            'shipping_address[postalCode]' => '63000',
+            'shipping_address[city]' => 'Clermont-Fyrand',
+            'shipping_address[countryCode]' => 'FR',
+        ]);
+
+        self::assertResponseStatusCodeSame(422);
+
+        self::assertSelectorTextContains(
+            'body',
+            'La ville « Clermont-Fyrand » ne correspond pas au code postal 63000.'
+        );
+
+        self::assertSame(
+            0,
+            $this->countAddresses(
+                $user->getId(),
+                AddressType::Shipping
+            )
+        );
+    }
+
+    public function testAddressPageExposesAutocompleteControls(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-autocomplete-ui@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $client->request(
+            'GET',
+            '/profil/adresses'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            2,
+            'form[data-address-autocomplete]'
+        );
+
+        self::assertSelectorCount(
+            2,
+            '[data-address-feedback]'
+        );
+
+        self::assertSelectorCount(
+            2,
+            '[data-address-suggestions]'
+        );
+
+        self::assertSelectorExists(
+            'script[src="/js/address-autocomplete.js"]'
+        );
+    }
+
+    public function testAuthenticatedCustomerCanLookupAddressSuggestions(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-autocomplete-api@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $client->request(
+            'GET',
+            '/profil/adresses/recherche',
+            [
+                'q' => '10 rue des Tests 63000 Clermont-Ferrand',
+            ]
+        );
+
+        self::assertResponseIsSuccessful();
+        self::assertResponseFormatSame('json');
+
+        $payload = json_decode(
+            $client->getResponse()->getContent(),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
+
+        self::assertTrue(
+            $payload['available']
+        );
+
+        self::assertCount(
+            1,
+            $payload['suggestions']
+        );
+
+        self::assertSame(
+            'Adresse 63000 Clermont-Ferrand',
+            $payload['suggestions'][0]['label']
+        );
+
+        self::assertSame(
+            '63000',
+            $payload['suggestions'][0]['postalCode']
+        );
+
+        self::assertSame(
+            'Clermont-Ferrand',
+            $payload['suggestions'][0]['city']
+        );
+    }
+
     public function testDeletingAccountDeletesCustomerAddresses(): void
     {
         $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
             'address-test-deletion@shopwho.local',
@@ -492,6 +648,94 @@ class CustomerAddressManagementTest extends WebTestCase
         self::assertSame(
             0,
             $this->countAllAddresses($userId)
+        );
+    }
+
+    private function installFrenchAddressLookupMock(): void
+    {
+        $httpClient = new MockHttpClient(
+            static function (
+                string $method,
+                string $url
+            ): MockResponse {
+                self::assertSame('GET', $method);
+
+                $query = [];
+
+                parse_str(
+                    (string) parse_url(
+                        $url,
+                        PHP_URL_QUERY
+                    ),
+                    $query
+                );
+
+                $search = (string) ($query['q'] ?? '');
+
+                if (!preg_match(
+                    '/\\b(\\d{5})\\s+(.+)$/u',
+                    $search,
+                    $matches
+                )) {
+                    return new MockResponse(
+                        '{"features":[]}',
+                        [
+                            'http_code' => 200,
+                            'response_headers' => [
+                                'content-type: application/json',
+                            ],
+                        ]
+                    );
+                }
+
+                $postalCode = $matches[1];
+                $requestedCity = trim($matches[2]);
+
+                /*
+                 * Simulation explicite de la faute remontée
+                 * pendant les tests utilisateurs.
+                 */
+                $resolvedCity = $requestedCity
+                    === 'Clermont-Fyrand'
+                    ? 'Clermont-Ferrand'
+                    : $requestedCity;
+
+                return new MockResponse(
+                    json_encode(
+                        [
+                            'features' => [
+                                [
+                                    'properties' => [
+                                        'label' => sprintf(
+                                            'Adresse %s %s',
+                                            $postalCode,
+                                            $resolvedCity
+                                        ),
+                                        'name' => 'Adresse de test',
+                                        'postcode' => $postalCode,
+                                        'city' => $resolvedCity,
+                                        'citycode' => 'TEST',
+                                        'type' => 'housenumber',
+                                        'score' => 0.99,
+                                    ],
+                                ],
+                            ],
+                        ],
+                        JSON_THROW_ON_ERROR
+                    ),
+                    [
+                        'http_code' => 200,
+                        'response_headers' => [
+                            'content-type: application/json',
+                        ],
+                    ]
+                );
+            }
+        );
+
+        static::getContainer()->set(
+            FrenchAddressLookup::class,
+            new FrenchAddressLookup($httpClient)
         );
     }
 

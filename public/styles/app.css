@@ -769,3 +769,56 @@
   outline:2px solid var(--blue);
   outline-offset:2px;
 }
+
+.address-autocomplete-feedback{
+  min-height:20px;
+  margin:-4px 0 10px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.address-autocomplete-feedback[data-state="success"]{
+  color:#166534;
+  font-weight:700;
+}
+
+.address-autocomplete-feedback[data-state="error"]{
+  color:#991b1b;
+}
+
+.address-suggestions{
+  display:grid;
+  gap:4px;
+  margin:-4px 0 16px;
+  padding:6px;
+  background:#fff;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  box-shadow:0 10px 25px rgba(15,23,42,.1);
+}
+
+.address-suggestions[hidden]{
+  display:none;
+}
+
+.address-suggestion{
+  width:100%;
+  padding:10px 12px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:var(--ink);
+  text-align:left;
+  cursor:pointer;
+}
+
+.address-suggestion:hover,
+.address-suggestion:focus-visible{
+  background:#eef2ff;
+  color:var(--blue);
+}
+
+.address-suggestion:focus-visible{
+  outline:2px solid var(--blue);
+  outline-offset:1px;
+}
