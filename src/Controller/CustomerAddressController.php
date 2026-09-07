@@ -74,11 +74,27 @@ class CustomerAddressController extends AbstractController
             && $shippingForm->isValid()
         ) {
             $entityManager->persist($shippingAddress);
+
+            $copyToBilling = $request->request->get(
+                'copy_shipping_to_billing'
+            ) === '1';
+
+            if ($copyToBilling) {
+                $this->copyAddress(
+                    $shippingAddress,
+                    $billingAddress
+                );
+
+                $entityManager->persist($billingAddress);
+            }
+
             $entityManager->flush();
 
             $this->addFlash(
                 'success',
-                'Votre adresse de livraison a été enregistrée.'
+                $copyToBilling
+                    ? 'Vos adresses de livraison et de facturation ont été enregistrées.'
+                    : 'Votre adresse de livraison a été enregistrée.'
             );
 
             return $this->redirectToRoute(
@@ -110,6 +126,20 @@ class CustomerAddressController extends AbstractController
                 'billingForm' => $billingForm,
             ]
         );
+    }
+
+    private function copyAddress(
+        Address $source,
+        Address $target
+    ): void {
+        $target
+            ->setFirstName($source->getFirstName())
+            ->setLastName($source->getLastName())
+            ->setLine1($source->getLine1())
+            ->setLine2($source->getLine2())
+            ->setPostalCode($source->getPostalCode())
+            ->setCity($source->getCity())
+            ->setCountryCode($source->getCountryCode());
     }
 
     private function createAddress(
