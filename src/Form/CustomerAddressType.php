@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Address;
+use App\Validator\ValidFrenchAddress;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -35,6 +36,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'address-line1',
+                    'data-address-line1' => '',
                 ],
             ])
             ->add('line2', TextType::class, [
@@ -50,6 +52,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'postal-code',
+                    'data-address-postal-code' => '',
                 ],
             ])
             ->add('city', TextType::class, [
@@ -57,6 +60,7 @@ class CustomerAddressType extends AbstractType
                 'empty_data' => '',
                 'attr' => [
                     'autocomplete' => 'address-level2',
+                    'data-address-city' => '',
                 ],
             ])
             ->add('countryCode', CountryType::class, [
@@ -70,6 +74,7 @@ class CustomerAddressType extends AbstractType
                 ],
                 'attr' => [
                     'autocomplete' => 'country',
+                    'data-address-country' => '',
                 ],
             ]);
     }
@@ -79,6 +84,9 @@ class CustomerAddressType extends AbstractType
     ): void {
         $resolver->setDefaults([
             'data_class' => Address::class,
+            'constraints' => [
+                new ValidFrenchAddress(),
+            ],
         ]);
     }
 }

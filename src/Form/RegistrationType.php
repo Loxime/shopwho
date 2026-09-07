@@ -50,11 +50,18 @@ class RegistrationType extends AbstractType
                 'invalid_message' => 'Les mots de passe ne correspondent pas.',
                 'first_options' => [
                     'label' => 'Mot de passe',
-                    'attr' => ['autocomplete' => 'new-password'],
+                    'help' => '12 caractères minimum.',
+                    'attr' => [
+                        'autocomplete' => 'new-password',
+                        'minlength' => 12,
+                    ],
                 ],
                 'second_options' => [
                     'label' => 'Confirmer le mot de passe',
-                    'attr' => ['autocomplete' => 'new-password'],
+                    'attr' => [
+                        'autocomplete' => 'new-password',
+                        'minlength' => 12,
+                    ],
                 ],
                 'constraints' => [
                     new NotBlank(message: 'Veuillez choisir un mot de passe.'),
