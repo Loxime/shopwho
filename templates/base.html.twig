@@ -144,7 +144,7 @@
   {% set allCategories = shopwho_all_categories() %}
   {% set featuredCategories = shopwho_featured_categories() %}
   {% if allCategories is not empty %}<nav class="category-bar" aria-label="Catégories de produits"><div class="container category-links">
-    <details class="all-categories"><summary><i class="fa-solid fa-bars" aria-hidden="true"></i> Toutes</summary><div class="category-panel">
+    <details class="all-categories"><summary><i class="fa-solid fa-bars" aria-hidden="true"></i> Tout</summary><div class="category-panel">
       <div><strong>Toutes les catégories</strong>{% for item in allCategories %}<a href="{{ path('app_home', {category:item.slug}) }}">{% if item.icon %}<i class="{{ item.icon }}" aria-hidden="true"></i>{% endif %} {{ item.name }}</a>{% endfor %}<a href="{{ path('app_home') }}">Voir tout</a></div>
       {% if featuredCategories is not empty %}<div><strong>À la une</strong>{% for item in featuredCategories %}<a href="{{ path('app_home', {category:item.slug}) }}">{{ item.name }}</a>{% endfor %}</div>{% endif %}
     </div></details>

@@ -315,6 +315,39 @@ class CatalogUxQuickWinsTest extends WebTestCase
         );
     }
 
+    public function testAllCategoriesNavigationUsesToutLabel(): void
+    {
+        $client = static::createClient();
+
+        $this->fixture();
+
+        $crawler = $client->request(
+            'GET',
+            '/'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $summary = $crawler->filter(
+            '.all-categories > summary'
+        );
+
+        self::assertCount(
+            1,
+            $summary
+        );
+
+        self::assertSame(
+            'Tout',
+            trim($summary->text())
+        );
+
+        self::assertSelectorTextContains(
+            '.category-panel',
+            'Toutes les catégories'
+        );
+    }
+
     public function testStorefrontDeclaresFavicon(): void
     {
         $client = static::createClient();
