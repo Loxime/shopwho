@@ -43,6 +43,59 @@ class CustomerRegistrationTest extends WebTestCase
         self::assertSelectorExists('form');
     }
 
+    public function testRegistrationExposesPasswordRequirements(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/inscription');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains(
+            'body',
+            '12 caractères minimum.'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_first[minlength="12"]'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_second[minlength="12"]'
+        );
+    }
+
+    public function testRegistrationProvidesPasswordVisibilityControls(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/inscription');
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            '#registration_plainPassword_first[type="password"]'
+        );
+        self::assertSelectorExists(
+            '#registration_plainPassword_second[type="password"]'
+        );
+
+        self::assertSelectorExists(
+            'button[data-password-toggle]'
+            . '[data-password-target="registration_plainPassword_first"]'
+            . '[aria-controls="registration_plainPassword_first"]'
+            . '[aria-pressed="false"]'
+        );
+
+        self::assertSelectorExists(
+            'button[data-password-toggle]'
+            . '[data-password-target="registration_plainPassword_second"]'
+            . '[aria-controls="registration_plainPassword_second"]'
+            . '[aria-pressed="false"]'
+        );
+
+        self::assertSelectorExists(
+            'script[src="/js/password-visibility.js"]'
+        );
+    }
+
     public function testCustomerCanRegister(): void
     {
         $client = static::createClient();
