@@ -44,6 +44,51 @@ class CartController extends AbstractController
         return $this->redirectToRoute('app_cart');
     }
 
+    #[Route('/panier/quantite/{id}', name: 'app_cart_update_quantity', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function updateQuantity(
+        Product $product,
+        Request $request
+    ): Response {
+        $session = $request->getSession();
+        $cart = $session->get('cart', []);
+        $productId = (int) $product->getId();
+
+        if (!array_key_exists($productId, $cart)) {
+            return $this->redirectToRoute('app_cart');
+        }
+
+        $rawQuantity = $request->request->get('quantity');
+
+        if (
+            !is_scalar($rawQuantity)
+            || filter_var(
+                (string) $rawQuantity,
+                FILTER_VALIDATE_INT
+            ) === false
+        ) {
+            return $this->redirectToRoute('app_cart');
+        }
+
+        $quantity = (int) $rawQuantity;
+
+        if (
+            $quantity <= 0
+            || !$product->isActive()
+            || $product->getStock() < 1
+        ) {
+            unset($cart[$productId]);
+        } else {
+            $cart[$productId] = min(
+                $quantity,
+                $product->getStock()
+            );
+        }
+
+        $session->set('cart', $cart);
+
+        return $this->redirectToRoute('app_cart');
+    }
+
     #[Route('/panier/retirer/{id}', name: 'app_cart_remove', requirements: ['id' => '\\d+'], methods: ['POST'])]
     public function remove(int $id, Request $request, TrackingService $tracking): Response
     {
