@@ -177,6 +177,117 @@ class CatalogUxQuickWinsTest extends WebTestCase
         );
     }
 
+    public function testEmptySearchOffersSearchResetAction(): void
+    {
+        $client = static::createClient();
+
+        $query = 'ux-empty-reset-'.bin2hex(
+            random_bytes(8)
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $reset = $crawler->filter(
+            '#catalogue [data-empty-search-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $reset
+        );
+
+        self::assertStringContainsString(
+            'Effacer la recherche',
+            $reset->text()
+        );
+
+        self::assertSame(
+            '/',
+            $reset->attr('href')
+        );
+
+        self::assertSelectorCount(
+            0,
+            '#catalogue [data-empty-catalog-reset]'
+        );
+    }
+
+    public function testClearingSearchPreservesSelectedCategory(): void
+    {
+        $client = static::createClient();
+
+        $suffix = bin2hex(
+            random_bytes(8)
+        );
+
+        $category = (new Category())
+            ->setName(
+                'UX Empty '.$suffix
+            )
+            ->setSlug(
+                'ux-test-empty-category-'.$suffix
+            );
+
+        $this->em()->persist($category);
+        $this->em()->flush();
+
+        $query = 'ux-no-result-'.$suffix;
+
+        $crawler = $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+            .'&category='.urlencode(
+                $category->getSlug()
+            )
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            '#catalogue .catalog-empty-state'
+        );
+
+        $searchReset = $crawler->filter(
+            '#catalogue [data-empty-search-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $searchReset
+        );
+
+        self::assertSame(
+            '/?category='.urlencode(
+                $category->getSlug()
+            ),
+            $searchReset->attr('href')
+        );
+
+        $catalogReset = $crawler->filter(
+            '#catalogue [data-empty-catalog-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $catalogReset
+        );
+
+        self::assertStringContainsString(
+            'Voir tous les produits',
+            $catalogReset->text()
+        );
+
+        self::assertSame(
+            '/',
+            $catalogReset->attr('href')
+        );
+    }
+
     public function testProductPageDoesNotExposeStock(): void
     {
         $client = static::createClient();

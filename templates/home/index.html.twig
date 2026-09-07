@@ -598,6 +598,45 @@
                 aucun produit disponible.
               </p>
             {% endif %}
+
+            {% if query or category %}
+              <div class="catalog-empty-actions">
+                {% if query %}
+                  <a
+                    class="btn"
+                    data-empty-search-reset
+                    href="{{ path(
+                      'app_home',
+                      category
+                        ? {category: category}
+                        : {}
+                    ) }}"
+                  >
+                    <i
+                      class="fa-solid fa-xmark"
+                      aria-hidden="true"
+                    ></i>
+
+                    Effacer la recherche
+                  </a>
+                {% endif %}
+
+                {% if category %}
+                  <a
+                    class="btn orange"
+                    data-empty-catalog-reset
+                    href="{{ path('app_home') }}"
+                  >
+                    <i
+                      class="fa-solid fa-table-cells-large"
+                      aria-hidden="true"
+                    ></i>
+
+                    Voir tous les produits
+                  </a>
+                {% endif %}
+              </div>
+            {% endif %}
           </div>
         {% endfor %}
       </div>
