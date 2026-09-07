@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Enum\AddressType;
 use App\Form\CustomerAddressType;
 use App\Repository\AddressRepository;
+use App\Service\UserActionNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormFactoryInterface;
@@ -25,6 +26,7 @@ class CustomerAddressController extends AbstractController
         Request $request,
         AddressRepository $addresses,
         FormFactoryInterface $formFactory,
+        UserActionNotificationService $notifications,
         EntityManagerInterface $entityManager,
     ): Response {
         /** @var User $user */
@@ -88,6 +90,11 @@ class CustomerAddressController extends AbstractController
                 $entityManager->persist($billingAddress);
             }
 
+            $notifications->shippingAddressSaved(
+                $user,
+                $copyToBilling
+            );
+
             $entityManager->flush();
 
             $this->addFlash(
@@ -107,6 +114,11 @@ class CustomerAddressController extends AbstractController
             && $billingForm->isValid()
         ) {
             $entityManager->persist($billingAddress);
+
+            $notifications->billingAddressSaved(
+                $user
+            );
+
             $entityManager->flush();
 
             $this->addFlash(
