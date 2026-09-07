@@ -34,6 +34,28 @@ class HomeController extends AbstractController
             (string) $request->query->get('category', '')
         ) ?: null;
 
+        $sort = trim(
+            (string) $request->query->get(
+                'sort',
+                'newest'
+            )
+        );
+
+        if (
+            !in_array(
+                $sort,
+                [
+                    'newest',
+                    'price_asc',
+                    'price_desc',
+                    'name_asc',
+                ],
+                true
+            )
+        ) {
+            $sort = 'newest';
+        }
+
         $tracking->track(
             'PAGE_VIEW',
             null,
@@ -64,7 +86,8 @@ class HomeController extends AbstractController
 
         $catalogProducts = $products->findCatalog(
             $query,
-            $category
+            $category,
+            $sort
         );
 
         $user = $this->getUser();
@@ -122,6 +145,7 @@ class HomeController extends AbstractController
                     ),
                 'query' => $query,
                 'category' => $category,
+                'sort' => $sort,
             ]
         );
     }

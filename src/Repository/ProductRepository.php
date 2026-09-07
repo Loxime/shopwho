@@ -16,25 +16,84 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /** @return Product[] */
-    public function findCatalog(?string $query = null, ?string $category = null): array
-    {
+    public function findCatalog(
+        ?string $query = null,
+        ?string $category = null,
+        string $sort = 'newest'
+    ): array {
         $qb = $this->createQueryBuilder('p')
             ->addSelect('c')
             ->join('p.category', 'c')
             ->andWhere('p.isActive = :active')
-            ->setParameter('active', true)
-            ->orderBy('p.createdAt', 'DESC');
+            ->setParameter('active', true);
 
         if ($query) {
-            $qb->andWhere('LOWER(p.name) LIKE :q OR LOWER(p.description) LIKE :q')
-                ->setParameter('q', '%'.mb_strtolower(trim($query)).'%');
+            $qb
+                ->andWhere(
+                    'LOWER(p.name) LIKE :q '
+                    .'OR LOWER(p.description) LIKE :q'
+                )
+                ->setParameter(
+                    'q',
+                    '%'.mb_strtolower(
+                        trim($query)
+                    ).'%'
+                );
         }
 
         if ($category) {
-            $qb->andWhere('c.slug = :category')->setParameter('category', $category);
+            $qb
+                ->andWhere(
+                    'c.slug = :category'
+                )
+                ->setParameter(
+                    'category',
+                    $category
+                );
         }
 
-        return $qb->getQuery()->getResult();
+        match ($sort) {
+            'price_asc' => $qb
+                ->orderBy(
+                    'p.priceCents',
+                    'ASC'
+                )
+                ->addOrderBy(
+                    'p.id',
+                    'ASC'
+                ),
+            'price_desc' => $qb
+                ->orderBy(
+                    'p.priceCents',
+                    'DESC'
+                )
+                ->addOrderBy(
+                    'p.id',
+                    'ASC'
+                ),
+            'name_asc' => $qb
+                ->orderBy(
+                    'p.name',
+                    'ASC'
+                )
+                ->addOrderBy(
+                    'p.id',
+                    'ASC'
+                ),
+            default => $qb
+                ->orderBy(
+                    'p.createdAt',
+                    'DESC'
+                )
+                ->addOrderBy(
+                    'p.id',
+                    'DESC'
+                ),
+        };
+
+        return $qb
+            ->getQuery()
+            ->getResult();
     }
 
     /**

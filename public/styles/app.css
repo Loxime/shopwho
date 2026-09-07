@@ -1011,3 +1011,33 @@
   align-items:center;
   gap:8px;
 }
+
+.catalog-toolbar{
+  display:flex;
+  justify-content:flex-end;
+  margin:18px 0 24px;
+}
+
+.catalog-controls{
+  display:flex;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.catalog-control{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.catalog-control label{
+  font-size:14px;
+  font-weight:600;
+}
+
+.catalog-control select{
+  min-width:190px;
+  min-height:40px;
+  padding:8px 34px 8px 10px;
+}

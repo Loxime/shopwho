@@ -446,6 +446,84 @@
         </div>
       </div>
 
+      <div class="catalog-toolbar">
+        <form
+          class="catalog-controls"
+          action="{{ path('app_home') }}"
+          method="get"
+        >
+          {% if query %}
+            <input
+              type="hidden"
+              name="q"
+              value="{{ query }}"
+            >
+          {% endif %}
+
+          {% if category %}
+            <input
+              type="hidden"
+              name="category"
+              value="{{ category }}"
+            >
+          {% endif %}
+
+          <div class="catalog-control">
+            <label for="catalog-sort">
+              Trier par
+            </label>
+
+            <select
+              id="catalog-sort"
+              name="sort"
+            >
+              <option
+                value="newest"
+                {% if sort == 'newest' %}
+                  selected
+                {% endif %}
+              >
+                Nouveautés
+              </option>
+
+              <option
+                value="price_asc"
+                {% if sort == 'price_asc' %}
+                  selected
+                {% endif %}
+              >
+                Prix croissant
+              </option>
+
+              <option
+                value="price_desc"
+                {% if sort == 'price_desc' %}
+                  selected
+                {% endif %}
+              >
+                Prix décroissant
+              </option>
+
+              <option
+                value="name_asc"
+                {% if sort == 'name_asc' %}
+                  selected
+                {% endif %}
+              >
+                Nom A → Z
+              </option>
+            </select>
+          </div>
+
+          <button
+            class="btn"
+            type="submit"
+          >
+            Appliquer
+          </button>
+        </form>
+      </div>
+
       {% if query %}
         <p>
           Résultats pour
