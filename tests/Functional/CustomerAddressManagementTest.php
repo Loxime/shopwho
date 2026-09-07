@@ -590,6 +590,257 @@ class CustomerAddressManagementTest extends WebTestCase
         );
     }
 
+    public function testShippingAddressCanAlsoBeUsedForBilling(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-copy-create@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $client->loginUser($user);
+
+        $crawler = $client->request(
+            'GET',
+            '/profil/adresses'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            'input[name="copy_shipping_to_billing"]'
+            . '[type="checkbox"]'
+            . '[value="1"]'
+        );
+
+        $form = $crawler
+            ->filter('form[name="shipping_address"]')
+            ->form();
+
+        $client->submit($form, [
+            'shipping_address[firstName]' => 'Maxime',
+            'shipping_address[lastName]' => 'Falchero',
+            'shipping_address[line1]' => '10 rue des Tests',
+            'shipping_address[line2]' => 'Appartement 42',
+            'shipping_address[postalCode]' => '63000',
+            'shipping_address[city]' => 'Clermont-Ferrand',
+            'shipping_address[countryCode]' => 'FR',
+            'copy_shipping_to_billing' => '1',
+        ]);
+
+        self::assertResponseRedirects('/profil/adresses');
+
+        $userId = $user->getId();
+
+        self::assertSame(
+            1,
+            $this->countAddresses(
+                $userId,
+                AddressType::Shipping
+            )
+        );
+
+        self::assertSame(
+            1,
+            $this->countAddresses(
+                $userId,
+                AddressType::Billing
+            )
+        );
+
+        self::assertSame(
+            2,
+            $this->countAllAddresses($userId)
+        );
+
+        $shipping = $this->findAddress(
+            $userId,
+            AddressType::Shipping
+        );
+
+        $billing = $this->findAddress(
+            $userId,
+            AddressType::Billing
+        );
+
+        self::assertNotNull($shipping);
+        self::assertNotNull($billing);
+
+        self::assertNotSame(
+            (int) $shipping['id'],
+            (int) $billing['id']
+        );
+
+        self::assertSame(
+            'Maxime',
+            $billing['first_name']
+        );
+        self::assertSame(
+            'Falchero',
+            $billing['last_name']
+        );
+        self::assertSame(
+            '10 rue des Tests',
+            $billing['line1']
+        );
+        self::assertSame(
+            'Appartement 42',
+            $billing['line2']
+        );
+        self::assertSame(
+            '63000',
+            $billing['postal_code']
+        );
+        self::assertSame(
+            'Clermont-Ferrand',
+            $billing['city']
+        );
+        self::assertSame(
+            'FR',
+            $billing['country_code']
+        );
+
+        self::assertSame(
+            $shipping['first_name'],
+            $billing['first_name']
+        );
+        self::assertSame(
+            $shipping['last_name'],
+            $billing['last_name']
+        );
+        self::assertSame(
+            $shipping['line1'],
+            $billing['line1']
+        );
+        self::assertSame(
+            $shipping['line2'],
+            $billing['line2']
+        );
+        self::assertSame(
+            $shipping['postal_code'],
+            $billing['postal_code']
+        );
+        self::assertSame(
+            $shipping['city'],
+            $billing['city']
+        );
+        self::assertSame(
+            $shipping['country_code'],
+            $billing['country_code']
+        );
+    }
+
+    public function testCopyingShippingAddressUpdatesExistingBillingAddress(): void
+    {
+        $client = static::createClient();
+        $this->installFrenchAddressLookupMock();
+
+        $user = $this->createUser(
+            'address-test-copy-update@shopwho.local',
+            'Maxime',
+            'Falchero'
+        );
+
+        $this->createAddress(
+            $user,
+            AddressType::Billing,
+            '2 rue Ancienne Facturation',
+            '75001',
+            'Paris',
+            'FR'
+        );
+
+        $userId = $user->getId();
+
+        $initialBilling = $this->findAddress(
+            $userId,
+            AddressType::Billing
+        );
+
+        self::assertNotNull($initialBilling);
+
+        $initialBillingId = (int) $initialBilling['id'];
+
+        $client->loginUser($user);
+
+        $crawler = $client->request(
+            'GET',
+            '/profil/adresses'
+        );
+
+        $form = $crawler
+            ->filter('form[name="shipping_address"]')
+            ->form();
+
+        $client->submit($form, [
+            'shipping_address[firstName]' => 'Maxime',
+            'shipping_address[lastName]' => 'Falchero',
+            'shipping_address[line1]' => '99 avenue Nouvelle',
+            'shipping_address[line2]' => '',
+            'shipping_address[postalCode]' => '69001',
+            'shipping_address[city]' => 'Lyon',
+            'shipping_address[countryCode]' => 'FR',
+            'copy_shipping_to_billing' => '1',
+        ]);
+
+        self::assertResponseRedirects('/profil/adresses');
+
+        self::assertSame(
+            1,
+            $this->countAddresses(
+                $userId,
+                AddressType::Shipping
+            )
+        );
+
+        self::assertSame(
+            1,
+            $this->countAddresses(
+                $userId,
+                AddressType::Billing
+            )
+        );
+
+        self::assertSame(
+            2,
+            $this->countAllAddresses($userId)
+        );
+
+        $billing = $this->findAddress(
+            $userId,
+            AddressType::Billing
+        );
+
+        self::assertNotNull($billing);
+
+        self::assertSame(
+            $initialBillingId,
+            (int) $billing['id']
+        );
+
+        self::assertSame(
+            '99 avenue Nouvelle',
+            $billing['line1']
+        );
+
+        self::assertNull(
+            $billing['line2']
+        );
+
+        self::assertSame(
+            '69001',
+            $billing['postal_code']
+        );
+
+        self::assertSame(
+            'Lyon',
+            $billing['city']
+        );
+    }
+
     public function testDeletingAccountDeletesCustomerAddresses(): void
     {
         $client = static::createClient();
