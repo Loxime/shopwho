@@ -186,6 +186,20 @@
         </tbody>
       </table>
 
+      <div class="cart-navigation">
+        <a
+          class="btn cart-continue-shopping"
+          href="{{ path('app_home') }}"
+        >
+          <i
+            class="fa-solid fa-arrow-left"
+            aria-hidden="true"
+          ></i>
+
+          Continuer mes achats
+        </a>
+      </div>
+
       <div class="cart-summary">
         <strong class="price">
           {{ total|number_format(2, ',', ' ') }} €

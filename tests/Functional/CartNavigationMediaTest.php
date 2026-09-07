@@ -92,6 +92,43 @@ final class CartNavigationMediaTest extends WebTestCase
         );
     }
 
+    public function testNonEmptyCartDisplaysContinueShoppingAction(): void
+    {
+        $client = static::createClient();
+        $product = $this->createProduct(null);
+
+        $client->request(
+            'POST',
+            '/panier/ajouter/'.$product->getId()
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/panier'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $link = $crawler->filter(
+            'a.cart-continue-shopping'
+        );
+
+        self::assertCount(
+            1,
+            $link
+        );
+
+        self::assertStringContainsString(
+            'Continuer mes achats',
+            $link->text()
+        );
+
+        self::assertSame(
+            '/',
+            $link->attr('href')
+        );
+    }
+
     private function createProduct(
         ?string $imageUrl
     ): Product {

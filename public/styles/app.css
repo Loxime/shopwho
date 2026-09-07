@@ -963,3 +963,14 @@
 .cart-product:focus-visible .cart-product-name{
   color:var(--blue);
 }
+
+.cart-navigation{
+  display:flex;
+  margin-top:25px;
+}
+
+.cart-continue-shopping{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
