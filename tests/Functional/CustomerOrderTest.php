@@ -295,10 +295,27 @@ class CustomerOrderTest extends WebTestCase
         $crawler = $client->request('GET', '/profil');
 
         self::assertResponseIsSuccessful();
-        self::assertCount(5, $crawler->filter('.order-summary'));
-        self::assertStringContainsString('-6', $crawler->filter('.order-summary')->first()->text());
-        self::assertSelectorTextContains('body', 'Terminée (simulation)');
-        self::assertSelectorTextContains('body', 'Voir toutes mes commandes');
+        self::assertCount(
+            5,
+            $crawler->filter(
+                '.profile-recent-order'
+            )
+        );
+        self::assertStringContainsString(
+            '-6',
+            $crawler
+                ->filter('.profile-recent-order')
+                ->first()
+                ->text()
+        );
+        self::assertSelectorTextContains(
+            'body',
+            'Terminée (simulation)'
+        );
+        self::assertSelectorTextContains(
+            'body',
+            'Voir toutes mes commandes'
+        );
     }
 
     public function testListOnlyContainsCurrentUsersOrdersInDescendingOrder(): void
