@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
+  <url>
+    <loc>{{ (
+      baseUrl ~ path('app_home')
+    )|e('html') }}</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  {% for category in categories %}
+    <url>
+      <loc>{{ (
+        baseUrl
+        ~ path(
+          'app_home',
+          {
+            category: category.slug
+          }
+        )
+      )|e('html') }}</loc>
+      <changefreq>daily</changefreq>
+      <priority>0.8</priority>
+    </url>
+  {% endfor %}
+
+  {% for product in products %}
+    <url>
+      <loc>{{ (
+        baseUrl
+        ~ path(
+          'app_product_show',
+          {
+            slug: product.slug
+          }
+        )
+      )|e('html') }}</loc>
+
+      <lastmod>
+        {{- product.updatedAt|date('c') -}}
+      </lastmod>
+
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+    </url>
+  {% endfor %}
+</urlset>
