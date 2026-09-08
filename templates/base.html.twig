@@ -4,6 +4,65 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Shopwho{% endblock %}</title>
+
+  <meta
+    name="description"
+    content="{% block meta_description %}Shopwho est une boutique e-commerce expérimentale dédiée à l'étude des parcours utilisateurs, des recommandations et de la donnée.{% endblock %}"
+  >
+
+  <meta
+    name="robots"
+    content="{% block meta_robots %}{% set routeName = app.request.attributes.get('_route') ?? '' %}{{ routeName starts with 'app_profile' or routeName starts with 'app_cart' or routeName in ['app_login', 'app_register'] ? 'noindex,nofollow' : 'index,follow,max-image-preview:large' }}{% endblock %}"
+  >
+
+  <link
+    rel="canonical"
+    href="{% block canonical_url %}{{ app.request.schemeAndHttpHost ~ app.request.pathInfo }}{% endblock %}"
+  >
+
+  <meta
+    property="og:site_name"
+    content="Shopwho"
+  >
+
+  <meta
+    property="og:type"
+    content="{% block og_type %}website{% endblock %}"
+  >
+
+  <meta
+    property="og:title"
+    content="{{ block('title')|striptags|trim }}"
+  >
+
+  <meta
+    property="og:description"
+    content="{{ block('meta_description')|striptags|trim }}"
+  >
+
+  <meta
+    property="og:url"
+    content="{{ block('canonical_url')|striptags|trim }}"
+  >
+
+  <meta
+    name="twitter:card"
+    content="summary"
+  >
+
+  <meta
+    name="twitter:title"
+    content="{{ block('title')|striptags|trim }}"
+  >
+
+  <meta
+    name="twitter:description"
+    content="{{ block('meta_description')|striptags|trim }}"
+  >
+
+  {% block social_meta %}{% endblock %}
+  {% block structured_data %}{% endblock %}
+
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles/app.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer">

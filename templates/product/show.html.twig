@@ -4,6 +4,93 @@
   {{ product.name }} — Shopwho
 {% endblock %}
 
+{% block meta_description %}
+{{ product.description|striptags|slice(0, 155) }}
+{% endblock %}
+
+{% block canonical_url -%}
+{{ app.request.schemeAndHttpHost ~ path(
+  'app_product_show',
+  {
+    slug: product.slug
+  }
+) }}
+{%- endblock %}
+
+{% block og_type %}product{% endblock %}
+
+{% block social_meta %}
+  {% if product.imageUrl %}
+    <meta
+      property="og:image"
+      content="{{ product.imageUrl }}"
+    >
+
+    <meta
+      property="og:image:alt"
+      content="{{ product.name }}"
+    >
+
+    <meta
+      name="twitter:image"
+      content="{{ product.imageUrl }}"
+    >
+  {% endif %}
+{% endblock %}
+
+{% block structured_data %}
+  {% set productUrl =
+    app.request.schemeAndHttpHost
+    ~ path(
+      'app_product_show',
+      {
+        slug: product.slug
+      }
+    )
+  %}
+
+  {% set productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    'name': product.name,
+    'description': product.description,
+    'url': productUrl,
+    'sku': product.externalRef
+      ?? ('SHOPWHO-' ~ product.id),
+    'category': product.category.name
+  } %}
+
+  {% if product.imageUrl %}
+    {% set productSchema = productSchema|merge({
+      image: [
+        product.imageUrl
+      ]
+    }) %}
+  {% endif %}
+
+  {% if ratingStats.count > 0 %}
+    {% set productSchema = productSchema|merge({
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: ratingStats.average,
+        reviewCount: ratingStats.count,
+        bestRating: 5,
+        worstRating: 1
+      }
+    }) %}
+  {% endif %}
+
+  <script type="application/ld+json">
+    {{- productSchema|json_encode(
+      constant('JSON_UNESCAPED_SLASHES')
+      b-or constant('JSON_HEX_TAG')
+      b-or constant('JSON_HEX_AMP')
+      b-or constant('JSON_HEX_APOS')
+      b-or constant('JSON_HEX_QUOT')
+    )|raw -}}
+  </script>
+{% endblock %}
+
 {% block body %}
 <section class="section product-show">
   <div class="container">
