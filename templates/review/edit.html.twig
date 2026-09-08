@@ -1,3 +1,5 @@
 {% extends 'base.html.twig' %}
 {% block title %}Modifier mon avis — Shopwho{% endblock %}
-{% block body %}<section class="section"><div class="container form-container"><h1>Modifier mon avis sur {{ review.product.name }}</h1>{{ form_start(form) }}{{ form_row(form.rating) }}{{ form_row(form.comment) }}<button class="btn orange" type="submit">Enregistrer</button>{{ form_end(form) }}</div></section>{% endblock %}
+{% block body %}<section class="section"><div class="container form-container"><h1>Modifier mon avis sur {{ review.product.name }}</h1>{{ form_start(form) }}{% include 'review/_rating_field.html.twig' with {
+  ratingField: form.rating
+} only %}{{ form_row(form.comment) }}<button class="btn orange" type="submit">Enregistrer</button>{{ form_end(form) }}</div></section>{% endblock %}

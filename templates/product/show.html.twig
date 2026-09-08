@@ -97,7 +97,9 @@
 <section class="section reviews-section"><div class="container"><h2>Avis clients</h2>
   {% if not app.user %}<p><a href="{{ path('app_login') }}">Connectez-vous pour laisser un avis.</a></p>
   {% elseif userReview %}<div class="review-callout"><strong>Votre avis</strong><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= userReview.rating ? '★' : '☆' }}{% endfor %}</span> {{ userReview.rating }}/5</p>{% if userReview.comment %}<p>{{ userReview.comment }}</p>{% endif %}<a class="btn" href="{{ path('app_profile_review_edit', {id:userReview.id}) }}">Modifier mon avis</a></div>
-  {% elseif canReview %}<div class="review-form"><h3>Donner mon avis</h3>{{ form_start(reviewForm) }}{{ form_row(reviewForm.rating) }}{{ form_row(reviewForm.comment) }}<button class="btn orange" type="submit">Publier mon avis</button>{{ form_end(reviewForm) }}</div>
+  {% elseif canReview %}<div class="review-form"><h3>Donner mon avis</h3>{{ form_start(reviewForm) }}{% include 'review/_rating_field.html.twig' with {
+  ratingField: reviewForm.rating
+} only %}{{ form_row(reviewForm.comment) }}<button class="btn orange" type="submit">Publier mon avis</button>{{ form_end(reviewForm) }}</div>
   {% else %}<p class="muted">Vous devez avoir acheté ce produit pour publier un avis.</p>{% endif %}
   <div class="review-list">{% for review in reviews %}<article class="review-card" data-review-id="{{ review.id }}"><h3>{{ review.user.publicDisplayName }}</h3><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= review.rating ? '★' : '☆' }}{% endfor %}</span><span class="sr-only">{{ review.rating }} étoiles sur 5</span></p>{% if review.comment %}<p>{{ review.comment }}</p>{% endif %}<time class="muted" datetime="{{ review.createdAt|date('c') }}">{{ review.createdAt|date('d/m/Y') }}</time></article>{% else %}<p class="muted">Aucun avis client pour le moment.</p>{% endfor %}</div>
 </div></section>

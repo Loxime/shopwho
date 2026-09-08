@@ -40,6 +40,197 @@ class ProductReviewTest extends WebTestCase
         self::assertSame('Excellent produit.', $review->getComment());
     }
 
+    public function testPurchasedCustomerSeesInteractiveStarRatingControl(): void
+    {
+        $client = static::createClient();
+
+        [$product, $user] =
+            $this->fixture();
+
+        $this->purchase(
+            $user,
+            $product
+        );
+
+        $client->loginUser(
+            $user
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/produit/'.$product->getSlug()
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            1,
+            '.review-rating-field'
+        );
+
+        $radios = $crawler->filter(
+            '.review-rating-field '
+            .'input.review-rating-radio'
+            .'[name="review[rating]"]'
+        );
+
+        self::assertCount(
+            5,
+            $radios
+        );
+
+        $values = $radios->each(
+            static fn ($node): int =>
+                (int) $node->attr('value')
+        );
+
+        sort($values);
+
+        self::assertSame(
+            [
+                1,
+                2,
+                3,
+                4,
+                5,
+            ],
+            $values
+        );
+
+        self::assertSelectorCount(
+            5,
+            '.review-rating-star'
+        );
+
+        self::assertSelectorTextContains(
+            '.review-rating-help',
+            'Sélectionnez une note de 1 à 5 étoiles.'
+        );
+    }
+
+    public function testInteractiveStarRatingPersistsSelectedValue(): void
+    {
+        $client = static::createClient();
+
+        [$product, $user] =
+            $this->fixture();
+
+        $this->purchase(
+            $user,
+            $product
+        );
+
+        $client->loginUser(
+            $user
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/produit/'.$product->getSlug()
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $form = $crawler
+            ->selectButton(
+                'Publier mon avis'
+            )
+            ->form([
+                'review[rating]' => 2,
+                'review[comment]' =>
+                    'Note choisie avec les étoiles.',
+            ]);
+
+        $client->submit(
+            $form
+        );
+
+        self::assertResponseRedirects(
+            '/produit/'.$product->getSlug()
+        );
+
+        $review = $this
+            ->em()
+            ->getRepository(
+                Review::class
+            )
+            ->findOneBy([
+                'user' => $user,
+                'product' => $product,
+            ]);
+
+        self::assertInstanceOf(
+            Review::class,
+            $review
+        );
+
+        self::assertSame(
+            2,
+            $review->getRating()
+        );
+
+        self::assertSame(
+            'Note choisie avec les étoiles.',
+            $review->getComment()
+        );
+    }
+
+    public function testEditReviewPreselectsExistingStarRating(): void
+    {
+        $client = static::createClient();
+
+        [$product, $user] =
+            $this->fixture();
+
+        $review = $this->persistReview(
+            $user,
+            $product,
+            3,
+            'Avis existant'
+        );
+
+        $client->loginUser(
+            $user
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/profil/avis/'
+            .$review->getId()
+            .'/modifier'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            5,
+            '.review-rating-field '
+            .'input.review-rating-radio'
+        );
+
+        $selected = $crawler->filter(
+            '.review-rating-field '
+            .'input.review-rating-radio'
+            .'[value="3"]'
+        );
+
+        self::assertCount(
+            1,
+            $selected
+        );
+
+        self::assertNotNull(
+            $selected->attr(
+                'checked'
+            )
+        );
+
+        self::assertSelectorCount(
+            5,
+            '.review-rating-star'
+        );
+    }
+
     public function testUnpurchasedProductAndPurchaseTrackingAloneDoNotAllowCreation(): void
     {
         $client = static::createClient();
