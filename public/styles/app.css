@@ -1359,3 +1359,100 @@
     max-height:48vh;
   }
 }
+
+/* Storefront footer */
+
+.footer{
+  margin-top:64px;
+  background:#111827;
+  color:#d1d5db;
+}
+
+.footer-grid{
+  display:grid;
+  grid-template-columns:minmax(240px,2fr) repeat(3,minmax(150px,1fr));
+  gap:48px;
+  padding-top:48px;
+  padding-bottom:44px;
+}
+
+.footer-brand,
+.footer-column{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.footer-logo{
+  color:#fff;
+  font-size:24px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+
+.footer-brand p,
+.footer-column p{
+  margin:0;
+  line-height:1.6;
+}
+
+.footer-project-note{
+  color:#fbbf24;
+  font-size:14px;
+}
+
+.footer-column strong{
+  margin-bottom:4px;
+  color:#fff;
+  font-size:15px;
+}
+
+.footer-column a{
+  color:#d1d5db;
+  text-decoration:none;
+}
+
+.footer-column a:hover{
+  color:#fff;
+  text-decoration:underline;
+}
+
+.footer-bottom{
+  border-top:1px solid rgba(255,255,255,.1);
+}
+
+.footer-bottom-content{
+  display:flex;
+  justify-content:space-between;
+  gap:24px;
+  padding-top:18px;
+  padding-bottom:18px;
+  color:#9ca3af;
+  font-size:13px;
+}
+
+@media (max-width:900px){
+  .footer-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media (max-width:600px){
+  .footer{
+    margin-top:44px;
+  }
+
+  .footer-grid{
+    grid-template-columns:1fr;
+    gap:30px;
+    padding-top:36px;
+    padding-bottom:34px;
+  }
+
+  .footer-bottom-content{
+    flex-direction:column;
+    gap:6px;
+  }
+}
