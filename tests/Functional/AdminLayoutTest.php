@@ -57,6 +57,9 @@ final class AdminLayoutTest extends WebTestCase
             self::assertResponseIsSuccessful();
             self::assertSelectorExists('[data-admin-shell]');
             self::assertSelectorExists('link[href="/styles/admin.css"]');
+            self::assertSelectorExists(
+                'link[rel="icon"][href="/favicon.svg"][type="image/svg+xml"]'
+            );
             self::assertSelectorExists('.admin-sidebar-brand');
             self::assertSelectorExists('.admin-nav a[href="/admin/products"]');
             self::assertSelectorExists('.admin-nav a[href="/admin/categories"]');
