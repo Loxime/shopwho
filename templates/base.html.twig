@@ -132,7 +132,7 @@
              Mes notifications{% if unreadNotifications > 0 %} ({{ unreadNotifications }}){% endif %}
            </a>
            <a href="{{ path('app_profile_reviews') }}"><i class="fa-solid fa-star" aria-hidden="true"></i> Mes avis</a>
-           {% if is_granted('ROLE_ADMIN') %}<a href="{{ path('admin_product_index') }}"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Se rendre sur le backoffice</a>{% endif %}
+           {% if is_granted('ROLE_BACKOFFICE') %}<a href="{{ path('admin_dashboard') }}"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Se rendre sur le backoffice</a>{% endif %}
            <a href="{{ path('app_logout') }}"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Déconnexion</a>
          </div></details>
       {% else %}
