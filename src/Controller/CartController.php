@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\ProductRepository;
+use App\Service\OrderNotificationService;
 use App\Service\OrderService;
 use App\Service\TrackingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -135,8 +136,14 @@ class CartController extends AbstractController
     }
 
     #[Route('/panier/commander', name: 'app_cart_checkout', methods: ['POST'])]
-    public function checkout(Request $request, ProductRepository $products, TrackingService $tracking, OrderService $orders, EntityManagerInterface $entityManager): Response
-    {
+    public function checkout(
+        Request $request,
+        ProductRepository $products,
+        TrackingService $tracking,
+        OrderService $orders,
+        OrderNotificationService $orderNotifications,
+        EntityManagerInterface $entityManager
+    ): Response {
         if (!$this->isCsrfTokenValid('checkout', $request->request->getString('_token'))) {
             return $this->redirectToRoute('app_cart');
         }
@@ -150,13 +157,51 @@ class CartController extends AbstractController
         $metadata = ['line_count' => count($lines), 'total_cents' => $totalCents];
         $user = $this->getUser();
         if ($user instanceof User) {
-            $entityManager->wrapInTransaction(function () use ($orders, $user, $lines, $totalCents, $tracking, $metadata, $entityManager): void {
-                $order = $orders->persistFromCart($user, $lines, $totalCents);
-                $entityManager->flush();
-                $metadata['order_id'] = $order->getId();
-                $metadata['order_reference'] = $order->getReference();
-                $tracking->track('PURCHASE', null, $metadata);
-            });
+            $entityManager->wrapInTransaction(
+                function () use (
+                    $orders,
+                    $orderNotifications,
+                    $user,
+                    $lines,
+                    $totalCents,
+                    $tracking,
+                    $metadata,
+                    $entityManager
+                ): void {
+                    $order = $orders->persistFromCart(
+                        $user,
+                        $lines,
+                        $totalCents
+                    );
+
+                    $orderNotifications
+                        ->simulatedOrderCreated(
+                            $order
+                        );
+
+                    /*
+                     * La commande et sa notification
+                     * sont écrites ensemble.
+                     *
+                     * Le flush est nécessaire ici pour
+                     * obtenir l'identifiant de commande
+                     * utilisé dans le tracking PURCHASE.
+                     */
+                    $entityManager->flush();
+
+                    $metadata['order_id'] =
+                        $order->getId();
+
+                    $metadata['order_reference'] =
+                        $order->getReference();
+
+                    $tracking->track(
+                        'PURCHASE',
+                        null,
+                        $metadata
+                    );
+                }
+            );
         } else {
             $tracking->track('PURCHASE', null, $metadata);
         }

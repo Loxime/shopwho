@@ -1,0 +1,99 @@
+<footer class="footer">
+  <div class="container footer-grid">
+    <section class="footer-brand">
+      <a
+        class="footer-logo"
+        href="{{ path('app_home') }}"
+      >
+        SHOPWHO
+      </a>
+
+      <p>
+        Une expérience e-commerce pensée comme terrain
+        d’expérimentation pour la data science et
+        l’analyse des comportements utilisateurs.
+      </p>
+
+      <p class="footer-project-note">
+        Les commandes sont simulées et aucun paiement
+        réel n’est effectué.
+      </p>
+    </section>
+
+    <nav
+      class="footer-column"
+      aria-label="Navigation boutique"
+    >
+      <strong>Boutique</strong>
+
+      <a href="{{ path('app_home') }}">
+        Catalogue
+      </a>
+
+      <a href="{{ path('app_cart') }}">
+        Mon panier
+      </a>
+    </nav>
+
+    <nav
+      class="footer-column"
+      aria-label="Navigation compte"
+    >
+      <strong>Mon compte</strong>
+
+      {% if app.user %}
+        <a href="{{ path('app_profile') }}">
+          Mon profil
+        </a>
+
+        <a href="{{ path('app_profile_orders') }}">
+          Mes commandes
+        </a>
+
+        <a href="{{ path('app_profile_favorites') }}">
+          Mes favoris
+        </a>
+
+        <a href="{{ path('app_profile_reviews') }}">
+          Mes avis
+        </a>
+      {% else %}
+        <a href="{{ path('app_login') }}">
+          Se connecter
+        </a>
+
+        <a href="{{ path('app_register') }}">
+          Créer un compte
+        </a>
+      {% endif %}
+    </nav>
+
+    <section class="footer-column">
+      <strong>Projet Shopwho</strong>
+
+      <p>
+        MVP e-commerce instrumenté destiné à
+        expérimenter la collecte et l’analyse de
+        données comportementales.
+      </p>
+
+      {% if is_granted('ROLE_ADMIN') %}
+        <a href="{{ path('admin_product_index') }}">
+          Administration
+        </a>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container footer-bottom-content">
+      <span>
+        © {{ 'now'|date('Y') }} Shopwho
+      </span>
+
+      <span>
+        Projet expérimental — aucun achat réel
+      </span>
+    </div>
+  </div>
+</footer>

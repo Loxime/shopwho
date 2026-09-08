@@ -41,8 +41,14 @@ class CustomerAuthenticationTest extends WebTestCase
         self::assertResponseRedirects('/profil');
         $client->followRedirect();
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Mon profil');
-        self::assertSelectorTextContains('.profile-details', self::EMAIL);
+        self::assertSelectorTextContains(
+            '.profile-dashboard-hero h1',
+            'Camille Client'
+        );
+        self::assertSelectorTextContains(
+            '.profile-account-details',
+            self::EMAIL
+        );
     }
 
     public function testInvalidCustomerPasswordIsRejectedCleanly(): void

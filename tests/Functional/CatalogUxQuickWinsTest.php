@@ -142,6 +142,152 @@ class CatalogUxQuickWinsTest extends WebTestCase
         );
     }
 
+    public function testCatalogDisplaysDedicatedEmptySearchState(): void
+    {
+        $client = static::createClient();
+
+        $query = 'ux-no-result-'.bin2hex(
+            random_bytes(8)
+        );
+
+        $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorCount(
+            0,
+            '#catalogue .js-product-card'
+        );
+
+        self::assertSelectorExists(
+            '#catalogue .catalog-empty-state'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Aucun résultat pour « '.$query.' »'
+        );
+
+        self::assertSelectorTextContains(
+            '#catalogue .catalog-empty-state',
+            'Aucun produit du catalogue ne correspond'
+        );
+    }
+
+    public function testEmptySearchOffersSearchResetAction(): void
+    {
+        $client = static::createClient();
+
+        $query = 'ux-empty-reset-'.bin2hex(
+            random_bytes(8)
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $reset = $crawler->filter(
+            '#catalogue [data-empty-search-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $reset
+        );
+
+        self::assertStringContainsString(
+            'Effacer la recherche',
+            $reset->text()
+        );
+
+        self::assertSame(
+            '/',
+            $reset->attr('href')
+        );
+
+        self::assertSelectorCount(
+            0,
+            '#catalogue [data-empty-catalog-reset]'
+        );
+    }
+
+    public function testClearingSearchPreservesSelectedCategory(): void
+    {
+        $client = static::createClient();
+
+        $suffix = bin2hex(
+            random_bytes(8)
+        );
+
+        $category = (new Category())
+            ->setName(
+                'UX Empty '.$suffix
+            )
+            ->setSlug(
+                'ux-test-empty-category-'.$suffix
+            );
+
+        $this->em()->persist($category);
+        $this->em()->flush();
+
+        $query = 'ux-no-result-'.$suffix;
+
+        $crawler = $client->request(
+            'GET',
+            '/?q='.urlencode($query)
+            .'&category='.urlencode(
+                $category->getSlug()
+            )
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            '#catalogue .catalog-empty-state'
+        );
+
+        $searchReset = $crawler->filter(
+            '#catalogue [data-empty-search-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $searchReset
+        );
+
+        self::assertSame(
+            '/?category='.urlencode(
+                $category->getSlug()
+            ),
+            $searchReset->attr('href')
+        );
+
+        $catalogReset = $crawler->filter(
+            '#catalogue [data-empty-catalog-reset]'
+        );
+
+        self::assertCount(
+            1,
+            $catalogReset
+        );
+
+        self::assertStringContainsString(
+            'Voir tous les produits',
+            $catalogReset->text()
+        );
+
+        self::assertSame(
+            '/',
+            $catalogReset->attr('href')
+        );
+    }
+
     public function testProductPageDoesNotExposeStock(): void
     {
         $client = static::createClient();
@@ -166,6 +312,39 @@ class CatalogUxQuickWinsTest extends WebTestCase
         self::assertSelectorTextContains(
             '.product-layout',
             $product->getName()
+        );
+    }
+
+    public function testAllCategoriesNavigationUsesToutLabel(): void
+    {
+        $client = static::createClient();
+
+        $this->fixture();
+
+        $crawler = $client->request(
+            'GET',
+            '/'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $summary = $crawler->filter(
+            '.all-categories > summary'
+        );
+
+        self::assertCount(
+            1,
+            $summary
+        );
+
+        self::assertSame(
+            'Tout',
+            trim($summary->text())
+        );
+
+        self::assertSelectorTextContains(
+            '.category-panel',
+            'Toutes les catégories'
         );
     }
 

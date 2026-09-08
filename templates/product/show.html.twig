@@ -1,104 +1,602 @@
 {% extends 'base.html.twig' %}
-{% block title %}{{ product.name }} — Shopwho{% endblock %}
+
+{% block title %}
+  {{ product.name }} — Shopwho
+{% endblock %}
+
 {% block body %}
-<section class="section"><div class="container">
-  {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
-  {% for message in app.flashes('error') %}<div class="flash flash-error">{{ message }}</div>{% endfor %}
-  <div class="product-layout">
-    <div>{% if product.imageUrl %}<img src="{{ product.imageUrl }}" alt="{{ product.name }}">{% else %}<div style="height:500px;display:grid;place-items:center;background:#eef2ff;border-radius:20px;font-size:100px">🛍️</div>{% endif %}</div>
-    <div><p class="muted"><a href="{{ path('app_home', {category:product.category.slug}) }}">{{ product.category.name }}</a></p><h1>{{ product.name }}</h1>
-      {% if ratingStats.count > 0 %}{% set roundedRating = ratingStats.average|round %}<p class="product-rating" aria-label="Note moyenne {{ ratingStats.average|number_format(1, ',', ' ') }} sur 5, {{ ratingStats.count }} avis"><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= roundedRating ? '★' : '☆' }}{% endfor %}</span> {{ ratingStats.average|number_format(1, ',', ' ') }}/5 — {{ ratingStats.count }} avis</p>{% else %}<p class="muted">Aucun avis</p>{% endif %}
-        <p>{{ product.description }}</p>
-        <p class="price">{{ product.price|number_format(2, ',', ' ') }} €</p>
-<div class="product-actions">
-  <form
-    method="post"
-    action="{{ path(
-      'app_cart_add',
-      {
-        id: product.id
-      }
-    ) }}"
-  >
-    <button
-      class="btn orange"
-      type="submit"
+<section class="section product-show">
+  <div class="container">
+    {% for message in app.flashes('success') %}
+      <div class="flash">
+        {{ message }}
+      </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+      <div class="flash flash-error">
+        {{ message }}
+      </div>
+    {% endfor %}
+
+    <nav
+      class="product-breadcrumb"
+      aria-label="Fil d’Ariane"
     >
-      Ajouter au panier
-    </button>
-  </form>
+      <a href="{{ path('app_home') }}">
+        Accueil
+      </a>
 
-  {% if app.user %}
-    <form
-      method="post"
-      action="{{ path(
-        'app_profile_favorite_toggle',
-        {
-          id: product.id
-        }
-      ) }}"
-    >
-      <input
-        type="hidden"
-        name="_token"
-        value="{{ csrf_token(
-          'toggle-favorite-' ~ product.id
-        ) }}"
-      >
-
-      <input
-        type="hidden"
-        name="source"
-        value="product"
-      >
-
-      <button
-        class="btn favorite-button{{ isFavorite
-          ? ' is-favorite'
-          : ''
-        }}"
-        type="submit"
-        aria-pressed="{{ isFavorite
-          ? 'true'
-          : 'false'
-        }}"
-      >
-        <i
-          class="{{ isFavorite
-            ? 'fa-solid'
-            : 'fa-regular'
-          }} fa-heart"
-          aria-hidden="true"
-        ></i>
-
-        {{ isFavorite
-          ? 'Retirer des favoris'
-          : 'Ajouter aux favoris'
-        }}
-      </button>
-    </form>
-  {% else %}
-    <a
-      class="btn favorite-button"
-      href="{{ path('app_login') }}"
-    >
       <i
-        class="fa-regular fa-heart"
+        class="fa-solid fa-chevron-right"
         aria-hidden="true"
       ></i>
 
-      Ajouter aux favoris
-    </a>
-  {% endif %}
-</div>
+      <a
+        href="{{ path(
+          'app_home',
+          {
+            category: product.category.slug
+          }
+        ) }}"
+      >
+        {{ product.category.name }}
+      </a>
+
+      <i
+        class="fa-solid fa-chevron-right"
+        aria-hidden="true"
+      ></i>
+
+      <span aria-current="page">
+        {{ product.name }}
+      </span>
+    </nav>
+
+    <div class="product-layout product-show-layout">
+      <div class="product-media-panel">
+        <div class="product-media">
+          {% if product.imageUrl %}
+            <img
+              src="{{ product.imageUrl }}"
+              alt="{{ product.name }}"
+            >
+          {% else %}
+            <div
+              class="product-media-placeholder"
+              aria-label="Image non disponible"
+            >
+              <i
+                class="fa-solid fa-bag-shopping"
+                aria-hidden="true"
+              ></i>
+
+              <span>
+                Image non disponible
+              </span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <article class="product-purchase-panel">
+        <div class="product-category-label">
+          <a
+            href="{{ path(
+              'app_home',
+              {
+                category: product.category.slug
+              }
+            ) }}"
+          >
+            {{ product.category.name }}
+          </a>
+        </div>
+
+        <h1>
+          {{ product.name }}
+        </h1>
+
+        {% if ratingStats.count > 0 %}
+          {% set roundedRating =
+            ratingStats.average|round
+          %}
+
+          <a
+            class="product-rating"
+            href="#product-reviews"
+            aria-label="
+              Note moyenne
+              {{ ratingStats.average
+                |number_format(1, ',', ' ')
+              }}
+              sur 5,
+              {{ ratingStats.count }} avis
+            "
+          >
+            <span
+              class="stars"
+              aria-hidden="true"
+            >
+              {% for star in 1..5 %}
+                {{ star <= roundedRating
+                  ? '★'
+                  : '☆'
+                }}
+              {% endfor %}
+            </span>
+
+            <strong>
+              {{ ratingStats.average
+                |number_format(1, ',', ' ')
+              }}/5
+            </strong>
+
+            <span>
+              — {{ ratingStats.count }}
+              avis
+            </span>
+          </a>
+        {% else %}
+          <div class="product-rating product-rating-empty">
+            <span
+              class="stars"
+              aria-hidden="true"
+            >
+              ☆☆☆☆☆
+            </span>
+
+            <span>
+              Aucun avis
+            </span>
+          </div>
+        {% endif %}
+
+        <div class="product-main-description">
+          {{ product.description }}
+        </div>
+
+        <div class="product-purchase-summary">
+          <div class="product-price-block">
+            <span class="product-price-label">
+              Prix
+            </span>
+
+            <p class="price">
+              {{ product.price
+                |number_format(
+                  2,
+                  ',',
+                  ' '
+                )
+              }}
+              €
+            </p>
+          </div>
+
+          {% if product.stock > 0 %}
+            <div class="product-stock is-in-stock">
+              <i
+                class="fa-solid fa-circle-check"
+                aria-hidden="true"
+              ></i>
+
+              <div>
+                <strong>
+                  En stock
+                </strong>
+
+                <span>
+                  {{ product.stock }}
+                  unité{% if product.stock > 1 %}s{% endif %}
+                  disponible{% if product.stock > 1 %}s{% endif %}
+                </span>
+              </div>
+            </div>
+          {% else %}
+            <div class="product-stock is-out-of-stock">
+              <i
+                class="fa-solid fa-circle-xmark"
+                aria-hidden="true"
+              ></i>
+
+              <div>
+                <strong>
+                  Rupture de stock
+                </strong>
+
+                <span>
+                  Ce produit est actuellement indisponible.
+                </span>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="product-actions">
+          {% if product.stock > 0 %}
+            <form
+              method="post"
+              action="{{ path(
+                'app_cart_add',
+                {
+                  id: product.id
+                }
+              ) }}"
+            >
+              <button
+                class="btn orange product-add-cart"
+                type="submit"
+              >
+                <i
+                  class="fa-solid fa-cart-plus"
+                  aria-hidden="true"
+                ></i>
+
+                Ajouter au panier
+              </button>
+            </form>
+          {% else %}
+            <button
+              class="btn product-add-cart"
+              type="button"
+              disabled
+            >
+              <i
+                class="fa-solid fa-ban"
+                aria-hidden="true"
+              ></i>
+
+              Indisponible
+            </button>
+          {% endif %}
+
+          {% if app.user %}
+            <form
+              method="post"
+              action="{{ path(
+                'app_profile_favorite_toggle',
+                {
+                  id: product.id
+                }
+              ) }}"
+            >
+              <input
+                type="hidden"
+                name="_token"
+                value="{{ csrf_token(
+                  'toggle-favorite-' ~ product.id
+                ) }}"
+              >
+
+              <input
+                type="hidden"
+                name="source"
+                value="product"
+              >
+
+              <button
+                class="
+                  btn
+                  favorite-button
+                  {{ isFavorite
+                    ? 'is-favorite'
+                    : ''
+                  }}
+                "
+                type="submit"
+                aria-pressed="{{ isFavorite
+                  ? 'true'
+                  : 'false'
+                }}"
+              >
+                <i
+                  class="{{ isFavorite
+                    ? 'fa-solid'
+                    : 'fa-regular'
+                  }} fa-heart"
+                  aria-hidden="true"
+                ></i>
+
+                {{ isFavorite
+                  ? 'Retirer des favoris'
+                  : 'Ajouter aux favoris'
+                }}
+              </button>
+            </form>
+          {% else %}
+            <a
+              class="btn favorite-button"
+              href="{{ path('app_login') }}"
+            >
+              <i
+                class="fa-regular fa-heart"
+                aria-hidden="true"
+              ></i>
+
+              Ajouter aux favoris
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="product-purchase-reassurance">
+          <div>
+            <i
+              class="fa-solid fa-flask"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Commande simulée
+            </span>
+          </div>
+
+          <div>
+            <i
+              class="fa-solid fa-credit-card"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Aucun paiement réel
+            </span>
+          </div>
+
+          <div>
+            <i
+              class="fa-solid fa-chart-line"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Expérience Shopwho
+            </span>
+          </div>
+        </div>
+
+        {% if product.externalRef %}
+          <p class="product-reference">
+            Référence :
+            <strong>
+              {{ product.externalRef }}
+            </strong>
+          </p>
+        {% endif %}
+      </article>
     </div>
   </div>
-</div></section>
-<section class="section reviews-section"><div class="container"><h2>Avis clients</h2>
-  {% if not app.user %}<p><a href="{{ path('app_login') }}">Connectez-vous pour laisser un avis.</a></p>
-  {% elseif userReview %}<div class="review-callout"><strong>Votre avis</strong><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= userReview.rating ? '★' : '☆' }}{% endfor %}</span> {{ userReview.rating }}/5</p>{% if userReview.comment %}<p>{{ userReview.comment }}</p>{% endif %}<a class="btn" href="{{ path('app_profile_review_edit', {id:userReview.id}) }}">Modifier mon avis</a></div>
-  {% elseif canReview %}<div class="review-form"><h3>Donner mon avis</h3>{{ form_start(reviewForm) }}{{ form_row(reviewForm.rating) }}{{ form_row(reviewForm.comment) }}<button class="btn orange" type="submit">Publier mon avis</button>{{ form_end(reviewForm) }}</div>
-  {% else %}<p class="muted">Vous devez avoir acheté ce produit pour publier un avis.</p>{% endif %}
-  <div class="review-list">{% for review in reviews %}<article class="review-card" data-review-id="{{ review.id }}"><h3>{{ review.user.publicDisplayName }}</h3><p><span class="stars" aria-hidden="true">{% for star in 1..5 %}{{ star <= review.rating ? '★' : '☆' }}{% endfor %}</span><span class="sr-only">{{ review.rating }} étoiles sur 5</span></p>{% if review.comment %}<p>{{ review.comment }}</p>{% endif %}<time class="muted" datetime="{{ review.createdAt|date('c') }}">{{ review.createdAt|date('d/m/Y') }}</time></article>{% else %}<p class="muted">Aucun avis client pour le moment.</p>{% endfor %}</div>
-</div></section>
+</section>
+
+<section
+  id="product-reviews"
+  class="section reviews-section product-reviews"
+>
+  <div class="container">
+    <header class="product-reviews-heading">
+      <div>
+        <p class="product-section-eyebrow">
+          Retours clients
+        </p>
+
+        <h2>
+          Avis clients
+        </h2>
+      </div>
+
+      {% if ratingStats.count > 0 %}
+        <div class="product-reviews-summary">
+          <strong>
+            {{ ratingStats.average
+              |number_format(
+                1,
+                ',',
+                ' '
+              )
+            }}/5
+          </strong>
+
+          <span class="stars" aria-hidden="true">
+            {% set roundedRating =
+              ratingStats.average|round
+            %}
+
+            {% for star in 1..5 %}
+              {{ star <= roundedRating
+                ? '★'
+                : '☆'
+              }}
+            {% endfor %}
+          </span>
+
+          <span>
+            {{ ratingStats.count }}
+            avis
+          </span>
+        </div>
+      {% endif %}
+    </header>
+
+    {% if not app.user %}
+      <div class="review-auth-callout">
+        <i
+          class="fa-regular fa-comment-dots"
+          aria-hidden="true"
+        ></i>
+
+        <div>
+          <strong>
+            Vous souhaitez donner votre avis ?
+          </strong>
+
+          <p>
+            Connectez-vous pour vérifier votre
+            éligibilité et publier un avis.
+          </p>
+        </div>
+
+        <a
+          class="btn"
+          href="{{ path('app_login') }}"
+        >
+          Se connecter
+        </a>
+      </div>
+
+    {% elseif userReview %}
+      <div class="review-callout">
+        <div class="review-callout-heading">
+          <strong>
+            Votre avis
+          </strong>
+
+          <span
+            class="stars"
+            aria-hidden="true"
+          >
+            {% for star in 1..5 %}
+              {{ star <= userReview.rating
+                ? '★'
+                : '☆'
+              }}
+            {% endfor %}
+          </span>
+        </div>
+
+        <p>
+          {{ userReview.rating }}/5
+        </p>
+
+        {% if userReview.comment %}
+          <p>
+            {{ userReview.comment }}
+          </p>
+        {% endif %}
+
+        <a
+          class="btn"
+          href="{{ path(
+            'app_profile_review_edit',
+            {
+              id: userReview.id
+            }
+          ) }}"
+        >
+          Modifier mon avis
+        </a>
+      </div>
+
+    {% elseif canReview %}
+      <div class="review-form">
+        <h3>
+          Donner mon avis
+        </h3>
+
+        <p class="muted">
+          Partagez votre expérience sur ce produit.
+        </p>
+
+        {{ form_start(reviewForm) }}
+
+        {% include 'review/_rating_field.html.twig' with {
+          ratingField: reviewForm.rating
+        } only %}
+
+        {{ form_row(reviewForm.comment) }}
+
+        <button
+          class="btn orange"
+          type="submit"
+        >
+          Publier mon avis
+        </button>
+
+        {{ form_end(reviewForm) }}
+      </div>
+
+    {% else %}
+      <div class="review-eligibility-note">
+        <i
+          class="fa-solid fa-circle-info"
+          aria-hidden="true"
+        ></i>
+
+        <span>
+          Vous devez avoir acheté ce produit pour
+          publier un avis.
+        </span>
+      </div>
+    {% endif %}
+
+    <div class="review-list product-review-list">
+      {% for review in reviews %}
+        <article
+          class="review-card product-review-card"
+          data-review-id="{{ review.id }}"
+        >
+          <header>
+            <div class="product-review-avatar">
+              <i
+                class="fa-solid fa-user"
+                aria-hidden="true"
+              ></i>
+            </div>
+
+            <div>
+              <h3>
+                {{ review.user.publicDisplayName }}
+              </h3>
+
+              <time
+                class="muted"
+                datetime="{{ review.createdAt|date('c') }}"
+              >
+                {{ review.createdAt|date('d/m/Y') }}
+              </time>
+            </div>
+          </header>
+
+          <p class="product-review-rating">
+            <span
+              class="stars"
+              aria-hidden="true"
+            >
+              {% for star in 1..5 %}
+                {{ star <= review.rating
+                  ? '★'
+                  : '☆'
+                }}
+              {% endfor %}
+            </span>
+
+            <span class="sr-only">
+              {{ review.rating }} étoiles sur 5
+            </span>
+          </p>
+
+          {% if review.comment %}
+            <p class="product-review-comment">
+              {{ review.comment }}
+            </p>
+          {% endif %}
+        </article>
+      {% else %}
+        <div class="product-reviews-empty">
+          <i
+            class="fa-regular fa-star"
+            aria-hidden="true"
+          ></i>
+
+          <h3>
+            Aucun avis client pour le moment
+          </h3>
+
+          <p>
+            Soyez parmi les premiers clients
+            éligibles à partager votre expérience.
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
 {% endblock %}

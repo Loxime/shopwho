@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Form\ProfileType;
 use App\Repository\UserRepository;
+use App\Service\UserActionNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
@@ -51,6 +52,7 @@ class SecurityController extends AbstractController
         Request $request,
         UserRepository $users,
         UserPasswordHasherInterface $passwordHasher,
+        UserActionNotificationService $notifications,
         EntityManagerInterface $entityManager,
     ): Response {
         /** @var User $user */
@@ -104,6 +106,10 @@ class SecurityController extends AbstractController
                         $passwordHasher->hashPassword($user, $newPassword)
                     );
                 }
+
+                $notifications->profileUpdated(
+                    $user
+                );
 
                 $entityManager->flush();
 
