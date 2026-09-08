@@ -8,14 +8,14 @@
 {{ product.description|striptags|slice(0, 155) }}
 {% endblock %}
 
-{% block canonical_url %}
+{% block canonical_url -%}
 {{ app.request.schemeAndHttpHost ~ path(
   'app_product_show',
   {
     slug: product.slug
   }
 ) }}
-{% endblock %}
+{%- endblock %}
 
 {% block og_type %}product{% endblock %}
 
