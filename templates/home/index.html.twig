@@ -7,139 +7,204 @@
 {% block title %}Shopwho — découvrir{% endblock %}
 
 {% block body %}
-  <section class="hero">
-    <div class="container hero-grid">
-      <div>
-        <p class="muted">
+  <section class="hero home-hero">
+    <div class="container hero-grid home-hero-grid">
+      <div class="home-hero-content">
+        <p class="home-hero-eyebrow">
           E-commerce expérimental & data
         </p>
 
-        <h1>Découvrez ce qui vous ressemble.</h1>
+        <h1>
+          Découvrez ce qui vous ressemble.
+        </h1>
+
+        <p class="home-hero-description">
+          Explorez un catalogue e-commerce conçu
+          comme un environnement d’expérimentation
+          autour des parcours utilisateurs, des
+          recommandations et de la donnée.
+        </p>
+
+        <div class="home-hero-actions">
+          <a
+            class="btn orange"
+            href="#catalogue"
+          >
+            Voir les produits
+
+            <i
+              class="fa-solid fa-arrow-down"
+              aria-hidden="true"
+            ></i>
+          </a>
+
+          {% if specialOffers is not empty %}
+            <a
+              class="home-hero-secondary-link"
+              href="#special-offers"
+            >
+              Voir les offres du moment
+
+              <i
+                class="fa-solid fa-arrow-right"
+                aria-hidden="true"
+              ></i>
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="home-hero-reassurance">
+          <span>
+            <i
+              class="fa-solid fa-flask"
+              aria-hidden="true"
+            ></i>
+            Projet expérimental
+          </span>
+
+          <span>
+            <i
+              class="fa-solid fa-lock"
+              aria-hidden="true"
+            ></i>
+            Données pseudonymisées
+          </span>
+
+          <span>
+            <i
+              class="fa-solid fa-credit-card"
+              aria-hidden="true"
+            ></i>
+            Aucun paiement réel
+          </span>
+        </div>
+      </div>
+
+      <aside
+        class="home-hero-panel"
+        aria-label="Présentation de Shopwho"
+      >
+        <div class="home-hero-panel-brand">
+          <span>
+            SHOP
+          </span>
+
+          <strong>
+            WHO?
+          </strong>
+        </div>
 
         <p>
-          Shopwho est une boutique de démonstration conçue pour
-          étudier des parcours d'achat de manière pseudonymisée.
+          Une boutique conçue pour comprendre
+          comment un parcours, une offre ou une
+          recommandation influence la découverte
+          d’un produit.
         </p>
 
-        <a class="btn orange" href="#catalogue">
-          Voir les produits
-        </a>
-      </div>
+        <div class="home-hero-features">
+          <div>
+            <span class="home-hero-feature-icon">
+              <i
+                class="fa-solid fa-bag-shopping"
+                aria-hidden="true"
+              ></i>
+            </span>
 
-      <div>
-        <h2 style="font-size:70px;color:#272785;margin:0">
-          WHO?
-        </h2>
+            <div>
+              <strong>
+                Catalogue
+              </strong>
 
-        <p class="muted">
-          Un catalogue simple aujourd'hui, une expérience guidée
-          par la donnée demain.
-        </p>
-      </div>
+              <span>
+                Rechercher, filtrer et comparer.
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <span class="home-hero-feature-icon">
+              <i
+                class="fa-solid fa-wand-magic-sparkles"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+            <div>
+              <strong>
+                Recommandations
+              </strong>
+
+              <span>
+                Des sélections adaptées au contexte.
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <span class="home-hero-feature-icon">
+              <i
+                class="fa-solid fa-chart-line"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+            <div>
+              <strong>
+                Expérimentation
+              </strong>
+
+              <span>
+                Mesurer les interactions du parcours.
+              </span>
+            </div>
+          </div>
+        </div>
+      </aside>
     </div>
   </section>
 
   {% if specialOffers is not empty %}
-  <section
-    class="section special-offers-section"
-    aria-labelledby="special-offers-title"
-  >
-    <div class="container">
-      <div class="special-offers-heading">
-        <div>
-          <p class="special-offers-eyebrow">
-            En ce moment
-          </p>
+    <section
+      id="special-offers"
+      class="section special-offers-section home-offers-section"
+      aria-labelledby="special-offers-title"
+    >
+      <div class="container">
+        <header class="special-offers-heading home-section-heading">
+          <div>
+            <p class="special-offers-eyebrow">
+              En ce moment
+            </p>
 
-          <h2 id="special-offers-title">
-            Nos offres spéciales
-          </h2>
+            <h2 id="special-offers-title">
+              Nos offres spéciales
+            </h2>
 
-          <p class="muted">
-            Découvrez les sélections et avantages
-            mis en avant sur Shopwho.
-          </p>
-        </div>
-      </div>
+            <p class="muted">
+              Des sélections mises en avant pour
+              expérimenter différents parcours de
+              découverte sur Shopwho.
+            </p>
+          </div>
 
-      {% set primaryOffers =
-        specialOffers|slice(0, 3)
-      %}
-
-      {% set secondaryOffers =
-        specialOffers|slice(3, 5)
-      %}
-
-      <div class="special-offers-primary">
-        {% for offer in primaryOffers %}
-          {% set offerUrl =
-            offer.targetUrl
-              ?? (
-                offer.targetCategory
-                  ? path(
-                      'app_home',
-                      {
-                        category:
-                          offer.targetCategory.slug
-                      }
-                    )
-                  : null
-              )
-          %}
-
-          <article
-		  class="
-		    special-offer-card
-		    special-offer-card-primary
-		    js-special-offer
-		  "
-		  data-special-offer
-		  data-offer-id="{{ offer.id }}"
-		  data-placement="homepage"
-		  data-position="{{ loop.index }}"
-		  data-tracking-endpoint="{{ path(
-		    'app_tracking_special_offers'
-		  ) }}"
-		  data-tracking-token="{{ csrf_token(
-		    'special_offer_tracking'
-		  ) }}"
+          <div
+            class="home-section-heading-icon"
+            aria-hidden="true"
           >
-            <div class="special-offer-card-content">
-              {% if offer.targetCategory %}
-                <span class="special-offer-category">
-                  {{ offer.targetCategory.name }}
-                </span>
-              {% endif %}
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+        </header>
 
-              <h3>
-                {{ offer.title }}
-              </h3>
+        {% set primaryOffers =
+          specialOffers|slice(0, 3)
+        %}
 
-              <p>
-                {{ offer.content }}
-              </p>
+        {% set secondaryOffers =
+          specialOffers|slice(3, 5)
+        %}
 
-              {% if offerUrl %}
-                <a
-                  class="special-offer-cta js-special-offer-link"
-                  href="{{ offerUrl }}"
-                >
-                  {{ offer.ctaLabel ?? 'Découvrir' }}
-
-                  <i
-                    class="fa-solid fa-arrow-right"
-                    aria-hidden="true"
-                  ></i>
-                </a>
-              {% endif %}
-            </div>
-          </article>
-        {% endfor %}
-      </div>
-
-      {% if secondaryOffers is not empty %}
-        <div class="special-offers-secondary">
-          {% for offer in secondaryOffers %}
+        <div class="special-offers-primary">
+          {% for offer in primaryOffers %}
             {% set offerUrl =
               offer.targetUrl
                 ?? (
@@ -155,29 +220,46 @@
                 )
             %}
 
-	   <article
-		  class="
-		    special-offer-card
-		    special-offer-card-secondary
-		    js-special-offer
-		  "
-		  data-special-offer
-		  data-offer-id="{{ offer.id }}"
-		  data-placement="homepage"
-		  data-position="{{ loop.index + 3 }}"
-		  data-tracking-endpoint="{{ path(
-		    'app_tracking_special_offers'
-		  ) }}"
-		  data-tracking-token="{{ csrf_token(
-		    'special_offer_tracking'
-		  ) }}"
+            <article
+              class="
+                special-offer-card
+                special-offer-card-primary
+                js-special-offer
+              "
+              data-special-offer
+              data-offer-id="{{ offer.id }}"
+              data-placement="homepage"
+              data-position="{{ loop.index }}"
+              data-tracking-endpoint="{{ path(
+                'app_tracking_special_offers'
+              ) }}"
+              data-tracking-token="{{ csrf_token(
+                'special_offer_tracking'
+              ) }}"
+              style="
+                --offer-bg: {{ offer.backgroundColor }};
+                --offer-text: {{ offer.textColor }};
+              "
             >
+              <div class="special-offer-card-decoration">
+                <i
+                  class="fa-solid fa-tag"
+                  aria-hidden="true"
+                ></i>
+              </div>
+
               <div class="special-offer-card-content">
-                {% if offer.targetCategory %}
-                  <span class="special-offer-category">
-                    {{ offer.targetCategory.name }}
+                <div class="special-offer-card-topline">
+                  <span>
+                    Offre {{ loop.index }}
                   </span>
-                {% endif %}
+
+                  {% if offer.targetCategory %}
+                    <span class="special-offer-category">
+                      {{ offer.targetCategory.name }}
+                    </span>
+                  {% endif %}
+                </div>
 
                 <h3>
                   {{ offer.title }}
@@ -189,7 +271,10 @@
 
                 {% if offerUrl %}
                   <a
-                    class="special-offer-cta js-special-offer-link"
+                    class="
+                      special-offer-cta
+                      js-special-offer-link
+                    "
                     href="{{ offerUrl }}"
                   >
                     {{ offer.ctaLabel ?? 'Découvrir' }}
@@ -204,11 +289,91 @@
             </article>
           {% endfor %}
         </div>
-      {% endif %}
-    </div>
-  </section>
-{% endif %}
 
+        {% if secondaryOffers is not empty %}
+          <div class="special-offers-secondary">
+            {% for offer in secondaryOffers %}
+              {% set offerUrl =
+                offer.targetUrl
+                  ?? (
+                    offer.targetCategory
+                      ? path(
+                          'app_home',
+                          {
+                            category:
+                              offer.targetCategory.slug
+                          }
+                        )
+                      : null
+                  )
+              %}
+
+              <article
+                class="
+                  special-offer-card
+                  special-offer-card-secondary
+                  js-special-offer
+                "
+                data-special-offer
+                data-offer-id="{{ offer.id }}"
+                data-placement="homepage"
+                data-position="{{ loop.index + 3 }}"
+                data-tracking-endpoint="{{ path(
+                  'app_tracking_special_offers'
+                ) }}"
+                data-tracking-token="{{ csrf_token(
+                  'special_offer_tracking'
+                ) }}"
+                style="
+                  --offer-bg: {{ offer.backgroundColor }};
+                  --offer-text: {{ offer.textColor }};
+                "
+              >
+                <div class="special-offer-card-content">
+                  <div class="special-offer-card-topline">
+                    <span>
+                      Sélection
+                    </span>
+
+                    {% if offer.targetCategory %}
+                      <span class="special-offer-category">
+                        {{ offer.targetCategory.name }}
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <h3>
+                    {{ offer.title }}
+                  </h3>
+
+                  <p>
+                    {{ offer.content }}
+                  </p>
+
+                  {% if offerUrl %}
+                    <a
+                      class="
+                        special-offer-cta
+                        js-special-offer-link
+                      "
+                      href="{{ offerUrl }}"
+                    >
+                      {{ offer.ctaLabel ?? 'Découvrir' }}
+
+                      <i
+                        class="fa-solid fa-arrow-right"
+                        aria-hidden="true"
+                      ></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </article>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
 
   {% if recommendations is not empty %}
     {% set primaryRecommendationStrategy =
@@ -216,7 +381,7 @@
     %}
 
     <section
-      class="section recommendations-section"
+      class="section recommendations-section home-showcase-section"
       aria-labelledby="recommendations-title"
       {% if catalogTrackingEnabled %}
         data-recommendation-tracking
@@ -278,7 +443,7 @@
           </div>
         </div>
 
-        <div class="grid recommendations-grid">
+        <div class="grid recommendations-grid home-product-grid">
           {% for recommendation in recommendations %}
             {% set product =
               recommendation.product
@@ -402,7 +567,7 @@
 
   <section
     id="catalogue"
-    class="section"
+    class="section catalog-section home-showcase-section"
     {% if catalogTrackingEnabled %}
       data-catalog-tracking
       data-tracking-endpoint="{{ path('app_tracking_catalog') }}"
@@ -412,11 +577,19 @@
     {% endif %}
   >
     <div class="container">
-      <div
-        class="actions"
-        style="justify-content:space-between;flex-wrap:wrap"
-      >
-        <h2>Nos produits</h2>
+      <div class="actions catalog-heading">
+        <div>
+          <p class="catalog-heading-eyebrow">
+            Explorer Shopwho
+          </p>
+
+          <h2>Nos produits</h2>
+
+          <p class="muted">
+            Recherchez, filtrez et triez le catalogue
+            selon vos préférences.
+          </p>
+        </div>
 
         <div class="actions category-filter">
           <a
@@ -466,7 +639,7 @@
         %}
       {% endif %}
 
-      <div class="catalog-toolbar">
+      <div class="catalog-toolbar home-catalog-toolbar">
         <form
           class="catalog-controls"
           action="{{ path('app_home') }}"
@@ -612,7 +785,7 @@
         </p>
       {% endif %}
 
-      <div class="grid">
+      <div class="grid catalog-grid home-product-grid">
         {% for product in products %}
           {% set rating =
             productRatingStats[product.id] ?? null
