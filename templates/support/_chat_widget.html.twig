@@ -1,0 +1,112 @@
+<section
+  class="support-chat"
+  data-support-chat
+  data-endpoint="{{ path('app_support_chat') }}"
+>
+  <button
+    class="support-chat-toggle"
+    type="button"
+    data-support-chat-toggle
+    aria-expanded="false"
+    aria-controls="support-chat-panel"
+    aria-label="Ouvrir l’assistant Shopwho"
+  >
+    <i
+      class="fa-solid fa-comments"
+      aria-hidden="true"
+    ></i>
+
+    <span class="support-chat-toggle-label">
+      Besoin d’aide ?
+    </span>
+  </button>
+
+  <div
+    id="support-chat-panel"
+    class="support-chat-panel"
+    data-support-chat-panel
+    hidden
+  >
+    <header class="support-chat-header">
+      <div>
+        <strong>
+          Assistant Shopwho
+        </strong>
+
+        <span>
+          Aide instantanée
+        </span>
+      </div>
+
+      <button
+        class="support-chat-close"
+        type="button"
+        data-support-chat-close
+        aria-label="Fermer l’assistant"
+      >
+        <i
+          class="fa-solid fa-xmark"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </header>
+
+    <div
+      class="support-chat-messages"
+      data-support-chat-messages
+      aria-live="polite"
+      aria-relevant="additions"
+    >
+      <div
+        class="
+          support-chat-message
+          support-chat-message-assistant
+        "
+      >
+        Bonjour ! Je peux vous aider sur vos commandes,
+        votre compte, vos favoris, vos avis ou le
+        fonctionnement de Shopwho.
+      </div>
+    </div>
+
+    <form
+      class="support-chat-form"
+      data-support-chat-form
+    >
+      <label
+        class="sr-only"
+        for="support-chat-message"
+      >
+        Votre question
+      </label>
+
+      <textarea
+        id="support-chat-message"
+        class="support-chat-input"
+        data-support-chat-input
+        name="message"
+        rows="2"
+        maxlength="500"
+        placeholder="Posez votre question…"
+        required
+      ></textarea>
+
+      <button
+        class="support-chat-send"
+        data-support-chat-send
+        type="submit"
+        aria-label="Envoyer la question"
+      >
+        <i
+          class="fa-solid fa-paper-plane"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </form>
+
+    <p class="support-chat-disclaimer">
+      Assistant automatique — réponses limitées aux
+      fonctionnalités de Shopwho.
+    </p>
+  </div>
+</section>
