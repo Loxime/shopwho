@@ -53,6 +53,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAnonymousUserCannotAccessAddresses(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $client->request('GET', '/profil/adresses');
@@ -63,6 +64,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAddressPagePrefillsCustomerIdentity(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -120,6 +122,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testCustomerCanCreateShippingAddress(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -233,6 +236,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testUpdatingShippingAddressDoesNotCreateDuplicate(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -327,6 +331,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testShippingAndBillingAddressesAreIndependent(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -483,6 +488,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testInvalidAddressIsRejected(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -526,6 +532,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testFrenchAddressRejectsInconsistentCitySpelling(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -576,6 +583,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAddressPageExposesAutocompleteControls(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -616,6 +624,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testAuthenticatedCustomerCanLookupAddressSuggestions(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -672,6 +681,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testShippingAddressCanAlsoBeUsedForBilling(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -861,6 +871,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testCopyingShippingAddressUpdatesExistingBillingAddress(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
@@ -969,6 +980,7 @@ class CustomerAddressManagementTest extends WebTestCase
     public function testDeletingAccountDeletesCustomerAddresses(): void
     {
         $client = static::createClient();
+        $client->disableReboot();
         $this->installFrenchAddressLookupMock();
 
         $user = $this->createUser(
