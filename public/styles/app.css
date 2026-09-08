@@ -2748,3 +2748,143 @@ a.product-rating:hover span:last-child{
     grid-template-columns:1fr;
   }
 }
+
+/* Homepage recommendations and catalog */
+
+.home-showcase-section{
+  position:relative;
+}
+
+.recommendations-section{
+  background:#f8fafc;
+}
+
+.recommendations-heading,
+.catalog-heading{
+  margin-bottom:26px;
+}
+
+.recommendations-heading h2,
+.catalog-heading h2{
+  margin:0 0 7px;
+  font-size:30px;
+}
+
+.recommendations-eyebrow,
+.catalog-heading-eyebrow{
+  margin:0 0 5px;
+  color:var(--orange);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.home-product-grid{
+  gap:20px;
+}
+
+.home-product-grid .card{
+  position:relative;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+}
+
+.home-product-grid .card:hover{
+  border-color:#d1d5db;
+  transform:translateY(-4px);
+  box-shadow:0 14px 32px rgba(15,23,42,.09);
+}
+
+.home-product-grid .card img{
+  transition:transform .25s ease;
+}
+
+.home-product-grid .card:hover img{
+  transform:scale(1.025);
+}
+
+.catalog-section{
+  background:#fff;
+}
+
+.catalog-heading{
+  display:flex;
+  justify-content:space-between;
+  gap:28px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+}
+
+.catalog-heading > div:first-child{
+  max-width:520px;
+}
+
+.catalog-heading > div:first-child p:last-child{
+  margin:0;
+}
+
+.category-filter{
+  flex-wrap:wrap;
+}
+
+.category-filter a{
+  padding:8px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:999px;
+  background:#fff;
+  color:#4b5563;
+  font-size:12px;
+  font-weight:700;
+}
+
+.category-filter a:hover{
+  border-color:#c7d2fe;
+  color:var(--blue);
+}
+
+.category-filter a[aria-current="page"]{
+  border-color:var(--blue);
+  background:var(--blue);
+  color:#fff;
+}
+
+.home-catalog-toolbar{
+  margin:22px 0 28px;
+  padding:18px;
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+  background:#f8fafc;
+}
+
+.home-catalog-toolbar .catalog-controls{
+  align-items:flex-end;
+}
+
+.home-catalog-toolbar
+.catalog-control input,
+.home-catalog-toolbar
+.catalog-control select{
+  background:#fff;
+}
+
+.catalog-grid .card-description{
+  line-height:1.5;
+}
+
+@media(max-width:700px){
+  .catalog-heading{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .category-filter{
+    width:100%;
+  }
+
+  .home-catalog-toolbar{
+    padding:14px;
+  }
+}

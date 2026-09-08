@@ -381,7 +381,7 @@
     %}
 
     <section
-      class="section recommendations-section"
+      class="section recommendations-section home-showcase-section"
       aria-labelledby="recommendations-title"
       {% if catalogTrackingEnabled %}
         data-recommendation-tracking
@@ -443,7 +443,7 @@
           </div>
         </div>
 
-        <div class="grid recommendations-grid">
+        <div class="grid recommendations-grid home-product-grid">
           {% for recommendation in recommendations %}
             {% set product =
               recommendation.product
@@ -567,7 +567,7 @@
 
   <section
     id="catalogue"
-    class="section"
+    class="section catalog-section home-showcase-section"
     {% if catalogTrackingEnabled %}
       data-catalog-tracking
       data-tracking-endpoint="{{ path('app_tracking_catalog') }}"
@@ -577,11 +577,19 @@
     {% endif %}
   >
     <div class="container">
-      <div
-        class="actions"
-        style="justify-content:space-between;flex-wrap:wrap"
-      >
-        <h2>Nos produits</h2>
+      <div class="actions catalog-heading">
+        <div>
+          <p class="catalog-heading-eyebrow">
+            Explorer Shopwho
+          </p>
+
+          <h2>Nos produits</h2>
+
+          <p class="muted">
+            Recherchez, filtrez et triez le catalogue
+            selon vos préférences.
+          </p>
+        </div>
 
         <div class="actions category-filter">
           <a
@@ -631,7 +639,7 @@
         %}
       {% endif %}
 
-      <div class="catalog-toolbar">
+      <div class="catalog-toolbar home-catalog-toolbar">
         <form
           class="catalog-controls"
           action="{{ path('app_home') }}"
@@ -777,7 +785,7 @@
         </p>
       {% endif %}
 
-      <div class="grid">
+      <div class="grid catalog-grid home-product-grid">
         {% for product in products %}
           {% set rating =
             productRatingStats[product.id] ?? null
