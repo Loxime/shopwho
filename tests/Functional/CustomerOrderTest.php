@@ -3,11 +3,13 @@
 namespace App\Tests\Functional;
 
 use App\Entity\Category;
+use App\Entity\Notification;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Product;
 use App\Entity\TrackingEvent;
 use App\Entity\User;
+use App\Enum\NotificationType;
 use App\Kernel;
 use App\Service\TrackingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,15 +28,47 @@ class CustomerOrderTest extends WebTestCase
     {
         $client = static::createClient();
         [$product] = $this->createCatalogFixture();
-        $before = $this->em()->getRepository(Order::class)->count([]);
-        $client->request('POST', '/panier/ajouter/'.$product->getId());
+
+        $before = $this
+            ->em()
+            ->getRepository(Order::class)
+            ->count([]);
+
+        $notificationCountBefore = $this
+            ->em()
+            ->getRepository(Notification::class)
+            ->count([]);
+
+        $client->request(
+            'POST',
+            '/panier/ajouter/'.$product->getId()
+        );
         $client->request('GET', '/panier');
         $client->submitForm('Simuler la commande');
 
         self::assertResponseRedirects('/panier');
-        self::assertSame($before, $this->em()->getRepository(Order::class)->count([]));
+        self::assertSame(
+            $before,
+            $this
+                ->em()
+                ->getRepository(Order::class)
+                ->count([])
+        );
+
+        self::assertSame(
+            $notificationCountBefore,
+            $this
+                ->em()
+                ->getRepository(Notification::class)
+                ->count([])
+        );
+
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Commande simulée avec succès');
+
+        self::assertSelectorTextContains(
+            'body',
+            'Commande simulée avec succès'
+        );
         self::assertSelectorTextContains('body', 'Votre panier est vide');
     }
 
@@ -61,9 +95,70 @@ class CustomerOrderTest extends WebTestCase
         self::assertSame($order->getId(), $purchase->getMetadata()['order_id']);
         self::assertSame($order->getReference(), $purchase->getMetadata()['order_reference']);
         self::assertSame($order->getTotalCents(), $purchase->getMetadata()['total_cents']);
-        self::assertSame(1, $purchase->getMetadata()['line_count']);
-        $client->request('GET', '/panier');
-        self::assertSelectorTextContains('body', 'Votre panier est vide');
+        self::assertSame(
+            1,
+            $purchase->getMetadata()['line_count']
+        );
+
+        $notification = $em
+            ->getRepository(Notification::class)
+            ->findOneBy(
+                [
+                    'user' => $user,
+                    'type' => NotificationType::Order,
+                ],
+                [
+                    'id' => 'DESC',
+                ]
+            );
+
+        self::assertInstanceOf(
+            Notification::class,
+            $notification
+        );
+
+        self::assertSame(
+            NotificationType::Order,
+            $notification->getType()
+        );
+
+        self::assertSame(
+            'Commande simulée enregistrée',
+            $notification->getTitle()
+        );
+
+        self::assertSame(
+            sprintf(
+                'Votre commande %s a bien été enregistrée. Aucun paiement réel n’a été effectué.',
+                $order->getReference()
+            ),
+            $notification->getMessage()
+        );
+
+        self::assertSame(
+            '/profil/commandes/'
+            .$order->getReference(),
+            $notification->getTargetUrl()
+        );
+
+        self::assertFalse(
+            $notification->isRead()
+        );
+
+        $client->request(
+            'GET',
+            '/panier'
+        );
+
+        self::assertSelectorTextContains(
+            'body',
+            'Votre panier est vide'
+        );
+
+        self::assertSelectorTextContains(
+            '.notification-badge',
+            '1'
+        );
     }
 
     public function testEmptyCartDoesNotCreateOrder(): void
@@ -136,7 +231,20 @@ class CustomerOrderTest extends WebTestCase
         $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
         $client->request('POST', '/panier/ajouter/'.$product->getId());
         $client->request('GET', '/panier');
-        $before = (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM customer_order');
+        $connection = $this
+            ->em()
+            ->getConnection();
+
+        $before = (int) $connection
+            ->fetchOne(
+                'SELECT COUNT(*) FROM customer_order'
+            );
+
+        $notificationsBefore = (int) $connection
+            ->fetchOne(
+                'SELECT COUNT(*) FROM notification'
+            );
+
         $client->catchExceptions(false);
 
         try {
@@ -146,8 +254,26 @@ class CustomerOrderTest extends WebTestCase
             self::assertSame('Simulated PURCHASE failure', $exception->getMessage());
         }
 
-        self::assertSame($before, (int) $this->em()->getConnection()->fetchOne('SELECT COUNT(*) FROM customer_order'));
-        self::assertTrue($client->getRequest()->getSession()->has('cart'));
+        self::assertSame(
+            $before,
+            (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM customer_order'
+            )
+        );
+
+        self::assertSame(
+            $notificationsBefore,
+            (int) $connection->fetchOne(
+                'SELECT COUNT(*) FROM notification'
+            )
+        );
+
+        self::assertTrue(
+            $client
+                ->getRequest()
+                ->getSession()
+                ->has('cart')
+        );
     }
 
     public function testOrderRoutesRequireAuthentication(): void
