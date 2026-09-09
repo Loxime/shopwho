@@ -40,6 +40,9 @@ SELECT
     COUNT(*)
         FILTER (WHERE event_type = 'PURCHASE')
         AS purchases,
+    COUNT(DISTINCT session_id)
+        FILTER (WHERE event_type = 'PURCHASE')
+        AS purchase_sessions,
     COUNT(*)
         FILTER (WHERE event_type = 'FAVORITE_ADDED')
         AS favorite_adds,
@@ -80,6 +83,7 @@ SQL,
             (int) $row['cart_adds'],
             (int) $row['checkout_starts'],
             (int) $row['purchases'],
+            (int) $row['purchase_sessions'],
             (int) $row['favorite_adds'],
             (int) $row['recommendation_clicks'],
             (int) $row['special_offer_clicks'],
@@ -266,4 +270,93 @@ SQL,
         $rows
     );
 }
+
+    public function interactions(
+        \DateTimeImmutable $from,
+        ?\DateTimeImmutable $to = null
+    ): InteractionAnalytics {
+        $to ??= new \DateTimeImmutable();
+
+        $row = $this->connection
+            ->fetchAssociative(
+                <<<'SQL'
+SELECT
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'PRODUCT_CARD_IMPRESSION'
+        ) AS product_impressions,
+
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'PRODUCT_CARD_CLICK'
+        ) AS product_clicks,
+
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'RECOMMENDATION_IMPRESSION'
+        ) AS recommendation_impressions,
+
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'RECOMMENDATION_CLICK'
+        ) AS recommendation_clicks,
+
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'SPECIAL_OFFER_IMPRESSION'
+        ) AS special_offer_impressions,
+
+    COUNT(*)
+        FILTER (
+            WHERE event_type =
+                'SPECIAL_OFFER_CLICK'
+        ) AS special_offer_clicks
+
+FROM tracking_event
+
+WHERE occurred_at >= :from
+  AND occurred_at <= :to
+SQL,
+                [
+                    'from' => $from,
+                    'to' => $to,
+                ],
+                [
+                    'from' =>
+                        Types::DATETIME_IMMUTABLE,
+                    'to' =>
+                        Types::DATETIME_IMMUTABLE,
+                ]
+            );
+
+        if ($row === false) {
+            throw new \RuntimeException(
+                'Impossible de calculer '
+                .'les analytics d’interaction.'
+            );
+        }
+
+        return new InteractionAnalytics(
+            (int) $row['product_impressions'],
+            (int) $row['product_clicks'],
+            (int) $row[
+                'recommendation_impressions'
+            ],
+            (int) $row[
+                'recommendation_clicks'
+            ],
+            (int) $row[
+                'special_offer_impressions'
+            ],
+            (int) $row[
+                'special_offer_clicks'
+            ],
+        );
+    }
+
 }

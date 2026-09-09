@@ -15,6 +15,7 @@ final readonly class AnalyticsOverview
         public int $cartAdds,
         public int $checkoutStarts,
         public int $purchases,
+        public int $purchaseSessions,
         public int $favoriteAdds,
         public int $recommendationClicks,
         public int $specialOfferClicks,

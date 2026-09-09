@@ -66,6 +66,11 @@ final class AdminAnalyticsController extends AbstractController
             10
         );
 
+        $interactions = $analytics->interactions(
+            $from,
+            $to
+        );
+
         return $this->render(
             'admin/analytics/index.html.twig',
             [
