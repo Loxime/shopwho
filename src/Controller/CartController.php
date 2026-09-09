@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Enum\TrackingEventType;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Repository\ProductRepository;
@@ -20,7 +21,7 @@ class CartController extends AbstractController
     public function index(Request $request, ProductRepository $products, TrackingService $tracking): Response
     {
         [$lines, $totalCents] = $this->buildCart($request, $products);
-        $tracking->track('CART_VIEW', null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
+        $tracking->track(TrackingEventType::CartView, null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
 
         return $this->render('cart/index.html.twig', [
             'lines' => $lines,
@@ -39,7 +40,7 @@ class CartController extends AbstractController
         $cart = $session->get('cart', []);
         $cart[$product->getId()] = min(($cart[$product->getId()] ?? 0) + 1, $product->getStock());
         $session->set('cart', $cart);
-        $tracking->track('ADD_TO_CART', $product->getId(), ['quantity' => $cart[$product->getId()], 'price_cents' => $product->getPriceCents()]);
+        $tracking->track(TrackingEventType::AddToCart, $product->getId(), ['quantity' => $cart[$product->getId()], 'price_cents' => $product->getPriceCents()]);
         $this->addFlash('success', $product->getName().' ajouté au panier.');
 
         return $this->redirectToRoute('app_cart');
@@ -102,8 +103,8 @@ class CartController extends AbstractController
             };
 
             $eventType = 0 === $newQuantity
-                ? 'REMOVE_FROM_CART'
-                : 'CART_QUANTITY_CHANGED';
+                ? TrackingEventType::RemoveFromCart
+                : TrackingEventType::CartQuantityChanged;
 
             $tracking->track(
                 $eventType,
@@ -130,7 +131,7 @@ class CartController extends AbstractController
         $cart = $session->get('cart', []);
         unset($cart[$id]);
         $session->set('cart', $cart);
-        $tracking->track('REMOVE_FROM_CART', $id);
+        $tracking->track(TrackingEventType::RemoveFromCart, $id);
 
         return $this->redirectToRoute('app_cart');
     }
@@ -149,7 +150,7 @@ class CartController extends AbstractController
         }
 
         [$lines, $totalCents] = $this->buildCart($request, $products);
-        $tracking->track('CHECKOUT_STARTED', null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
+        $tracking->track(TrackingEventType::CheckoutStarted, null, ['line_count' => count($lines), 'total_cents' => $totalCents]);
         if (!$lines) {
             return $this->redirectToRoute('app_cart');
         }
@@ -196,14 +197,14 @@ class CartController extends AbstractController
                         $order->getReference();
 
                     $tracking->track(
-                        'PURCHASE',
+                        TrackingEventType::Purchase,
                         null,
                         $metadata
                     );
                 }
             );
         } else {
-            $tracking->track('PURCHASE', null, $metadata);
+            $tracking->track(TrackingEventType::Purchase, null, $metadata);
         }
 
         $request->getSession()->remove('cart');

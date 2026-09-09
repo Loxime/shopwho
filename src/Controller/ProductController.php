@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Enum\TrackingEventType;
 use App\Entity\Product;
 use App\Entity\Review;
 use App\Entity\User;
@@ -30,7 +31,7 @@ public function show(
         throw $this->createNotFoundException();
     }
 
-    $tracking->track('PRODUCT_VIEW', $product->getId(), [
+    $tracking->track(TrackingEventType::ProductView, $product->getId(), [
         'category' => $product->getCategory()?->getSlug(),
         'price_cents' => $product->getPriceCents(),
     ]);
