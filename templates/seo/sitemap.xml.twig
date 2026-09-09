@@ -10,6 +10,14 @@
     <priority>1.0</priority>
   </url>
 
+  <url>
+    <loc>{{ (
+      baseUrl ~ path('app_partner_index')
+    )|e('html') }}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
   {% for category in categories %}
     <url>
       <loc>{{ (

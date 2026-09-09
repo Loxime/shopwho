@@ -81,6 +81,10 @@
         Articles
       </a>
 
+      <a href="{{ path('app_partner_index') }}">
+        Partenaires
+      </a>
+
       {% if is_granted('ROLE_ADMIN') %}
         <a href="{{ path('admin_product_index') }}">
           Administration
