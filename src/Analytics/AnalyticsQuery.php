@@ -2,6 +2,8 @@
 
 namespace App\Analytics;
 
+use App\Enum\TrackingEventType;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\DBAL\ParameterType;
@@ -356,6 +358,209 @@ SQL,
             (int) $row[
                 'special_offer_clicks'
             ],
+        );
+    }
+
+
+    public function dataQuality(
+        \DateTimeImmutable $from,
+        ?\DateTimeImmutable $to = null
+    ): TrackingDataQuality {
+        $to ??= new \DateTimeImmutable();
+
+        $knownEventTypes =
+            TrackingEventType::values();
+
+        $productRequiredEvents = [
+            TrackingEventType::ProductView->value,
+            TrackingEventType::ProductCardImpression->value,
+            TrackingEventType::ProductCardClick->value,
+            TrackingEventType::AddToCart->value,
+            TrackingEventType::CartQuantityChanged->value,
+            TrackingEventType::RemoveFromCart->value,
+            TrackingEventType::FavoriteAdded->value,
+            TrackingEventType::FavoriteRemoved->value,
+            TrackingEventType::RecommendationImpression->value,
+            TrackingEventType::RecommendationClick->value,
+        ];
+
+        $row = $this->connection
+            ->fetchAssociative(
+                <<<'SQL'
+WITH filtered AS (
+    SELECT
+        event_type,
+        product_id,
+        metadata,
+        session_id,
+        visitor_id
+    FROM tracking_event
+    WHERE occurred_at >= :from
+      AND occurred_at <= :to
+),
+event_quality AS (
+    SELECT
+        COUNT(*) AS total_events,
+
+        COUNT(*)
+            FILTER (
+                WHERE filtered.event_type
+                    NOT IN (:known_event_types)
+            ) AS unknown_event_types,
+
+        COUNT(*)
+            FILTER (
+                WHERE filtered.product_id IS NOT NULL
+                  AND product.id IS NULL
+            ) AS missing_product_references,
+
+        COUNT(*)
+            FILTER (
+                WHERE filtered.event_type
+                    IN (:product_required_events)
+                  AND filtered.product_id IS NULL
+            ) AS missing_required_product_ids,
+
+        COUNT(*)
+            FILTER (
+                WHERE filtered.metadata::jsonb =
+                    '{}'::jsonb
+            ) AS empty_metadata_events
+
+    FROM filtered
+
+    LEFT JOIN product
+        ON product.id = filtered.product_id
+),
+session_quality AS (
+    SELECT
+        COUNT(*) AS mixed_visitor_sessions
+    FROM (
+        SELECT
+            session_id
+        FROM filtered
+        GROUP BY session_id
+        HAVING COUNT(
+            DISTINCT visitor_id
+        ) > 1
+    ) mixed_sessions
+)
+
+SELECT
+    event_quality.*,
+    session_quality.mixed_visitor_sessions
+
+FROM event_quality
+CROSS JOIN session_quality
+SQL,
+                [
+                    'from' => $from,
+                    'to' => $to,
+                    'known_event_types' =>
+                        $knownEventTypes,
+                    'product_required_events' =>
+                        $productRequiredEvents,
+                ],
+                [
+                    'from' =>
+                        Types::DATETIME_IMMUTABLE,
+                    'to' =>
+                        Types::DATETIME_IMMUTABLE,
+                    'known_event_types' =>
+                        ArrayParameterType::STRING,
+                    'product_required_events' =>
+                        ArrayParameterType::STRING,
+                ]
+            );
+
+        if ($row === false) {
+            throw new \RuntimeException(
+                'Impossible de calculer '
+                .'la qualité du tracking.'
+            );
+        }
+
+        return new TrackingDataQuality(
+            (int) $row['total_events'],
+            (int) $row['unknown_event_types'],
+            (int) $row[
+                'missing_product_references'
+            ],
+            (int) $row[
+                'missing_required_product_ids'
+            ],
+            (int) $row[
+                'empty_metadata_events'
+            ],
+            (int) $row[
+                'mixed_visitor_sessions'
+            ],
+        );
+    }
+
+    /**
+     * @return list<TrackingEventCoverage>
+     */
+    public function eventCoverage(
+        \DateTimeImmutable $from,
+        ?\DateTimeImmutable $to = null
+    ): array {
+        $to ??= new \DateTimeImmutable();
+
+        $rows = $this->connection
+            ->fetchAllAssociative(
+                <<<'SQL'
+SELECT
+    event_type,
+    COUNT(*) AS event_count
+
+FROM tracking_event
+
+WHERE occurred_at >= :from
+  AND occurred_at <= :to
+
+GROUP BY event_type
+
+ORDER BY event_type ASC
+SQL,
+                [
+                    'from' => $from,
+                    'to' => $to,
+                ],
+                [
+                    'from' =>
+                        Types::DATETIME_IMMUTABLE,
+                    'to' =>
+                        Types::DATETIME_IMMUTABLE,
+                ]
+            );
+
+        $counts = [];
+        $totalEvents = 0;
+
+        foreach ($rows as $row) {
+            $count =
+                (int) $row['event_count'];
+
+            $counts[
+                (string) $row['event_type']
+            ] = $count;
+
+            $totalEvents += $count;
+        }
+
+        return array_map(
+            static fn (
+                TrackingEventType $event
+            ): TrackingEventCoverage =>
+                new TrackingEventCoverage(
+                    $event->value,
+                    $counts[
+                        $event->value
+                    ] ?? 0,
+                    $totalEvents
+                ),
+            TrackingEventType::cases()
         );
     }
 
