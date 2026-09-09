@@ -32,6 +32,7 @@ final class ArticleType extends AbstractType
                 [
                     'label' => 'Slug',
                     'required' => false,
+                    'empty_data' => '',
                     'help' =>
                         'Laisser vide pour le générer depuis le titre.',
                 ]
