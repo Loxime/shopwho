@@ -425,6 +425,8 @@ event_quality AS (
             FILTER (
                 WHERE filtered.metadata::jsonb =
                     '{}'::jsonb
+                   OR filtered.metadata::jsonb =
+                    '[]'::jsonb
             ) AS empty_metadata_events
 
     FROM filtered

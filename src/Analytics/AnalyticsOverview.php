@@ -29,7 +29,10 @@ final readonly class AnalyticsOverview
         }
 
         return round(
-            ($this->purchases / $this->uniqueSessions) * 100,
+            (
+                $this->purchaseSessions
+                / $this->uniqueSessions
+            ) * 100,
             2
         );
     }
