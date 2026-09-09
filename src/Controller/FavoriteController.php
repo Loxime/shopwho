@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Enum\TrackingEventType;
 use App\Entity\Favorite;
 use App\Entity\Product;
 use App\Entity\User;
@@ -89,7 +90,7 @@ final class FavoriteController extends AbstractController
             $em->flush();
 
             $tracking->track(
-                'FAVORITE_REMOVED',
+                TrackingEventType::FavoriteRemoved,
                 $product->getId(),
                 [
                     'category' =>
@@ -114,7 +115,7 @@ final class FavoriteController extends AbstractController
             $em->flush();
 
             $tracking->track(
-                'FAVORITE_ADDED',
+                TrackingEventType::FavoriteAdded,
                 $product->getId(),
                 [
                     'category' =>

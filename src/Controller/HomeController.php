@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Enum\TrackingEventType;
 use App\Entity\User;
 use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
@@ -92,7 +93,7 @@ class HomeController extends AbstractController
             && $sort === 'newest';
 
         $tracking->track(
-            'PAGE_VIEW',
+            TrackingEventType::PageView,
             null,
             [
                 'page' => 'catalog',
@@ -101,7 +102,7 @@ class HomeController extends AbstractController
 
         if ($query) {
             $tracking->track(
-                'SEARCH',
+                TrackingEventType::Search,
                 null,
                 [
                     'query' => $query,
@@ -111,7 +112,7 @@ class HomeController extends AbstractController
 
         if ($category) {
             $tracking->track(
-                'CATEGORY_VIEW',
+                TrackingEventType::CategoryView,
                 null,
                 [
                     'category' => $category,

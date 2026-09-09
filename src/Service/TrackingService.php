@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\TrackingEvent;
 use App\Entity\User;
+use App\Enum\TrackingEventType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -18,7 +19,7 @@ class TrackingService
     }
 
     public function track(
-        string $eventType,
+        TrackingEventType $eventType,
         ?int $productId = null,
         array $metadata = []
     ): void {
@@ -33,7 +34,7 @@ class TrackingService
 
     /**
      * @param list<array{
-     *     eventType: string,
+     *     eventType: TrackingEventType|string,
      *     productId: ?int,
      *     metadata?: array<string, mixed>
      * }> $events
@@ -89,6 +90,25 @@ class TrackingService
         $user = $this->security->getUser();
 
         foreach ($events as $eventData) {
+            $eventType =
+                $eventData['eventType'];
+
+            if (is_string($eventType)) {
+                $eventType =
+                    TrackingEventType::tryFrom(
+                        $eventType
+                    );
+            }
+
+            if (
+                !$eventType instanceof
+                    TrackingEventType
+            ) {
+                throw new \InvalidArgumentException(
+                    'Type d’événement de tracking inconnu.'
+                );
+            }
+
             $metadata = array_merge(
                 [
                     'path' => $request->getPathInfo(),
@@ -100,7 +120,7 @@ class TrackingService
             $event = new TrackingEvent(
                 $visitorId,
                 $sessionId,
-                $eventData['eventType'],
+                $eventType->value,
                 $eventData['productId'],
                 $metadata
             );
