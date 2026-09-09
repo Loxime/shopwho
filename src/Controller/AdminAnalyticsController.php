@@ -66,12 +66,30 @@ final class AdminAnalyticsController extends AbstractController
             10
         );
 
+        $interactions = $analytics->interactions(
+            $from,
+            $to
+        );
+
+        $dataQuality = $analytics->dataQuality(
+            $from,
+            $to
+        );
+
+        $eventCoverage = $analytics->eventCoverage(
+            $from,
+            $to
+        );
+
         return $this->render(
             'admin/analytics/index.html.twig',
             [
                 'overview' => $overview,
                 'funnel' => $funnel,
                 'topProducts' => $topProducts,
+                'interactions' => $interactions,
+                'dataQuality' => $dataQuality,
+                'eventCoverage' => $eventCoverage,
                 'days' => $days,
                 'periods' =>
                     self::ALLOWED_PERIODS,

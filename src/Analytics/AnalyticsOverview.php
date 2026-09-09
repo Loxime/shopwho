@@ -15,6 +15,7 @@ final readonly class AnalyticsOverview
         public int $cartAdds,
         public int $checkoutStarts,
         public int $purchases,
+        public int $purchaseSessions,
         public int $favoriteAdds,
         public int $recommendationClicks,
         public int $specialOfferClicks,
@@ -28,7 +29,10 @@ final readonly class AnalyticsOverview
         }
 
         return round(
-            ($this->purchases / $this->uniqueSessions) * 100,
+            (
+                $this->purchaseSessions
+                / $this->uniqueSessions
+            ) * 100,
             2
         );
     }
