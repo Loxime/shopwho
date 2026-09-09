@@ -2,6 +2,7 @@
 
 namespace App\Tests\Functional;
 
+use App\Entity\Article;
 use App\Entity\Category;
 use App\Entity\Product;
 use App\Kernel;
@@ -29,6 +30,13 @@ final class SeoTest extends WebTestCase
         $connection = static::getContainer()
             ->get(EntityManagerInterface::class)
             ->getConnection();
+
+        $connection->executeStatement(
+            "
+                DELETE FROM article
+                WHERE slug LIKE 'seo-article-%'
+            "
+        );
 
         $connection->executeStatement(
             "
@@ -256,6 +264,81 @@ final class SeoTest extends WebTestCase
             .$product
                 ->getCategory()
                 ->getSlug(),
+            $content
+        );
+    }
+
+    public function testSitemapContainsOnlyPublishedArticles(): void
+    {
+        $client = static::createClient();
+
+        $suffix = bin2hex(
+            random_bytes(6)
+        );
+
+        $published = (new Article())
+            ->setTitle(
+                'Article publié '.$suffix
+            )
+            ->setSlug(
+                'seo-article-published-'.$suffix
+            )
+            ->setExcerpt(
+                'Résumé article publié.'
+            )
+            ->setContent(
+                'Contenu article publié.'
+            )
+            ->setIsPublished(true)
+            ->setPublishedAt(
+                new \DateTimeImmutable(
+                    '-1 hour'
+                )
+            );
+
+        $draft = (new Article())
+            ->setTitle(
+                'Article brouillon '.$suffix
+            )
+            ->setSlug(
+                'seo-article-draft-'.$suffix
+            )
+            ->setExcerpt(
+                'Résumé brouillon.'
+            )
+            ->setContent(
+                'Contenu brouillon.'
+            )
+            ->setIsPublished(false);
+
+        $em = static::getContainer()
+            ->get(EntityManagerInterface::class);
+
+        $em->persist($published);
+        $em->persist($draft);
+        $em->flush();
+
+        $client->request(
+            'GET',
+            '/sitemap.xml'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $content =
+            (string) $client
+                ->getResponse()
+                ->getContent();
+
+        self::assertStringContainsString(
+            '/articles/'
+            .$published->getSlug(),
+            $content
+        );
+
+        self::assertStringNotContainsString(
+            '/articles/'
+            .$draft->getSlug(),
             $content
         );
     }

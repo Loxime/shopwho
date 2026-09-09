@@ -2888,3 +2888,158 @@ a.product-rating:hover span:last-child{
     padding:14px;
   }
 }
+
+/* Editorial articles */
+
+.editorial-heading{
+  max-width:720px;
+  margin-bottom:32px;
+}
+
+.editorial-heading h1{
+  margin:0 0 10px;
+  font-size:38px;
+}
+
+.editorial-grid{
+  display:grid;
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
+  gap:22px;
+}
+
+.editorial-card{
+  overflow:hidden;
+  border:1px solid #e5e7eb;
+  border-radius:18px;
+  background:#fff;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+.editorial-card:hover{
+  transform:translateY(-3px);
+  box-shadow:
+    0 14px 32px rgba(15,23,42,.08);
+}
+
+.editorial-card img{
+  display:block;
+  width:100%;
+  aspect-ratio:16 / 9;
+  object-fit:cover;
+}
+
+.editorial-card-body{
+  padding:20px;
+}
+
+.editorial-card time,
+.editorial-article time{
+  color:var(--muted);
+  font-size:12px;
+}
+
+.editorial-card h2{
+  margin:8px 0 10px;
+  font-size:20px;
+}
+
+.editorial-card h2 a{
+  color:var(--ink);
+}
+
+.editorial-card h2 a:hover{
+  color:var(--blue);
+}
+
+.editorial-card p{
+  margin:0;
+  color:#4b5563;
+  line-height:1.6;
+}
+
+.editorial-empty{
+  grid-column:1 / -1;
+  padding:42px;
+  border:1px dashed #cbd5e1;
+  border-radius:18px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.editorial-empty i{
+  color:#cbd5e1;
+  font-size:38px;
+}
+
+.editorial-empty h2{
+  margin:12px 0 8px;
+  color:var(--ink);
+}
+
+.editorial-empty p{
+  margin:0;
+}
+
+.editorial-article-container{
+  max-width:850px;
+}
+
+.editorial-back{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  color:var(--muted);
+  font-size:13px;
+  font-weight:700;
+}
+
+.editorial-article header{
+  margin:28px 0 30px;
+}
+
+.editorial-article h1{
+  margin:8px 0 16px;
+  font-size:46px;
+  line-height:1.08;
+}
+
+.editorial-article-excerpt{
+  color:#4b5563;
+  font-size:19px;
+  line-height:1.6;
+}
+
+.editorial-article-cover{
+  display:block;
+  width:100%;
+  max-height:520px;
+  margin-bottom:34px;
+  border-radius:22px;
+  object-fit:cover;
+}
+
+.editorial-article-content{
+  color:#374151;
+  font-size:17px;
+  line-height:1.8;
+}
+
+@media(max-width:850px){
+  .editorial-grid{
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:560px){
+  .editorial-grid{
+    grid-template-columns:1fr;
+  }
+
+  .editorial-article h1{
+    font-size:34px;
+  }
+}

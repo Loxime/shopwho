@@ -56,6 +56,7 @@ security:
     - { path: ^/admin/products(?:/|$), roles: ROLE_CATALOG_MANAGER }
     - { path: ^/admin/categories(?:/|$), roles: ROLE_CATALOG_MANAGER }
 
+    - { path: ^/admin/articles(?:/|$), roles: ROLE_MARKETING_MANAGER }
     - { path: ^/admin/offers(?:/|$), roles: ROLE_MARKETING_MANAGER }
     - { path: ^/admin/reviews(?:/|$), roles: ROLE_MARKETING_MANAGER }
 

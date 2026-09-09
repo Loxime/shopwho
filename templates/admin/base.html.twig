@@ -47,6 +47,18 @@
 
       {% if is_granted('ROLE_MARKETING_MANAGER') %}
         <a
+          class="admin-nav-item{{ currentRoute starts with 'admin_article_' ? ' is-active' : '' }}"
+          href="{{ path('admin_article_index') }}"
+          {{ currentRoute starts with 'admin_article_' ? ' aria-current="page"' : '' }}
+        >
+          <i
+            class="fa-solid fa-newspaper"
+            aria-hidden="true"
+          ></i>
+          <span>Articles</span>
+        </a>
+
+        <a
           class="admin-nav-item{{ currentRoute starts with 'admin_special_offer_' ? ' is-active' : '' }}"
           href="{{ path('admin_special_offer_index') }}"
           {{ currentRoute starts with 'admin_special_offer_' ? ' aria-current="page"' : '' }}

@@ -77,6 +77,10 @@
         données comportementales.
       </p>
 
+      <a href="{{ path('app_article_index') }}">
+        Articles
+      </a>
+
       {% if is_granted('ROLE_ADMIN') %}
         <a href="{{ path('admin_product_index') }}">
           Administration

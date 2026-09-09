@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+{{ article.title }} — Shopwho
+{% endblock %}
+
+{% block meta_description %}
+{{ article.excerpt|striptags|slice(0, 155) }}
+{% endblock %}
+
+{% block canonical_url -%}
+{{ app.request.schemeAndHttpHost
+  ~ path(
+    'app_article_show',
+    {
+      slug: article.slug
+    }
+  )
+}}
+{%- endblock %}
+
+{% block og_type %}article{% endblock %}
+
+{% block social_meta %}
+  {% if article.coverImageUrl %}
+    <meta
+      property="og:image"
+      content="{{ article.coverImageUrl }}"
+    >
+
+    <meta
+      property="og:image:alt"
+      content="{{ article.title }}"
+    >
+
+    <meta
+      name="twitter:image"
+      content="{{ article.coverImageUrl }}"
+    >
+  {% endif %}
+{% endblock %}
+
+{% block structured_data %}
+  {% set articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.excerpt,
+    datePublished: (
+      article.publishedAt
+        ?? article.createdAt
+    )|date('c'),
+    dateModified: article.updatedAt|date('c'),
+    url: app.request.schemeAndHttpHost
+      ~ path(
+        'app_article_show',
+        {
+          slug: article.slug
+        }
+      )
+  } %}
+
+  {% if article.coverImageUrl %}
+    {% set articleSchema =
+      articleSchema|merge({
+        image: article.coverImageUrl
+      })
+    %}
+  {% endif %}
+
+  <script type="application/ld+json">
+    {{- articleSchema|json_encode(
+      constant('JSON_UNESCAPED_SLASHES')
+      b-or constant('JSON_HEX_TAG')
+      b-or constant('JSON_HEX_AMP')
+      b-or constant('JSON_HEX_APOS')
+      b-or constant('JSON_HEX_QUOT')
+    )|raw -}}
+  </script>
+{% endblock %}
+
+{% block body %}
+<article class="section editorial-article">
+  <div class="container editorial-article-container">
+    <a
+      class="editorial-back"
+      href="{{ path('app_article_index') }}"
+    >
+      <i
+        class="fa-solid fa-arrow-left"
+        aria-hidden="true"
+      ></i>
+
+      Tous les articles
+    </a>
+
+    <header>
+      <p class="product-section-eyebrow">
+        Journal Shopwho
+      </p>
+
+      <h1>
+        {{ article.title }}
+      </h1>
+
+      <p class="editorial-article-excerpt">
+        {{ article.excerpt }}
+      </p>
+
+      <time
+        datetime="{{ (
+          article.publishedAt
+            ?? article.createdAt
+        )|date('c') }}"
+      >
+        Publié le
+        {{ (
+          article.publishedAt
+            ?? article.createdAt
+        )|date('d/m/Y') }}
+      </time>
+    </header>
+
+    {% if article.coverImageUrl %}
+      <img
+        class="editorial-article-cover"
+        src="{{ article.coverImageUrl }}"
+        alt="{{ article.title }}"
+      >
+    {% endif %}
+
+    <div class="editorial-article-content">
+      {{ article.content|nl2br }}
+    </div>
+  </div>
+</article>
+{% endblock %}
