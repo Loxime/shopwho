@@ -1,0 +1,105 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+Articles — Shopwho
+{% endblock %}
+
+{% block meta_description %}
+Découvrez les articles Shopwho autour du e-commerce, de l’expérience utilisateur et de la donnée.
+{% endblock %}
+
+{% block canonical_url -%}
+{{ app.request.schemeAndHttpHost
+  ~ path('app_article_index')
+}}
+{%- endblock %}
+
+{% block body %}
+<section class="section">
+  <div class="container">
+    <header class="editorial-heading">
+      <p class="product-section-eyebrow">
+        Journal Shopwho
+      </p>
+
+      <h1>
+        Articles
+      </h1>
+
+      <p class="muted">
+        Analyses, explications et contenus autour
+        de l’expérience Shopwho.
+      </p>
+    </header>
+
+    <div class="editorial-grid">
+      {% for article in articles %}
+        <article class="editorial-card">
+          {% if article.coverImageUrl %}
+            <a
+              href="{{ path(
+                'app_article_show',
+                {
+                  slug: article.slug
+                }
+              ) }}"
+            >
+              <img
+                src="{{ article.coverImageUrl }}"
+                alt="{{ article.title }}"
+              >
+            </a>
+          {% endif %}
+
+          <div class="editorial-card-body">
+            <time
+              datetime="{{ (
+                article.publishedAt
+                  ?? article.createdAt
+              )|date('c') }}"
+            >
+              {{ (
+                article.publishedAt
+                  ?? article.createdAt
+              )|date('d/m/Y') }}
+            </time>
+
+            <h2>
+              <a
+                href="{{ path(
+                  'app_article_show',
+                  {
+                    slug: article.slug
+                  }
+                ) }}"
+              >
+                {{ article.title }}
+              </a>
+            </h2>
+
+            <p>
+              {{ article.excerpt }}
+            </p>
+          </div>
+        </article>
+      {% else %}
+        <div class="editorial-empty">
+          <i
+            class="fa-regular fa-newspaper"
+            aria-hidden="true"
+          ></i>
+
+          <h2>
+            Aucun article publié
+          </h2>
+
+          <p>
+            Les prochains contenus Shopwho
+            apparaîtront ici.
+          </p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

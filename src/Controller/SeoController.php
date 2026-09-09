@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\ArticleRepository;
 use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -59,7 +60,8 @@ final class SeoController extends AbstractController
     )]
     public function sitemap(
         Request $request,
-        ProductRepository $products
+        ProductRepository $products,
+        ArticleRepository $articles
     ): Response {
         $catalogProducts =
             $products->findCatalog();
@@ -97,6 +99,8 @@ final class SeoController extends AbstractController
                     array_values(
                         $categories
                     ),
+                'articles' =>
+                    $articles->findPublished(),
             ],
             $response
         );

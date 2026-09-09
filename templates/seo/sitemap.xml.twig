@@ -26,6 +26,27 @@
     </url>
   {% endfor %}
 
+  {% for article in articles %}
+    <url>
+      <loc>{{ (
+        baseUrl
+        ~ path(
+          'app_article_show',
+          {
+            slug: article.slug
+          }
+        )
+      )|e('html') }}</loc>
+
+      <lastmod>
+        {{- article.updatedAt|date('c') -}}
+      </lastmod>
+
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+    </url>
+  {% endfor %}
+
   {% for product in products %}
     <url>
       <loc>{{ (
