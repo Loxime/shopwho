@@ -1027,6 +1027,177 @@ Découvrez Shopwho, un catalogue e-commerce expérimental conçu pour étudier l
       </div>
     </div>
   </section>
+
+  {% if latestArticles is not empty %}
+    <section
+      class="section home-editorial-section"
+      aria-labelledby="home-editorial-title"
+    >
+      <div class="container">
+        <header class="home-section-heading">
+          <div>
+            <p class="catalog-heading-eyebrow">
+              Journal Shopwho
+            </p>
+
+            <h2 id="home-editorial-title">
+              Derniers articles
+            </h2>
+
+            <p class="muted">
+              Analyses, coulisses et contenus autour
+              du e-commerce, de l’expérience utilisateur
+              et de la donnée.
+            </p>
+          </div>
+
+          <a
+            class="home-section-link"
+            href="{{ path('app_article_index') }}"
+          >
+            Tous les articles
+
+            <i
+              class="fa-solid fa-arrow-right"
+              aria-hidden="true"
+            ></i>
+          </a>
+        </header>
+
+        <div class="home-editorial-grid">
+          {% for article in latestArticles %}
+            <article class="home-editorial-card">
+              <a
+                class="home-editorial-card-link"
+                href="{{ path(
+                  'app_article_show',
+                  {
+                    slug: article.slug
+                  }
+                ) }}"
+              >
+                {% if article.coverImageUrl %}
+                  <img
+                    class="home-editorial-card-image"
+                    src="{{ article.coverImageUrl }}"
+                    alt="{{ article.title }}"
+                  >
+                {% else %}
+                  <div
+                    class="home-editorial-card-placeholder"
+                    aria-hidden="true"
+                  >
+                    <i class="fa-solid fa-newspaper"></i>
+                  </div>
+                {% endif %}
+
+                <div class="home-editorial-card-body">
+                  <time
+                    datetime="{{ (
+                      article.publishedAt
+                        ?? article.createdAt
+                    )|date('c') }}"
+                  >
+                    {{ (
+                      article.publishedAt
+                        ?? article.createdAt
+                    )|date('d/m/Y') }}
+                  </time>
+
+                  <h3>
+                    {{ article.title }}
+                  </h3>
+
+                  <p>
+                    {{ article.excerpt|slice(0, 140) }}
+                    {%- if article.excerpt|length > 140 -%}
+                      …
+                    {%- endif -%}
+                  </p>
+
+                  <span class="home-editorial-card-cta">
+                    Lire l’article
+
+                    <i
+                      class="fa-solid fa-arrow-right"
+                      aria-hidden="true"
+                    ></i>
+                  </span>
+                </div>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {% if featuredPartners is not empty %}
+    <section
+      class="section home-partners-section"
+      aria-labelledby="home-partners-title"
+    >
+      <div class="container">
+        <header class="home-section-heading">
+          <div>
+            <p class="catalog-heading-eyebrow">
+              Écosystème Shopwho
+            </p>
+
+            <h2 id="home-partners-title">
+              Nos partenaires
+            </h2>
+
+            <p class="muted">
+              Les organisations et projets qui
+              participent à l’écosystème Shopwho.
+            </p>
+          </div>
+
+          <a
+            class="home-section-link"
+            href="{{ path('app_partner_index') }}"
+          >
+            Tous les partenaires
+
+            <i
+              class="fa-solid fa-arrow-right"
+              aria-hidden="true"
+            ></i>
+          </a>
+        </header>
+
+        <div class="home-partners-grid">
+          {% for partner in featuredPartners %}
+            <a
+              class="home-partner-card"
+              href="{{ partner.websiteUrl }}"
+              target="_blank"
+              rel="noopener noreferrer external"
+            >
+              <div class="home-partner-logo">
+                {% if partner.logoUrl %}
+                  <img
+                    src="{{ partner.logoUrl }}"
+                    alt="Logo {{ partner.name }}"
+                  >
+                {% else %}
+                  <i
+                    class="fa-solid fa-handshake"
+                    aria-hidden="true"
+                  ></i>
+                {% endif %}
+              </div>
+
+              <strong>
+                {{ partner.name }}
+              </strong>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
 {% endblock %}
 
 {% block javascripts %}
