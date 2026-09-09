@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\ArticleRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\PartnerRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
 use App\Service\RecommendationService;
@@ -19,6 +21,8 @@ class HomeController extends AbstractController
     #[Route('/', name: 'app_home', methods: ['GET'])]
     public function index(
         Request $request,
+        ArticleRepository $articles,
+        PartnerRepository $partners,
         ProductRepository $products,
         CategoryRepository $categories,
         ReviewRepository $reviews,
@@ -80,6 +84,12 @@ class HomeController extends AbstractController
             $minPriceCents !== null
             || $maxPriceCents !== null
             || $inStockOnly;
+
+        $showEditorialShowcase =
+            $query === null
+            && $category === null
+            && !$hasCatalogFilters
+            && $sort === 'newest';
 
         $tracking->track(
             'PAGE_VIEW',
@@ -148,7 +158,24 @@ class HomeController extends AbstractController
                 $ratingProductIds[$productId] = true;
             }
         }
-        $homepageOffers = $specialOffers->findActiveHomepageOffers(8);
+        $homepageOffers =
+            $specialOffers
+                ->findActiveHomepageOffers(8);
+
+        $latestArticles = [];
+        $featuredPartners = [];
+
+        if ($showEditorialShowcase) {
+            $latestArticles =
+                $articles->findPublished(3);
+
+            $featuredPartners =
+                array_slice(
+                    $partners->findActive(),
+                    0,
+                    6
+                );
+        }
 
         return $this->render(
             'home/index.html.twig',
@@ -157,6 +184,10 @@ class HomeController extends AbstractController
                 'recommendations' =>
                     $recommendations,
                 'specialOffers' => $homepageOffers,
+                'latestArticles' =>
+                    $latestArticles,
+                'featuredPartners' =>
+                    $featuredPartners,
                 'productRatingStats' =>
                     $reviews
                         ->getRatingStatsByProductIds(
