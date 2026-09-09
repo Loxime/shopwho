@@ -10,6 +10,7 @@ use App\Entity\Product;
 use App\Entity\TrackingEvent;
 use App\Entity\User;
 use App\Enum\NotificationType;
+use App\Enum\TrackingEventType;
 use App\Kernel;
 use App\Service\TrackingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -221,11 +222,22 @@ class CustomerOrderTest extends WebTestCase
         $client->disableReboot();
         [$product, $user] = $this->createCatalogFixture(true);
         $tracking = $this->createMock(TrackingService::class);
-        $tracking->method('track')->willReturnCallback(static function (string $eventType): void {
-            if ('PURCHASE' === $eventType) {
-                throw new \RuntimeException('Simulated PURCHASE failure');
-            }
-        });
+        $tracking
+            ->method('track')
+            ->willReturnCallback(
+                static function (
+                    TrackingEventType $eventType
+                ): void {
+                    if (
+                        TrackingEventType::Purchase
+                        === $eventType
+                    ) {
+                        throw new \RuntimeException(
+                            'Simulated PURCHASE failure'
+                        );
+                    }
+                }
+            );
         static::getContainer()->set(TrackingService::class, $tracking);
         $client->loginUser($user);
         $client->getCookieJar()->set(new Cookie('shopwho_tracking_consent', 'yes'));
