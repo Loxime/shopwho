@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+Partenaires — Shopwho
+{% endblock %}
+
+{% block meta_description %}
+Découvrez les partenaires associés à l’écosystème et au projet expérimental Shopwho.
+{% endblock %}
+
+{% block canonical_url -%}
+{{ app.request.schemeAndHttpHost
+  ~ path('app_partner_index')
+}}
+{%- endblock %}
+
+{% block body %}
+<section class="section partners-page">
+  <div class="container">
+    <header class="partners-heading">
+      <p class="product-section-eyebrow">
+        Écosystème Shopwho
+      </p>
+
+      <h1>
+        Nos partenaires
+      </h1>
+
+      <p>
+        Les organisations et projets associés
+        à l’écosystème Shopwho.
+      </p>
+    </header>
+
+    <div class="partners-grid">
+      {% for partner in partners %}
+        <article class="partner-card">
+          <a
+            class="partner-card-link"
+            href="{{ partner.websiteUrl }}"
+            target="_blank"
+            rel="noopener noreferrer external"
+          >
+            <div class="partner-logo">
+              {% if partner.logoUrl %}
+                <img
+                  src="{{ partner.logoUrl }}"
+                  alt="Logo {{ partner.name }}"
+                >
+              {% else %}
+                <i
+                  class="fa-solid fa-handshake"
+                  aria-hidden="true"
+                ></i>
+              {% endif %}
+            </div>
+
+            <div class="partner-card-content">
+              <h2>
+                {{ partner.name }}
+              </h2>
+
+              {% if partner.description %}
+                <p>
+                  {{ partner.description }}
+                </p>
+              {% endif %}
+
+              <span class="partner-card-cta">
+                Découvrir
+
+                <i
+                  class="fa-solid fa-arrow-up-right-from-square"
+                  aria-hidden="true"
+                ></i>
+              </span>
+            </div>
+          </a>
+        </article>
+      {% else %}
+        <p class="muted">
+          Aucun partenaire public pour le moment.
+        </p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

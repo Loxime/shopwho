@@ -1,0 +1,40 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+{{ title }}
+{% endblock %}
+
+{% block admin_subtitle %}
+Gestion des partenaires du storefront
+{% endblock %}
+
+{% block admin_body %}
+<section class="admin-card">
+  {{ form_start(form) }}
+
+  {{ form_row(form.name) }}
+  {{ form_row(form.description) }}
+  {{ form_row(form.websiteUrl) }}
+  {{ form_row(form.logoUrl) }}
+  {{ form_row(form.priority) }}
+  {{ form_row(form.isActive) }}
+
+  <div class="admin-form-actions">
+    <button
+      class="admin-button admin-button-primary"
+      type="submit"
+    >
+      Enregistrer
+    </button>
+
+    <a
+      class="admin-button"
+      href="{{ path('admin_partner_index') }}"
+    >
+      Annuler
+    </a>
+  </div>
+
+  {{ form_end(form) }}
+</section>
+{% endblock %}
