@@ -42,7 +42,7 @@ class CustomerAuthenticationTest extends WebTestCase
         $client->followRedirect();
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains(
-            '.profile-dashboard-hero h1',
+            '.profile-dashboard-hero .profile-dashboard-name',
             'Camille Client'
         );
         self::assertSelectorTextContains(

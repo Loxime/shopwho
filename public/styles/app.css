@@ -1513,7 +1513,7 @@
   text-transform:uppercase;
 }
 
-.profile-dashboard-identity h1{
+.profile-dashboard-identity .profile-dashboard-name{
   margin:0 0 5px;
   font-size:32px;
 }
@@ -1596,6 +1596,7 @@
   margin-bottom:22px;
 }
 
+.profile-dashboard-card-heading h1,
 .profile-dashboard-card-heading h2{
   margin:0;
   font-size:22px;
@@ -1759,7 +1760,7 @@
     height:62px;
   }
 
-  .profile-dashboard-identity h1{
+  .profile-dashboard-identity .profile-dashboard-name{
     font-size:27px;
   }
 
@@ -3389,4 +3390,61 @@ body > main{
   font-size:13px;
   font-weight:600;
   color:var(--muted);
+}
+
+/* === Profile single dashboard === */
+
+.profile-dashboard-main{
+  transition:
+    opacity .16s ease,
+    transform .16s ease;
+}
+
+.profile-dashboard.is-loading
+.profile-dashboard-main{
+  opacity:.45;
+  transform:translateY(2px);
+  pointer-events:none;
+}
+
+.profile-dashboard-main:focus{
+  outline:none;
+}
+
+@media(max-width:760px){
+  .profile-dashboard-layout{
+    grid-template-columns:1fr;
+  }
+
+  .profile-dashboard-nav{
+    display:flex;
+    overflow-x:auto;
+    gap:6px;
+  }
+
+  .profile-dashboard-nav a{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+}
+
+.profile-dashboard-main
+.profile-dashboard-address-grid{
+  grid-template-columns:1fr;
+  margin-top:18px;
+}
+
+.profile-dashboard-main
+.profile-dashboard-card
+.favorites-grid{
+  margin-top:22px;
+}
+
+.profile-dashboard-main
+.notifications-list,
+.profile-dashboard-main
+.review-list,
+.profile-dashboard-main
+.order-list{
+  margin-top:22px;
 }
