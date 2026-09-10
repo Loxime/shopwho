@@ -1,6 +1,18 @@
-document
-  .querySelectorAll('[data-address-autocomplete]')
-  .forEach((form) => {
+const initAddressAutocomplete = (
+  root = document
+) => {
+  root
+    .querySelectorAll('[data-address-autocomplete]')
+    .forEach((form) => {
+      if (
+        form.dataset.addressAutocompleteReady
+        === 'true'
+      ) {
+        return;
+      }
+
+      form.dataset.addressAutocompleteReady =
+        'true';
     const endpoint = form.dataset.addressLookupUrl;
     const line1 = form.querySelector('[data-address-line1]');
     const postalCode = form.querySelector(
@@ -214,4 +226,12 @@ document
         }
       }
     );
-  });
+    });
+};
+
+initAddressAutocomplete();
+
+document.addEventListener(
+  'shopwho:profile-section-changed',
+  () => initAddressAutocomplete()
+);

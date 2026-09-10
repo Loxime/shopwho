@@ -1513,7 +1513,7 @@
   text-transform:uppercase;
 }
 
-.profile-dashboard-identity h1{
+.profile-dashboard-identity .profile-dashboard-name{
   margin:0 0 5px;
   font-size:32px;
 }
@@ -1596,6 +1596,7 @@
   margin-bottom:22px;
 }
 
+.profile-dashboard-card-heading h1,
 .profile-dashboard-card-heading h2{
   margin:0;
   font-size:22px;
@@ -1759,7 +1760,7 @@
     height:62px;
   }
 
-  .profile-dashboard-identity h1{
+  .profile-dashboard-identity .profile-dashboard-name{
     font-size:27px;
   }
 
@@ -3303,4 +3304,147 @@ a.product-rating:hover span:last-child{
   .home-partners-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
+}
+
+
+/* === Storefront UI polish === */
+
+/*
+ * Sticky footer:
+ * le footer reste au bas du viewport sur les pages courtes,
+ * mais continue de suivre naturellement le contenu des pages longues.
+ */
+html{
+  min-height:100%;
+}
+
+body{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+.site-header{
+  flex:0 0 auto;
+}
+
+body > main{
+  width:100%;
+  flex:1 0 auto;
+}
+
+/*
+ * Hero panel:
+ * centrage strict des pictogrammes Font Awesome.
+ */
+.home-hero-feature-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+
+.home-hero-feature-icon i{
+  display:block;
+  width:1em;
+  margin:0;
+  line-height:1;
+  text-align:center;
+}
+
+/*
+ * Notes produit:
+ * meilleure hiérarchie entre les étoiles et la valeur numérique.
+ */
+.card-rating{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:30px;
+  margin-top:10px;
+  font-size:14px;
+  font-variant-numeric:tabular-nums;
+  color:#1f2937;
+}
+
+.card-rating .stars{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 8px;
+  border:1px solid #fed7aa;
+  border-radius:999px;
+  background:#fff7ed;
+  color:#f59e0b;
+  font-size:16px;
+  line-height:1;
+  letter-spacing:1px;
+}
+
+.card-rating > span:last-child{
+  font-weight:800;
+  color:#1f2937;
+}
+
+.card-rating.muted{
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+/* === Profile single dashboard === */
+
+.profile-dashboard-main{
+  transition:
+    opacity .16s ease,
+    transform .16s ease;
+}
+
+.profile-dashboard.is-loading
+.profile-dashboard-main{
+  opacity:.45;
+  transform:translateY(2px);
+  pointer-events:none;
+}
+
+.profile-dashboard-main:focus{
+  outline:none;
+}
+
+@media(max-width:760px){
+  .profile-dashboard-layout{
+    grid-template-columns:1fr;
+  }
+
+  .profile-dashboard-nav{
+    display:flex;
+    overflow-x:auto;
+    gap:6px;
+  }
+
+  .profile-dashboard-nav a{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+}
+
+.profile-dashboard-main
+.profile-dashboard-address-grid{
+  grid-template-columns:1fr;
+  margin-top:18px;
+}
+
+.profile-dashboard-main
+.profile-dashboard-card
+.favorites-grid{
+  margin-top:22px;
+}
+
+.profile-dashboard-main
+.notifications-list,
+.profile-dashboard-main
+.review-list,
+.profile-dashboard-main
+.order-list{
+  margin-top:22px;
 }

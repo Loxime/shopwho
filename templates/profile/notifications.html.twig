@@ -1,170 +1,169 @@
-{% extends 'base.html.twig' %}
+{% extends 'profile/dashboard_layout.html.twig' %}
 
 {% block title %}
   Mes notifications — Shopwho
 {% endblock %}
 
-{% block body %}
-  <section class="section">
-    <div class="container">
-      <div class="notifications-heading">
-        <div>
-          <p class="muted">
-            Mon compte
-          </p>
+{% block profile_content %}
+  <section
+    class="profile-dashboard-card"
+    aria-labelledby="profile-notifications-title"
+  >
+    <div class="profile-dashboard-card-heading">
+      <div>
+        <p class="profile-dashboard-card-eyebrow">
+          Activité
+        </p>
 
-          <h1>
-            Mes notifications
-          </h1>
+        <h1 id="profile-notifications-title">
+          Mes notifications
+        </h1>
 
-          <p>
-            Retrouvez les informations liées
-            à votre activité sur Shopwho.
-          </p>
-        </div>
-
-        {% if unreadCount > 0 %}
-          <form
-            method="post"
-            action="{{ path(
-              'app_profile_notifications_read_all'
-            ) }}"
-          >
-            <input
-              type="hidden"
-              name="_token"
-              value="{{ csrf_token(
-                'read-all-notifications'
-              ) }}"
-            >
-
-            <button
-              class="btn"
-              type="submit"
-            >
-              <i
-                class="fa-solid fa-check-double"
-                aria-hidden="true"
-              ></i>
-
-              Tout marquer comme lu
-            </button>
-          </form>
-        {% endif %}
+        <p class="muted">
+          Retrouvez les informations liées à votre
+          activité sur Shopwho.
+        </p>
       </div>
 
-      {% for message in app.flashes('success') %}
-        <div class="flash">
-          {{ message }}
-        </div>
-      {% endfor %}
+      <i
+        class="fa-solid fa-bell"
+        aria-hidden="true"
+      ></i>
+    </div>
 
-      {% if notifications is empty %}
-        <div class="notifications-empty">
-          <i
-            class="fa-regular fa-bell"
-            aria-hidden="true"
-          ></i>
+    {% if unreadCount > 0 %}
+      <div class="profile-dashboard-card-actions">
+        <form
+          method="post"
+          action="{{ path(
+            'app_profile_notifications_read_all'
+          ) }}"
+        >
+          <input
+            type="hidden"
+            name="_token"
+            value="{{ csrf_token(
+              'read-all-notifications'
+            ) }}"
+          >
 
-          <h2>
-            Aucune notification
-          </h2>
+          <button class="btn" type="submit">
+            <i
+              class="fa-solid fa-check-double"
+              aria-hidden="true"
+            ></i>
 
-          <p class="muted">
-            Les informations concernant vos
-            favoris apparaîtront ici.
-          </p>
-        </div>
-      {% else %}
-        <div class="notifications-list">
-          {% for notification in notifications %}
-            <article
-              class="notification-item{{ notification.read
-                ? ''
-                : ' is-unread'
-              }}"
-            >
-              <div class="notification-icon">
-                {% if notification.type.value
-                  == 'favorite_product'
-                %}
-                  <i
-                    class="fa-solid fa-heart"
-                    aria-hidden="true"
-                  ></i>
-                {% else %}
-                  <i
-                    class="fa-solid fa-bell"
-                    aria-hidden="true"
-                  ></i>
+            Tout marquer comme lu
+          </button>
+        </form>
+      </div>
+    {% endif %}
+
+    {% for message in app.flashes('success') %}
+      <div class="flash">
+        {{ message }}
+      </div>
+    {% endfor %}
+
+    {% if notifications is empty %}
+      <div class="notifications-empty">
+        <i
+          class="fa-regular fa-bell"
+          aria-hidden="true"
+        ></i>
+
+        <h3>Aucune notification</h3>
+
+        <p class="muted">
+          Vos prochaines notifications
+          apparaîtront ici.
+        </p>
+      </div>
+    {% else %}
+      <div class="notifications-list">
+        {% for notification in notifications %}
+          <article
+            class="notification-item{{ notification.read
+              ? ''
+              : ' is-unread'
+            }}"
+          >
+            <div class="notification-icon">
+              {% if notification.type.value
+                == 'favorite_product'
+              %}
+                <i
+                  class="fa-solid fa-heart"
+                  aria-hidden="true"
+                ></i>
+              {% else %}
+                <i
+                  class="fa-solid fa-bell"
+                  aria-hidden="true"
+                ></i>
+              {% endif %}
+            </div>
+
+            <div class="notification-content">
+              <div class="notification-title-row">
+                <h3>{{ notification.title }}</h3>
+
+                {% if not notification.read %}
+                  <span
+                    class="notification-unread-dot"
+                    title="Non lue"
+                  ></span>
                 {% endif %}
               </div>
 
-              <div class="notification-content">
-                <div class="notification-title-row">
-                  <h2>
-                    {{ notification.title }}
-                  </h2>
+              <p>{{ notification.message }}</p>
 
-                  {% if not notification.read %}
-                    <span
-                      class="notification-unread-dot"
-                      title="Non lue"
-                    ></span>
-                  {% endif %}
-                </div>
+              <time
+                class="muted"
+                datetime="{{ notification.createdAt|date('c') }}"
+              >
+                {{ notification.createdAt
+                  |date('d/m/Y à H:i')
+                }}
+              </time>
+            </div>
 
-                <p>
-                  {{ notification.message }}
-                </p>
-
-                <time
-                  class="muted"
-                  datetime="{{ notification.createdAt|date('c') }}"
-                >
-                  {{ notification.createdAt|date(
-                    'd/m/Y à H:i'
-                  ) }}
-                </time>
-              </div>
-
-              <div class="notification-actions">
-                <form
-                  method="post"
-                  action="{{ path(
-                    'app_profile_notification_open',
-                    {
-                      id: notification.id
-                    }
+            <div class="notification-actions">
+              <form
+                method="post"
+                action="{{ path(
+                  'app_profile_notification_open',
+                  {
+                    id: notification.id
+                  }
+                ) }}"
+              >
+                <input
+                  type="hidden"
+                  name="_token"
+                  value="{{ csrf_token(
+                    'open-notification-'
+                    ~ notification.id
                   ) }}"
                 >
-                  <input
-                    type="hidden"
-                    name="_token"
-                    value="{{ csrf_token(
-                      'open-notification-'
-                        ~ notification.id
-                    ) }}"
-                  >
 
-                  <button
-                    class="btn"
-                    type="submit"
-                  >
-                    {% if notification.targetUrl %}
-                      Voir
-                    {% elseif notification.read %}
-                      Lu
-                    {% else %}
-                      Marquer comme lu
-                    {% endif %}
-                  </button>
-                </form>
-              </div>
-            </article>
-          {% endfor %}
-        </div>
-      {% endif %}
-    </div>
+                <button
+                  class="btn"
+                  type="submit"
+                >
+                  {% if notification.targetUrl %}
+                    Voir
+                  {% elseif notification.read %}
+                    Lu
+                  {% else %}
+                    Marquer comme lu
+                  {% endif %}
+                </button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
   </section>
 {% endblock %}
