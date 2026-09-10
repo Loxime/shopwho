@@ -1513,7 +1513,7 @@
   text-transform:uppercase;
 }
 
-.profile-dashboard-identity h1{
+.profile-dashboard-identity .profile-dashboard-name{
   margin:0 0 5px;
   font-size:32px;
 }
@@ -1596,6 +1596,7 @@
   margin-bottom:22px;
 }
 
+.profile-dashboard-card-heading h1,
 .profile-dashboard-card-heading h2{
   margin:0;
   font-size:22px;
@@ -1759,7 +1760,7 @@
     height:62px;
   }
 
-  .profile-dashboard-identity h1{
+  .profile-dashboard-identity .profile-dashboard-name{
     font-size:27px;
   }
 

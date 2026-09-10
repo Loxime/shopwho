@@ -15,9 +15,9 @@
           Détail de commande
         </p>
 
-        <h2 id="order-detail-title">
+        <h1 id="order-detail-title">
           {{ order.reference }}
-        </h2>
+        </h1>
 
         <p class="muted">
           {{ order.orderedAt|date('d/m/Y H:i') }}
@@ -43,7 +43,7 @@
       <tbody>
         {% for item in order.items %}
           <tr>
-            <td>{{ item.productName }}</td>
+            <td>{{ item.productNameSnapshot }}</td>
             <td>{{ item.quantity }}</td>
             <td>
               {{ (item.unitPriceCents / 100)
