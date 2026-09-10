@@ -504,6 +504,75 @@ class DeterministicRecommendationTest extends WebTestCase
         );
     }
 
+    public function testCustomStrategyOrderCanPrioritizeTopRatedFallback(): void
+    {
+        static::bootKernel();
+
+        $popular = $this->createProduct();
+        $topRated = $this->createProduct();
+
+        $this->createOrder(
+            $popular,
+            100000
+        );
+
+        for ($index = 0; $index < 10; ++$index) {
+            $this->createReview(
+                $topRated,
+                5
+            );
+        }
+
+        $recommendations = $this
+            ->recommendationService()
+            ->recommend(
+                null,
+                8,
+                [
+                    RecommendationService::STRATEGY_FREQUENTLY_VIEWED,
+                    RecommendationService::STRATEGY_TOP_RATED,
+                    RecommendationService::STRATEGY_POPULAR_30D,
+                ]
+            );
+
+        self::assertNotEmpty(
+            $recommendations
+        );
+
+        self::assertSame(
+            $topRated->getId(),
+            $recommendations[0]
+                ->product
+                ->getId()
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_TOP_RATED,
+            $recommendations[0]->strategy
+        );
+    }
+
+    public function testInvalidStrategyOrderIsRejected(): void
+    {
+        static::bootKernel();
+
+        $this->expectException(
+            \InvalidArgumentException::class
+        );
+
+        $this
+            ->recommendationService()
+            ->recommend(
+                null,
+                8,
+                [
+                    RecommendationService::STRATEGY_FREQUENTLY_VIEWED,
+                    RecommendationService::STRATEGY_POPULAR_30D,
+                    'unknown_strategy',
+                ]
+            );
+    }
+
     private function createProduct(
         bool $active = true
     ): Product {
