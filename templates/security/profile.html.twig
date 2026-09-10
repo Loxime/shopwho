@@ -1,334 +1,203 @@
-{% extends 'base.html.twig' %}
+{% extends 'profile/dashboard_layout.html.twig' %}
 
 {% block title %}
   Mon profil — Shopwho
 {% endblock %}
 
-{% block body %}
-<section class="section profile-dashboard-section">
-  <div class="container profile-dashboard">
-    <header class="profile-dashboard-hero">
-      <div class="profile-dashboard-avatar">
-        <i
-          class="fa-solid fa-user"
-          aria-hidden="true"
-        ></i>
-      </div>
-
-      <div class="profile-dashboard-identity">
-        <p class="profile-dashboard-eyebrow">
-          Mon compte
+{% block profile_content %}
+  <section
+    class="profile-dashboard-card"
+    aria-labelledby="profile-information-title"
+  >
+    <div class="profile-dashboard-card-heading">
+      <div>
+        <p class="profile-dashboard-card-eyebrow">
+          Informations personnelles
         </p>
 
-        <h1>
-          {{ user.displayName }}
-        </h1>
-
-        <p>
-          {{ user.email }}
-        </p>
+        <h2 id="profile-information-title">
+          Mon identité
+        </h2>
       </div>
 
+      <i
+        class="fa-regular fa-id-card"
+        aria-hidden="true"
+      ></i>
+    </div>
+
+    <dl class="profile-account-details">
+      <div>
+        <dt>Prénom</dt>
+        <dd>{{ user.firstName ?? 'Non renseigné' }}</dd>
+      </div>
+
+      <div>
+        <dt>Nom</dt>
+        <dd>{{ user.lastName ?? 'Non renseigné' }}</dd>
+      </div>
+
+      <div>
+        <dt>Adresse e-mail</dt>
+        <dd>{{ user.email }}</dd>
+      </div>
+
+      <div>
+        <dt>Compte créé le</dt>
+        <dd>{{ user.createdAt|date('d/m/Y') }}</dd>
+      </div>
+    </dl>
+
+    <div class="profile-dashboard-card-actions">
       <a
-        class="btn orange profile-dashboard-edit"
-        href="{{ path('app_profile_edit') }}"
+        class="btn"
+        href="{{ path('app_profile_addresses') }}"
+        data-profile-dashboard-link
+        data-profile-section="addresses"
       >
         <i
-          class="fa-solid fa-pen"
+          class="fa-solid fa-location-dot"
           aria-hidden="true"
         ></i>
 
-        Modifier mes informations
+        Gérer mes adresses
       </a>
-    </header>
+    </div>
+  </section>
 
-    <div class="profile-dashboard-layout">
-      <aside
-        class="profile-dashboard-nav"
-        aria-label="Navigation du compte"
-      >
-        <a
-          class="is-active"
-          href="{{ path('app_profile') }}"
-          aria-current="page"
-        >
-          <i
-            class="fa-solid fa-house-user"
-            aria-hidden="true"
-          ></i>
+  <section
+    class="profile-dashboard-card"
+    aria-labelledby="recent-orders-title"
+  >
+    <div class="profile-dashboard-card-heading">
+      <div>
+        <p class="profile-dashboard-card-eyebrow">
+          Activité récente
+        </p>
 
-          Vue d’ensemble
-        </a>
+        <h2 id="recent-orders-title">
+          Mes commandes récentes
+        </h2>
+      </div>
 
-        <a href="{{ path('app_profile_orders') }}">
-          <i
-            class="fa-solid fa-box"
-            aria-hidden="true"
-          ></i>
+      <i
+        class="fa-solid fa-box-open"
+        aria-hidden="true"
+      ></i>
+    </div>
 
-          Mes commandes
-        </a>
+    {% if orders is empty %}
+      <div class="profile-orders-empty">
+        <i
+          class="fa-solid fa-bag-shopping"
+          aria-hidden="true"
+        ></i>
 
-        <a href="{{ path('app_profile_favorites') }}">
-          <i
-            class="fa-solid fa-heart"
-            aria-hidden="true"
-          ></i>
-
-          Mes favoris
-        </a>
-
-        <a href="{{ path('app_profile_notifications') }}">
-          <i
-            class="fa-solid fa-bell"
-            aria-hidden="true"
-          ></i>
-
-          Mes notifications
-        </a>
-
-        <a href="{{ path('app_profile_reviews') }}">
-          <i
-            class="fa-solid fa-star"
-            aria-hidden="true"
-          ></i>
-
-          Mes avis
-        </a>
-
-        <a href="{{ path('app_profile_addresses') }}">
-          <i
-            class="fa-solid fa-location-dot"
-            aria-hidden="true"
-          ></i>
-
-          Mes adresses
-        </a>
-      </aside>
-
-      <div class="profile-dashboard-main">
-        <section
-          class="profile-dashboard-card"
-          aria-labelledby="profile-information-title"
-        >
-          <div class="profile-dashboard-card-heading">
-            <div>
-              <p class="profile-dashboard-card-eyebrow">
-                Informations personnelles
-              </p>
-
-              <h2 id="profile-information-title">
-                Mon identité
-              </h2>
-            </div>
-
-            <i
-              class="fa-regular fa-id-card"
-              aria-hidden="true"
-            ></i>
-          </div>
-
-          <dl class="profile-account-details">
-            <div>
-              <dt>
-                Prénom
-              </dt>
-
-              <dd>
-                {{ user.firstName ?? 'Non renseigné' }}
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Nom
-              </dt>
-
-              <dd>
-                {{ user.lastName ?? 'Non renseigné' }}
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Adresse e-mail
-              </dt>
-
-              <dd>
-                {{ user.email }}
-              </dd>
-            </div>
-
-            <div>
-              <dt>
-                Compte créé le
-              </dt>
-
-              <dd>
-                {{ user.createdAt|date('d/m/Y') }}
-              </dd>
-            </div>
-          </dl>
-
-          <div class="profile-dashboard-card-actions">
-            <a
-              class="btn"
-              href="{{ path('app_profile_addresses') }}"
-            >
-              <i
-                class="fa-solid fa-location-dot"
-                aria-hidden="true"
-              ></i>
-
-              Gérer mes adresses
-            </a>
-          </div>
-        </section>
-
-        <section
-          class="profile-dashboard-card"
-          aria-labelledby="recent-orders-title"
-        >
-          <div class="profile-dashboard-card-heading">
-            <div>
-              <p class="profile-dashboard-card-eyebrow">
-                Activité récente
-              </p>
-
-              <h2 id="recent-orders-title">
-                Mes commandes récentes
-              </h2>
-            </div>
-
-            <i
-              class="fa-solid fa-box-open"
-              aria-hidden="true"
-            ></i>
-          </div>
-
-          {% if orders is empty %}
-            <div class="profile-orders-empty">
-              <i
-                class="fa-solid fa-bag-shopping"
-                aria-hidden="true"
-              ></i>
-
-              <div>
-                <strong>
-                  Aucune commande enregistrée
-                </strong>
-
-                <p>
-                  Vos prochaines commandes simulées
-                  apparaîtront ici.
-                </p>
-              </div>
-            </div>
-          {% else %}
-            <div class="profile-recent-orders">
-              {% for order in orders %}
-                <article class="profile-recent-order">
-                  <div>
-                    <a
-                      class="profile-order-reference"
-                      href="{{ path(
-                        'app_profile_order_show',
-                        {
-                          reference: order.reference
-                        }
-                      ) }}"
-                    >
-                      {{ order.reference }}
-                    </a>
-
-                    <span>
-                      {{ order.orderedAt|date(
-                        'd/m/Y H:i'
-                      ) }}
-                    </span>
-                  </div>
-
-                  <div class="profile-order-meta">
-                    <span>
-                      {{ order.statusLabel }}
-                    </span>
-
-                    <strong>
-                      {{ (order.totalCents / 100)
-                        |number_format(
-                          2,
-                          ',',
-                          ' '
-                        )
-                      }}
-                      €
-                    </strong>
-
-                    <span>
-                      {{ order.itemCount }}
-                      article{% if order.itemCount > 1 %}s{% endif %}
-                    </span>
-                  </div>
-                </article>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <div class="profile-dashboard-card-actions">
-            <a
-              class="btn"
-              href="{{ path('app_profile_orders') }}"
-            >
-              Voir toutes mes commandes
-            </a>
-          </div>
-        </section>
-
-        <section
-          class="
-            profile-dashboard-card
-            profile-dashboard-danger
-          "
-          aria-labelledby="profile-danger-title"
-        >
-          <div class="profile-dashboard-card-heading">
-            <div>
-              <p class="profile-dashboard-card-eyebrow">
-                Paramètres sensibles
-              </p>
-
-              <h2 id="profile-danger-title">
-                Zone dangereuse
-              </h2>
-            </div>
-
-            <i
-              class="fa-solid fa-triangle-exclamation"
-              aria-hidden="true"
-            ></i>
-          </div>
+        <div>
+          <strong>
+            Aucune commande enregistrée
+          </strong>
 
           <p>
-            La suppression de votre compte est
-            définitive et entraîne la suppression des
-            données associées conformément au
-            fonctionnement prévu par Shopwho.
+            Vos prochaines commandes simulées
+            apparaîtront ici.
           </p>
-
-          <a
-            class="btn danger"
-            href="{{ path('app_profile_delete') }}"
-          >
-            <i
-              class="fa-solid fa-trash"
-              aria-hidden="true"
-            ></i>
-
-            Supprimer mon compte
-          </a>
-        </section>
+        </div>
       </div>
+    {% else %}
+      <div class="profile-recent-orders">
+        {% for order in orders %}
+          <article class="profile-recent-order">
+            <div>
+              <a
+                class="profile-order-reference"
+                href="{{ path(
+                  'app_profile_order_show',
+                  {
+                    reference: order.reference
+                  }
+                ) }}"
+                data-profile-dashboard-link
+              >
+                {{ order.reference }}
+              </a>
+
+              <span>
+                {{ order.orderedAt|date('d/m/Y H:i') }}
+              </span>
+            </div>
+
+            <div class="profile-order-meta">
+              <span>{{ order.statusLabel }}</span>
+
+              <strong>
+                {{ (order.totalCents / 100)
+                  |number_format(2, ',', ' ')
+                }}
+                €
+              </strong>
+
+              <span>
+                {{ order.itemCount }}
+                article{% if order.itemCount > 1 %}s{% endif %}
+              </span>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="profile-dashboard-card-actions">
+      <a
+        class="btn"
+        href="{{ path('app_profile_orders') }}"
+        data-profile-dashboard-link
+        data-profile-section="orders"
+      >
+        Voir toutes mes commandes
+      </a>
     </div>
-  </div>
-</section>
+  </section>
+
+  <section
+    class="
+      profile-dashboard-card
+      profile-dashboard-danger
+    "
+    aria-labelledby="profile-danger-title"
+  >
+    <div class="profile-dashboard-card-heading">
+      <div>
+        <p class="profile-dashboard-card-eyebrow">
+          Paramètres sensibles
+        </p>
+
+        <h2 id="profile-danger-title">
+          Zone dangereuse
+        </h2>
+      </div>
+
+      <i
+        class="fa-solid fa-triangle-exclamation"
+        aria-hidden="true"
+      ></i>
+    </div>
+
+    <p>
+      La suppression de votre compte est définitive
+      et entraîne la suppression des données associées.
+    </p>
+
+    <a
+      class="btn danger"
+      href="{{ path('app_profile_delete') }}"
+    >
+      <i
+        class="fa-solid fa-trash"
+        aria-hidden="true"
+      ></i>
+
+      Supprimer mon compte
+    </a>
+  </section>
 {% endblock %}

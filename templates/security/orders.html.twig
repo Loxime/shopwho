@@ -1,21 +1,84 @@
-{% extends 'base.html.twig' %}
+{% extends 'profile/dashboard_layout.html.twig' %}
 
-{% block title %}Mes commandes — Shopwho{% endblock %}
+{% block title %}
+  Mes commandes — Shopwho
+{% endblock %}
 
-{% block body %}
-<section class="section"><div class="container profile-page">
-  <h1>Mes commandes</h1>
-  {% if orders is empty %}
-    <p class="muted">Vous n’avez pas encore de commande enregistrée.</p>
-  {% else %}
-    <div class="order-list">
-      {% for order in orders %}
-        <article class="order-summary" data-order-reference="{{ order.reference }}">
-          <h2><a href="{{ path('app_profile_order_show', {reference: order.reference}) }}">{{ order.reference }}</a></h2>
-          <p>{{ order.orderedAt|date('d/m/Y H:i') }} · {{ order.statusLabel }} · {{ (order.totalCents / 100)|number_format(2, ',', ' ') }} € · {{ order.itemCount }} article{% if order.itemCount > 1 %}s{% endif %}</p>
-        </article>
-      {% endfor %}
+{% block profile_content %}
+  <section
+    class="profile-dashboard-card"
+    aria-labelledby="profile-orders-title"
+  >
+    <div class="profile-dashboard-card-heading">
+      <div>
+        <p class="profile-dashboard-card-eyebrow">
+          Historique
+        </p>
+
+        <h2 id="profile-orders-title">
+          Mes commandes
+        </h2>
+
+        <p class="muted">
+          Retrouvez toutes vos commandes simulées.
+        </p>
+      </div>
+
+      <i
+        class="fa-solid fa-box"
+        aria-hidden="true"
+      ></i>
     </div>
-  {% endif %}
-</div></section>
+
+    {% if orders is empty %}
+      <div class="profile-orders-empty">
+        <i
+          class="fa-solid fa-bag-shopping"
+          aria-hidden="true"
+        ></i>
+
+        <div>
+          <strong>Aucune commande enregistrée</strong>
+          <p>
+            Vos prochaines commandes apparaîtront ici.
+          </p>
+        </div>
+      </div>
+    {% else %}
+      <div class="order-list">
+        {% for order in orders %}
+          <article
+            class="order-summary"
+            data-order-reference="{{ order.reference }}"
+          >
+            <h3>
+              <a
+                href="{{ path(
+                  'app_profile_order_show',
+                  {
+                    reference: order.reference
+                  }
+                ) }}"
+                data-profile-dashboard-link
+              >
+                {{ order.reference }}
+              </a>
+            </h3>
+
+            <p>
+              {{ order.orderedAt|date('d/m/Y H:i') }}
+              · {{ order.statusLabel }}
+              ·
+              {{ (order.totalCents / 100)
+                |number_format(2, ',', ' ')
+              }}
+              €
+              · {{ order.itemCount }}
+              article{% if order.itemCount > 1 %}s{% endif %}
+            </p>
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
 {% endblock %}

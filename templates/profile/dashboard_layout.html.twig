@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% set currentRoute =
+  app.request.attributes.get('_route') ?? 'app_profile'
+%}
+
+{% set profileSection = 'overview' %}
+
+{% if currentRoute starts with 'app_profile_order' %}
+  {% set profileSection = 'orders' %}
+{% elseif currentRoute starts with 'app_profile_favorite' %}
+  {% set profileSection = 'favorites' %}
+{% elseif currentRoute starts with 'app_profile_notification' %}
+  {% set profileSection = 'notifications' %}
+{% elseif currentRoute starts with 'app_profile_review' %}
+  {% set profileSection = 'reviews' %}
+{% elseif
+  currentRoute == 'app_profile_addresses'
+  or currentRoute starts with 'app_profile_address_'
+%}
+  {% set profileSection = 'addresses' %}
+{% endif %}
+
+{% block body %}
+<section class="section profile-dashboard-section">
+  <div
+    class="container profile-dashboard"
+    data-profile-dashboard
+  >
+    <header class="profile-dashboard-hero">
+      <div class="profile-dashboard-avatar">
+        <i
+          class="fa-solid fa-user"
+          aria-hidden="true"
+        ></i>
+      </div>
+
+      <div class="profile-dashboard-identity">
+        <p class="profile-dashboard-eyebrow">
+          Mon compte
+        </p>
+
+        <h1>
+          {{ app.user.displayName }}
+        </h1>
+
+        <p>
+          {{ app.user.email }}
+        </p>
+      </div>
+
+      <a
+        class="btn orange profile-dashboard-edit"
+        href="{{ path('app_profile_edit') }}"
+      >
+        <i
+          class="fa-solid fa-pen"
+          aria-hidden="true"
+        ></i>
+
+        Modifier mes informations
+      </a>
+    </header>
+
+    <div class="profile-dashboard-layout">
+      <aside
+        class="profile-dashboard-nav"
+        aria-label="Navigation du compte"
+        data-profile-dashboard-nav
+      >
+        {% set profileLinks = {
+          overview: {
+            route: 'app_profile',
+            icon: 'fa-house-user',
+            label: 'Vue d’ensemble'
+          },
+          orders: {
+            route: 'app_profile_orders',
+            icon: 'fa-box',
+            label: 'Mes commandes'
+          },
+          favorites: {
+            route: 'app_profile_favorites',
+            icon: 'fa-heart',
+            label: 'Mes favoris'
+          },
+          notifications: {
+            route: 'app_profile_notifications',
+            icon: 'fa-bell',
+            label: 'Mes notifications'
+          },
+          reviews: {
+            route: 'app_profile_reviews',
+            icon: 'fa-star',
+            label: 'Mes avis'
+          },
+          addresses: {
+            route: 'app_profile_addresses',
+            icon: 'fa-location-dot',
+            label: 'Mes adresses'
+          }
+        } %}
+
+        {% for section, item in profileLinks %}
+          <a
+            href="{{ path(item.route) }}"
+            data-profile-dashboard-link
+            data-profile-section="{{ section }}"
+            {% if profileSection == section %}
+              class="is-active"
+              aria-current="page"
+            {% endif %}
+          >
+            <i
+              class="fa-solid {{ item.icon }}"
+              aria-hidden="true"
+            ></i>
+
+            {{ item.label }}
+          </a>
+        {% endfor %}
+      </aside>
+
+      <div
+        class="profile-dashboard-main"
+        data-profile-dashboard-main
+        tabindex="-1"
+      >
+        {% block profile_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+
+  <script
+    src="/js/profile-dashboard.js"
+    defer
+  ></script>
+
+  <script
+    src="/js/address-autocomplete.js"
+    defer
+  ></script>
+{% endblock %}
