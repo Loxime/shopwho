@@ -8,6 +8,7 @@ TEST_APP := $(DC) exec -T -e TEST_TOKEN=check app
 	check \
 	check-runtime \
 	check-git \
+	check-final-git \
 	check-compose \
 	check-composer \
 	check-php \
@@ -15,31 +16,32 @@ TEST_APP := $(DC) exec -T -e TEST_TOKEN=check app
 	check-tests
 
 check:
-> @echo "========================================"
-> @echo " Shopwho - pre-PR validation"
-> @echo "========================================"
-> @$(MAKE) --no-print-directory check-runtime
-> @$(MAKE) --no-print-directory check-git
-> @$(MAKE) --no-print-directory check-compose
-> @$(MAKE) --no-print-directory check-composer
-> @$(MAKE) --no-print-directory check-php
-> @$(MAKE) --no-print-directory check-symfony
-> @$(MAKE) --no-print-directory check-tests
-> @echo
-> @echo "========================================"
-> @echo " CHECK PASSED - branch ready for PR"
-> @echo "========================================"
-
-check-runtime:
-> @echo
-> @echo "[1/7] Docker runtime"
-> @$(DC) up -d db app
-> @$(DC) ps db app
+> @set -eu; \
+> echo "========================================"; \
+> echo " Shopwho - pre-PR validation"; \
+> echo "========================================"; \
+> $(MAKE) --no-print-directory check-git; \
+> cleanup_reference() { \
+> 	git restore --worktree -- config/reference.php 2>/dev/null || true; \
+> }; \
+> trap cleanup_reference EXIT INT TERM; \
+> $(MAKE) --no-print-directory check-runtime; \
+> $(MAKE) --no-print-directory check-compose; \
+> $(MAKE) --no-print-directory check-composer; \
+> $(MAKE) --no-print-directory check-php; \
+> $(MAKE) --no-print-directory check-symfony; \
+> $(MAKE) --no-print-directory check-tests; \
+> cleanup_reference; \
+> $(MAKE) --no-print-directory check-final-git; \
+> trap - EXIT INT TERM; \
+> echo; \
+> echo "========================================"; \
+> echo " CHECK PASSED - branch ready for PR"; \
+> echo "========================================"
 
 check-git:
 > @echo
-> @echo "[2/7] Git integrity"
-> @git restore --worktree -- config/reference.php 2>/dev/null || true
+> @echo "[1/8] Initial Git integrity"
 > @git diff --check
 > @test -z "$$(git status --porcelain)" || { \
 > 	echo; \
@@ -49,9 +51,15 @@ check-git:
 > }
 > @echo "Git working tree: clean"
 
+check-runtime:
+> @echo
+> @echo "[2/8] Docker runtime"
+> @$(DC) up -d db app
+> @$(DC) ps db app
+
 check-compose:
 > @echo
-> @echo "[3/7] Docker Compose configuration"
+> @echo "[3/8] Docker Compose configuration"
 > @$(DC) config --quiet
 > @SHOPWHO_IMAGE_TAG=check \
 > APP_SECRET=check-only-not-a-secret \
@@ -64,13 +72,13 @@ check-compose:
 
 check-composer:
 > @echo
-> @echo "[4/7] Composer"
+> @echo "[4/8] Composer"
 > @$(APP) composer validate --strict
 > @$(APP) composer audit --no-interaction
 
 check-php:
 > @echo
-> @echo "[5/7] PHP syntax"
+> @echo "[5/8] PHP syntax"
 > @$(APP) sh -lc \
 > 	"find src public migrations tests \
 > 	-type f -name '*.php' -print0 \
@@ -78,14 +86,14 @@ check-php:
 
 check-symfony:
 > @echo
-> @echo "[6/7] Symfony configuration"
+> @echo "[6/8] Symfony configuration"
 > @$(APP) php bin/console lint:container
 > @$(APP) php bin/console lint:twig templates
 > @$(APP) php bin/console lint:yaml config
 
 check-tests:
 > @echo
-> @echo "[7/7] Isolated database + Doctrine + PHPUnit"
+> @echo "[7/8] Isolated database + Doctrine + PHPUnit"
 > @set -eu; \
 > cleanup() { \
 > 	$(TEST_APP) php bin/console doctrine:database:drop \
@@ -107,3 +115,15 @@ check-tests:
 > $(TEST_APP) php bin/console doctrine:schema:validate \
 > 		--env=test; \
 > $(TEST_APP) php bin/phpunit
+
+check-final-git:
+> @echo
+> @echo "[8/8] Final Git integrity"
+> @git diff --check
+> @test -z "$$(git status --porcelain)" || { \
+> 	echo; \
+> 	echo "ERROR: checks modified the working tree:"; \
+> 	git status --short; \
+> 	exit 1; \
+> }
+> @echo "Git working tree after checks: clean"
