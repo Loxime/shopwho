@@ -84,6 +84,16 @@ final class HomePageRedesignTest extends WebTestCase
             '.home-hero-panel'
         );
 
+        self::assertSelectorCount(
+            3,
+            '.home-hero-feature-icon'
+        );
+
+        self::assertStringNotContainsString(
+            'E-commerce expérimental & data',
+            $crawler->filter('.home-hero')->text()
+        );
+
         self::assertSelectorTextContains(
             '.home-hero-reassurance',
             'Aucun paiement réel'
