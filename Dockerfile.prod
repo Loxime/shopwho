@@ -30,6 +30,10 @@ COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/shopwho-uploads.ini
 
 FROM php-base AS vendor
 
+# Composer runs as root only inside this isolated build stage.
+# Allow explicitly trusted plugins such as Symfony Flex to run.
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
