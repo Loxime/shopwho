@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use App\Enum\ExperimentStatus;
+use App\Repository\ExperimentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: ExperimentRepository::class)]
 #[ORM\Table(name: 'ab_experiment')]
 class Experiment
 {

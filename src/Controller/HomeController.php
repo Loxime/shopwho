@@ -9,7 +9,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\PartnerRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
-use App\Service\RecommendationService;
+use App\Service\RecommendationExperimentService;
 use App\Repository\SpecialOfferRepository;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,7 +27,7 @@ class HomeController extends AbstractController
         ProductRepository $products,
         CategoryRepository $categories,
         ReviewRepository $reviews,
-        RecommendationService $recommendationService,
+        RecommendationExperimentService $recommendationExperiment,
         TrackingService $tracking,
         SpecialOfferRepository $specialOffers,
     ): Response {
@@ -136,7 +136,7 @@ class HomeController extends AbstractController
         }
 
         $recommendations =
-            $recommendationService->recommend(
+            $recommendationExperiment->recommend(
                 $user,
                 8
             );

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Service\RecommendationService;
+use App\Service\RecommendationExperimentService;
 use App\Service\TrackingService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Exception\JsonException;
@@ -32,7 +33,8 @@ final class RecommendationTrackingController extends AbstractController
     )]
     public function track(
         Request $request,
-        TrackingService $tracking
+        TrackingService $tracking,
+        RecommendationExperimentService $recommendationExperiment
     ): JsonResponse {
         try {
             $payload = $request->toArray();
@@ -164,6 +166,27 @@ final class RecommendationTrackingController extends AbstractController
                 'productId' => $productId,
                 'metadata' => $metadata,
             ];
+        }
+
+        $experimentMetadata =
+            $recommendationExperiment
+                ->trackingMetadata();
+
+        if ($experimentMetadata !== []) {
+            foreach (
+                $normalizedEvents
+                as &$normalizedEvent
+            ) {
+                $normalizedEvent['metadata'] =
+                    array_merge(
+                        $normalizedEvent[
+                            'metadata'
+                        ],
+                        $experimentMetadata
+                    );
+            }
+
+            unset($normalizedEvent);
         }
 
         $tracking->trackBatch(
