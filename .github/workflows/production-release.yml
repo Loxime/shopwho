@@ -1,0 +1,445 @@
+name: Production Release
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+  push:
+    branches:
+      - main
+
+jobs:
+  validate-release:
+    name: Validate dev release
+    if: github.event_name == 'pull_request'
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Require dev to main promotion
+        env:
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+        run: |
+          set -euo pipefail
+
+          if [ "$SOURCE_BRANCH" != "dev" ] || [ "$TARGET_BRANCH" != "main" ]; then
+            echo "ERROR: production releases must be opened from dev to main."
+            echo "Source: ${SOURCE_BRANCH}"
+            echo "Target: ${TARGET_BRANCH}"
+            exit 1
+          fi
+
+          echo "Release source validated: dev -> main."
+
+      - name: Require successful sandbox deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          DEV_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          runs="$(
+            gh api \
+              "/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?branch=dev&event=push&per_page=100"
+          )"
+
+          successful_run="$(
+            printf '%s' "$runs" |
+              jq -r \
+                --arg sha "$DEV_SHA" \
+                '
+                  [
+                    .workflow_runs[]
+                    | select(
+                        .head_sha == $sha
+                        and .conclusion == "success"
+                      )
+                  ]
+                  | first
+                  | .id // empty
+                '
+          )"
+
+          if [ -z "$successful_run" ]; then
+            echo "ERROR: ${DEV_SHA} has not completed a successful dev CI/sandbox deployment."
+            exit 1
+          fi
+
+          echo "Sandbox deployment validated by CI run #${successful_run}."
+          echo "Validated dev SHA: ${DEV_SHA}"
+
+  verify-production-release:
+    name: Verify merged release provenance
+    if: github.event_name == 'push'
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+
+    outputs:
+      release_image_tag: ${{ steps.release.outputs.release_image_tag }}
+      release_pr: ${{ steps.release.outputs.release_pr }}
+
+    steps:
+      - name: Resolve merged dev to main release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          MAIN_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          prs="$(
+            gh api \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${REPOSITORY}/commits/${MAIN_SHA}/pulls"
+          )"
+
+          release_pr="$(
+            printf '%s' "$prs" |
+              jq -c \
+                --arg sha "$MAIN_SHA" \
+                '
+                  [
+                    .[]
+                    | select(
+                        .merged_at != null
+                        and .base.ref == "main"
+                        and .head.ref == "dev"
+                        and .merge_commit_sha == $sha
+                      )
+                  ]
+                  | if length == 1 then .[0] else empty end
+                '
+          )"
+
+          if [ -z "$release_pr" ]; then
+            echo "ERROR: main was not updated by a merged dev -> main release PR."
+            exit 1
+          fi
+
+          pr_number="$(printf '%s' "$release_pr" | jq -r '.number')"
+          release_image_tag="$(printf '%s' "$release_pr" | jq -r '.head.sha')"
+
+          if [ -z "$release_image_tag" ] || [ "$release_image_tag" = "null" ]; then
+            echo "ERROR: unable to resolve the validated dev SHA."
+            exit 1
+          fi
+
+          echo "release_pr=${pr_number}" >> "$GITHUB_OUTPUT"
+          echo "release_image_tag=${release_image_tag}" >> "$GITHUB_OUTPUT"
+
+          echo "Release PR #${pr_number}"
+          echo "main SHA: ${MAIN_SHA}"
+          echo "validated artifact SHA: ${release_image_tag}"
+
+      - name: Require production tree to match validated artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          MAIN_SHA: ${{ github.sha }}
+          RELEASE_IMAGE_TAG: ${{ steps.release.outputs.release_image_tag }}
+        run: |
+          set -euo pipefail
+
+          main_tree="$(
+            gh api               "/repos/${REPOSITORY}/git/commits/${MAIN_SHA}"               --jq '.tree.sha'
+          )"
+
+          artifact_tree="$(
+            gh api               "/repos/${REPOSITORY}/git/commits/${RELEASE_IMAGE_TAG}"               --jq '.tree.sha'
+          )"
+
+          echo "main tree:      ${main_tree}"
+          echo "artifact tree:  ${artifact_tree}"
+
+          if [ "$main_tree" != "$artifact_tree" ]; then
+            echo "ERROR: main contains code that differs from the artifact validated in sandbox."
+            echo "Synchronize main back into dev, redeploy dev to sandbox, then create a new release."
+            exit 1
+          fi
+
+          echo "Production tree exactly matches the validated sandbox artifact."
+
+      - name: Verify artifact was deployed successfully to sandbox
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_IMAGE_TAG: ${{ steps.release.outputs.release_image_tag }}
+        run: |
+          set -euo pipefail
+
+          runs="$(
+            gh api \
+              "/repos/${REPOSITORY}/actions/workflows/ci.yml/runs?branch=dev&event=push&per_page=100"
+          )"
+
+          successful_run="$(
+            printf '%s' "$runs" |
+              jq -r \
+                --arg sha "$RELEASE_IMAGE_TAG" \
+                '
+                  [
+                    .workflow_runs[]
+                    | select(
+                        .head_sha == $sha
+                        and .conclusion == "success"
+                      )
+                  ]
+                  | first
+                  | .id // empty
+                '
+          )"
+
+          if [ -z "$successful_run" ]; then
+            echo "ERROR: release artifact ${RELEASE_IMAGE_TAG} was not validated in sandbox."
+            exit 1
+          fi
+
+          echo "Artifact ${RELEASE_IMAGE_TAG} validated by sandbox run #${successful_run}."
+
+  deploy-production:
+    name: Deploy production
+    if: github.event_name == 'push'
+
+    needs:
+      - verify-production-release
+
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: shopwho-production
+      cancel-in-progress: false
+
+    environment:
+      name: production
+      url: https://shopwho.falchero.fr
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          PRODUCTION_VPS_SSH_KEY: ${{ secrets.PRODUCTION_VPS_SSH_KEY }}
+          PRODUCTION_VPS_KNOWN_HOSTS: ${{ secrets.PRODUCTION_VPS_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          install -m 700 -d ~/.ssh
+
+          printf '%s\n' "$PRODUCTION_VPS_SSH_KEY" \
+            > ~/.ssh/id_ed25519
+
+          chmod 600 ~/.ssh/id_ed25519
+
+          printf '%s\n' "$PRODUCTION_VPS_KNOWN_HOSTS" \
+            > ~/.ssh/known_hosts
+
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy validated sandbox artifact to production
+        env:
+          PRODUCTION_VPS_HOST: ${{ secrets.PRODUCTION_VPS_HOST }}
+          PRODUCTION_VPS_USER: ${{ secrets.PRODUCTION_VPS_USER }}
+          RELEASE_IMAGE_TAG: ${{ needs.verify-production-release.outputs.release_image_tag }}
+        run: |
+          ssh \
+            -i ~/.ssh/id_ed25519 \
+            "${PRODUCTION_VPS_USER}@${PRODUCTION_VPS_HOST}" \
+            "SHOPWHO_MAIN_SHA=${GITHUB_SHA} SHOPWHO_IMAGE_TAG=${RELEASE_IMAGE_TAG} bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          cd /opt/shopwho
+
+          git fetch --prune origin main
+
+          if [ "$(git rev-parse origin/main)" != "$SHOPWHO_MAIN_SHA" ]; then
+            echo "ERROR: origin/main does not match the requested production release."
+            exit 1
+          fi
+
+          git checkout -B deploy-production "$SHOPWHO_MAIN_SHA"
+
+          if [ ! -f .env.prod.local ]; then
+            echo "ERROR: missing /opt/shopwho/.env.prod.local."
+            exit 1
+          fi
+
+          previous_image_tag="$(
+            sed -n 's/^SHOPWHO_IMAGE_TAG=//p' \
+              .env.prod.local |
+              tail -n 1
+          )"
+
+          echo "Previous production artifact: ${previous_image_tag:-none}"
+          echo "New production artifact:      ${SHOPWHO_IMAGE_TAG}"
+
+          compose() {
+            docker compose \
+              --env-file .env.prod.local \
+              -f compose.prod.yaml \
+              "$@"
+          }
+
+          export SHOPWHO_IMAGE_TAG
+
+          compose pull app nginx
+          compose up -d db
+
+          database_ready=0
+
+          for attempt in $(seq 1 30); do
+            if compose exec -T db sh -c \
+              'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
+              >/dev/null 2>&1; then
+              database_ready=1
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [ "$database_ready" -ne 1 ]; then
+            echo "ERROR: PostgreSQL production is not ready."
+            compose ps
+            exit 1
+          fi
+
+          mkdir -p backups
+
+          backup_file="backups/pre-deploy-$(date +%Y%m%d-%H%M%S).dump"
+
+          compose exec -T db sh -c \
+            'pg_dump -Fc -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+            > "$backup_file"
+
+          if [ ! -s "$backup_file" ]; then
+            echo "ERROR: PostgreSQL backup is empty."
+            exit 1
+          fi
+
+          echo "Database backup created: ${backup_file}"
+
+          find backups \
+            -type f \
+            -name 'pre-deploy-*.dump' \
+            -mtime +30 \
+            -delete
+
+          compose run \
+            --rm \
+            --no-deps \
+            app \
+            php bin/console doctrine:migrations:migrate \
+            --no-interaction \
+            --env=prod
+
+          compose up \
+            -d \
+            --remove-orphans \
+            app nginx
+
+          http_port="$(
+            sed -n 's/^SHOPWHO_HTTP_PORT=//p' \
+              .env.prod.local |
+              tail -n 1
+          )"
+
+          http_port="${http_port:-3030}"
+
+          web_ready=0
+
+          for attempt in $(seq 1 30); do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              "http://127.0.0.1:${http_port}/healthz" \
+              >/dev/null; then
+              web_ready=1
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [ "$web_ready" -ne 1 ]; then
+            echo "ERROR: production web healthcheck failed."
+            compose ps
+            exit 1
+          fi
+
+          application_ready=0
+
+          for attempt in $(seq 1 30); do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --location \
+              "http://127.0.0.1:${http_port}/" \
+              >/dev/null; then
+              application_ready=1
+              break
+            fi
+
+            sleep 2
+          done
+
+          if [ "$application_ready" -ne 1 ]; then
+            echo "ERROR: production application healthcheck failed."
+            compose ps
+            exit 1
+          fi
+
+          if grep -q '^SHOPWHO_IMAGE_TAG=' .env.prod.local; then
+            sed -i \
+              "s/^SHOPWHO_IMAGE_TAG=.*/SHOPWHO_IMAGE_TAG=${SHOPWHO_IMAGE_TAG}/" \
+              .env.prod.local
+          else
+            printf '\nSHOPWHO_IMAGE_TAG=%s\n' \
+              "$SHOPWHO_IMAGE_TAG" \
+              >> .env.prod.local
+          fi
+
+          compose ps
+
+          echo "Production deployed with validated artifact ${SHOPWHO_IMAGE_TAG}."
+          REMOTE
+
+      - name: Verify public production endpoint
+        run: |
+          set -euo pipefail
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --location \
+            --retry 10 \
+            --retry-delay 3 \
+            --retry-all-errors \
+            https://shopwho.falchero.fr/ \
+            >/dev/null
+
+          echo "Public production endpoint is healthy."
