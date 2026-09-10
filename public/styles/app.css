@@ -3304,3 +3304,89 @@ a.product-rating:hover span:last-child{
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
 }
+
+
+/* === Storefront UI polish === */
+
+/*
+ * Sticky footer:
+ * le footer reste au bas du viewport sur les pages courtes,
+ * mais continue de suivre naturellement le contenu des pages longues.
+ */
+html{
+  min-height:100%;
+}
+
+body{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+.site-header{
+  flex:0 0 auto;
+}
+
+body > main{
+  width:100%;
+  flex:1 0 auto;
+}
+
+/*
+ * Hero panel:
+ * centrage strict des pictogrammes Font Awesome.
+ */
+.home-hero-feature-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+
+.home-hero-feature-icon i{
+  display:block;
+  width:1em;
+  margin:0;
+  line-height:1;
+  text-align:center;
+}
+
+/*
+ * Notes produit:
+ * meilleure hiérarchie entre les étoiles et la valeur numérique.
+ */
+.card-rating{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:30px;
+  margin-top:10px;
+  font-size:14px;
+  font-variant-numeric:tabular-nums;
+  color:#1f2937;
+}
+
+.card-rating .stars{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:5px 8px;
+  border:1px solid #fed7aa;
+  border-radius:999px;
+  background:#fff7ed;
+  color:#f59e0b;
+  font-size:16px;
+  line-height:1;
+  letter-spacing:1px;
+}
+
+.card-rating > span:last-child{
+  font-weight:800;
+  color:#1f2937;
+}
+
+.card-rating.muted{
+  font-size:13px;
+  font-weight:600;
+  color:var(--muted);
+}
