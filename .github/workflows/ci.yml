@@ -168,7 +168,8 @@ jobs:
             docker compose \
               --env-file .env.sandbox.local \
               -f compose.sandbox.yaml \
-              "$@"
+              "$@" \
+              </dev/null
           }
 
           compose pull app nginx
