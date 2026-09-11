@@ -3,9 +3,14 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
+#[UniqueEntity(
+    fields: ['experiment', 'key'],
+    message: 'Cette clé de variante est déjà utilisée dans cette expérience.'
+)]
 #[ORM\Table(name: 'ab_experiment_variant')]
 #[ORM\UniqueConstraint(
     name: 'uniq_ab_experiment_variant_key',

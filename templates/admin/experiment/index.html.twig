@@ -8,6 +8,19 @@
   Configuration et suivi des expérimentations ShopWho
 {% endblock %}
 
+{% block admin_actions %}
+  <a
+    class="admin-button admin-button-primary"
+    href="{{ path('admin_experiment_new') }}"
+  >
+    <i
+      class="fa-solid fa-plus"
+      aria-hidden="true"
+    ></i>
+    Nouvelle expérience
+  </a>
+{% endblock %}
+
 {% block admin_body %}
   <section
     class="admin-card"
@@ -30,28 +43,18 @@
       <table class="admin-table">
         <thead>
           <tr>
-            <th scope="col">
-              Expérience
-            </th>
+            <th scope="col">Expérience</th>
+            <th scope="col">Statut</th>
+            <th scope="col">Trafic</th>
+            <th scope="col">Variantes</th>
+            <th scope="col">Période</th>
+            <th scope="col">Mise à jour</th>
 
-            <th scope="col">
-              Statut
-            </th>
-
-            <th scope="col">
-              Trafic
-            </th>
-
-            <th scope="col">
-              Variantes
-            </th>
-
-            <th scope="col">
-              Période
-            </th>
-
-            <th scope="col">
-              Mise à jour
+            <th
+              scope="col"
+              class="admin-table-actions-heading"
+            >
+              Actions
             </th>
           </tr>
         </thead>
@@ -106,14 +109,13 @@
                 {% if experiment.startsAt %}
                   {{ experiment.startsAt|date('d/m/Y H:i') }}
                 {% else %}
-                  —
+                  Immédiat
                 {% endif %}
 
                 <br>
 
                 <span class="muted">
                   jusqu’au
-
                   {% if experiment.endsAt %}
                     {{ experiment.endsAt|date('d/m/Y H:i') }}
                   {% else %}
@@ -125,11 +127,89 @@
               <td>
                 {{ experiment.updatedAt|date('d/m/Y H:i') }}
               </td>
+
+              <td>
+                <div class="admin-row-actions">
+                  {% if experiment.status.value == 'draft' %}
+                    <a
+                      class="admin-icon-button"
+                      href="{{ path(
+                        'admin_experiment_edit',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                      title="Modifier {{ experiment.name }}"
+                      aria-label="Modifier {{ experiment.name }}"
+                    >
+                      <i
+                        class="fa-solid fa-pen-to-square"
+                        aria-hidden="true"
+                      ></i>
+
+                      <span class="admin-sr-only">
+                        Modifier
+                      </span>
+                    </a>
+
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_delete',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                      onsubmit="return confirm(
+                        'Supprimer cette expérience ?'
+                      )"
+                    >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'delete-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="
+                          admin-icon-button
+                          admin-icon-button-danger
+                        "
+                        type="submit"
+                        title="Supprimer {{ experiment.name }}"
+                        aria-label="Supprimer {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-trash"
+                          aria-hidden="true"
+                        ></i>
+
+                        <span class="admin-sr-only">
+                          Supprimer
+                        </span>
+                      </button>
+                    </form>
+                  {% else %}
+                    <span
+                      class="admin-badge admin-badge-muted"
+                      title="La structure est verrouillée après le premier démarrage."
+                    >
+                      <i
+                        class="fa-solid fa-lock"
+                        aria-hidden="true"
+                      ></i>
+                      Verrouillée
+                    </span>
+                  {% endif %}
+                </div>
+              </td>
             </tr>
           {% else %}
             <tr>
               <td
-                colspan="6"
+                colspan="7"
                 class="admin-empty-state"
               >
                 Aucune expérience A/B configurée.
