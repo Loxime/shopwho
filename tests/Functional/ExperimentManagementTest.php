@@ -429,6 +429,182 @@ final class ExperimentManagementTest extends WebTestCase
         );
     }
 
+    public function testExperimentRequiresTwoVariantsBeforeStart(): void
+    {
+        $client = static::createClient();
+
+        $client->loginUser(
+            $this->createManager()
+        );
+
+        $experiment =
+            $this->createExperiment(
+                'test-experiment-start-validation'
+            );
+
+        $this->createVariant(
+            $experiment,
+            'control',
+            50
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/experiments'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $form = $crawler
+            ->filter(
+                sprintf(
+                    'form[action="/admin/experiments/%d/start"]',
+                    $experiment->getId()
+                )
+            )
+            ->form();
+
+        $client->submit(
+            $form
+        );
+
+        self::assertResponseRedirects(
+            '/admin/experiments'
+        );
+
+        $experimentId =
+            $experiment->getId();
+
+        $this->em()->clear();
+
+        $persisted =
+            $this->em()
+                ->getRepository(
+                    Experiment::class
+                )
+                ->find(
+                    $experimentId
+                );
+
+        self::assertInstanceOf(
+            Experiment::class,
+            $persisted
+        );
+
+        self::assertSame(
+            ExperimentStatus::Draft,
+            $persisted->getStatus()
+        );
+    }
+
+    public function testManagerCanRunCompleteExperimentLifecycle(): void
+    {
+        $client = static::createClient();
+
+        $client->loginUser(
+            $this->createManager()
+        );
+
+        $experiment =
+            $this->createExperiment(
+                'test-experiment-lifecycle'
+            );
+
+        $this->createVariant(
+            $experiment,
+            'control',
+            50
+        );
+
+        $this->createVariant(
+            $experiment,
+            'candidate',
+            50
+        );
+
+        $experimentId =
+            $experiment->getId();
+
+        foreach (
+            [
+                [
+                    'action' => 'start',
+                    'status' =>
+                        ExperimentStatus::Running,
+                ],
+                [
+                    'action' => 'pause',
+                    'status' =>
+                        ExperimentStatus::Paused,
+                ],
+                [
+                    'action' => 'resume',
+                    'status' =>
+                        ExperimentStatus::Running,
+                ],
+                [
+                    'action' => 'end',
+                    'status' =>
+                        ExperimentStatus::Ended,
+                ],
+            ] as $transition
+        ) {
+            $crawler = $client->request(
+                'GET',
+                '/admin/experiments'
+            );
+
+            self::assertResponseIsSuccessful();
+
+            $form = $crawler
+                ->filter(
+                    sprintf(
+                        'form[action="/admin/experiments/%d/%s"]',
+                        $experimentId,
+                        $transition['action']
+                    )
+                )
+                ->form();
+
+            $client->submit(
+                $form
+            );
+
+            self::assertResponseRedirects(
+                '/admin/experiments'
+            );
+
+            $this->em()->clear();
+
+            $persisted =
+                $this->em()
+                    ->getRepository(
+                        Experiment::class
+                    )
+                    ->find(
+                        $experimentId
+                    );
+
+            self::assertInstanceOf(
+                Experiment::class,
+                $persisted
+            );
+
+            self::assertSame(
+                $transition['status'],
+                $persisted->getStatus()
+            );
+        }
+
+        self::assertNotNull(
+            $persisted->getStartsAt()
+        );
+
+        self::assertNotNull(
+            $persisted->getEndsAt()
+        );
+    }
+
     private function createExperiment(
         string $key
     ): Experiment {

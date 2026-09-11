@@ -354,6 +354,319 @@ final class AdminExperimentController extends AbstractController
         );
     }
 
+    #[Route(
+        '/{id}/start',
+        name: 'admin_experiment_start',
+        requirements: [
+            'id' => '\d+',
+        ],
+        methods: ['POST']
+    )]
+    public function start(
+        Experiment $experiment,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        if (
+            !$this->isCsrfTokenValid(
+                'start-experiment-'
+                    .$experiment->getId(),
+                (string) $request
+                    ->request
+                    ->get('_token')
+            )
+        ) {
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getStatus()
+            !== ExperimentStatus::Draft
+        ) {
+            $this->addFlash(
+                'error',
+                'Seule une expérience en brouillon peut être démarrée.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getVariants()->count()
+            < 2
+        ) {
+            $this->addFlash(
+                'error',
+                'Une expérience doit contenir au moins deux variantes avant son démarrage.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getTrafficPercentage()
+            <= 0
+        ) {
+            $this->addFlash(
+                'error',
+                'Le trafic exposé doit être supérieur à 0 % avant le démarrage.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        $now = new \DateTimeImmutable();
+
+        if (
+            $experiment->getEndsAt() !== null
+            && $experiment->getEndsAt() <= $now
+        ) {
+            $this->addFlash(
+                'error',
+                'La date de fin de l’expérience est déjà dépassée.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getStartsAt()
+            === null
+        ) {
+            $experiment->setStartsAt(
+                $now
+            );
+        }
+
+        $experiment->setStatus(
+            ExperimentStatus::Running
+        );
+
+        $em->flush();
+
+        $this->addFlash(
+            'success',
+            'Expérience démarrée.'
+        );
+
+        return $this->redirectToRoute(
+            'admin_experiment_index'
+        );
+    }
+
+    #[Route(
+        '/{id}/pause',
+        name: 'admin_experiment_pause',
+        requirements: [
+            'id' => '\d+',
+        ],
+        methods: ['POST']
+    )]
+    public function pause(
+        Experiment $experiment,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        if (
+            !$this->isCsrfTokenValid(
+                'pause-experiment-'
+                    .$experiment->getId(),
+                (string) $request
+                    ->request
+                    ->get('_token')
+            )
+        ) {
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getStatus()
+            !== ExperimentStatus::Running
+        ) {
+            $this->addFlash(
+                'error',
+                'Seule une expérience en cours peut être mise en pause.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        $experiment->setStatus(
+            ExperimentStatus::Paused
+        );
+
+        $em->flush();
+
+        $this->addFlash(
+            'success',
+            'Expérience mise en pause.'
+        );
+
+        return $this->redirectToRoute(
+            'admin_experiment_index'
+        );
+    }
+
+    #[Route(
+        '/{id}/resume',
+        name: 'admin_experiment_resume',
+        requirements: [
+            'id' => '\d+',
+        ],
+        methods: ['POST']
+    )]
+    public function resume(
+        Experiment $experiment,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        if (
+            !$this->isCsrfTokenValid(
+                'resume-experiment-'
+                    .$experiment->getId(),
+                (string) $request
+                    ->request
+                    ->get('_token')
+            )
+        ) {
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getStatus()
+            !== ExperimentStatus::Paused
+        ) {
+            $this->addFlash(
+                'error',
+                'Seule une expérience en pause peut être reprise.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $experiment->getEndsAt() !== null
+            && $experiment->getEndsAt()
+                <= new \DateTimeImmutable()
+        ) {
+            $this->addFlash(
+                'error',
+                'Cette expérience a atteint sa date de fin.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        $experiment->setStatus(
+            ExperimentStatus::Running
+        );
+
+        $em->flush();
+
+        $this->addFlash(
+            'success',
+            'Expérience reprise.'
+        );
+
+        return $this->redirectToRoute(
+            'admin_experiment_index'
+        );
+    }
+
+    #[Route(
+        '/{id}/end',
+        name: 'admin_experiment_end',
+        requirements: [
+            'id' => '\d+',
+        ],
+        methods: ['POST']
+    )]
+    public function end(
+        Experiment $experiment,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        if (
+            !$this->isCsrfTokenValid(
+                'end-experiment-'
+                    .$experiment->getId(),
+                (string) $request
+                    ->request
+                    ->get('_token')
+            )
+        ) {
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            !in_array(
+                $experiment->getStatus(),
+                [
+                    ExperimentStatus::Running,
+                    ExperimentStatus::Paused,
+                ],
+                true
+            )
+        ) {
+            $this->addFlash(
+                'error',
+                'Cette expérience ne peut pas être terminée dans son état actuel.'
+            );
+
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        $now = new \DateTimeImmutable();
+
+        $experiment->setStatus(
+            ExperimentStatus::Ended
+        );
+
+        if (
+            $experiment->getEndsAt() === null
+            || $experiment->getEndsAt() > $now
+        ) {
+            $experiment->setEndsAt(
+                $now
+            );
+        }
+
+        $em->flush();
+
+        $this->addFlash(
+            'success',
+            'Expérience terminée.'
+        );
+
+        return $this->redirectToRoute(
+            'admin_experiment_index'
+        );
+    }
+
     private function handleExperimentForm(
         Experiment $experiment,
         Request $request,

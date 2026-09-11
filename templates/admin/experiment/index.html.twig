@@ -146,11 +146,37 @@
                         class="fa-solid fa-pen-to-square"
                         aria-hidden="true"
                       ></i>
-
-                      <span class="admin-sr-only">
-                        Modifier
-                      </span>
                     </a>
+
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_start',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                    >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'start-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="admin-icon-button"
+                        type="submit"
+                        title="Démarrer {{ experiment.name }}"
+                        aria-label="Démarrer {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-play"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </form>
 
                     <form
                       method="post"
@@ -160,9 +186,6 @@
                           id: experiment.id
                         }
                       ) }}"
-                      onsubmit="return confirm(
-                        'Supprimer cette expérience ?'
-                      )"
                     >
                       <input
                         type="hidden"
@@ -185,22 +208,144 @@
                           class="fa-solid fa-trash"
                           aria-hidden="true"
                         ></i>
-
-                        <span class="admin-sr-only">
-                          Supprimer
-                        </span>
                       </button>
                     </form>
-                  {% else %}
-                    <span
-                      class="admin-badge admin-badge-muted"
-                      title="La structure est verrouillée après le premier démarrage."
+
+                  {% elseif experiment.status.value == 'running' %}
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_pause',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
                     >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'pause-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="admin-icon-button"
+                        type="submit"
+                        title="Mettre en pause"
+                        aria-label="Mettre en pause {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-pause"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </form>
+
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_end',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                    >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'end-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="
+                          admin-icon-button
+                          admin-icon-button-danger
+                        "
+                        type="submit"
+                        title="Terminer"
+                        aria-label="Terminer {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-flag-checkered"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </form>
+
+                  {% elseif experiment.status.value == 'paused' %}
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_resume',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                    >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'resume-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="admin-icon-button"
+                        type="submit"
+                        title="Reprendre"
+                        aria-label="Reprendre {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-play"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </form>
+
+                    <form
+                      method="post"
+                      action="{{ path(
+                        'admin_experiment_end',
+                        {
+                          id: experiment.id
+                        }
+                      ) }}"
+                    >
+                      <input
+                        type="hidden"
+                        name="_token"
+                        value="{{ csrf_token(
+                          'end-experiment-' ~ experiment.id
+                        ) }}"
+                      >
+
+                      <button
+                        class="
+                          admin-icon-button
+                          admin-icon-button-danger
+                        "
+                        type="submit"
+                        title="Terminer"
+                        aria-label="Terminer {{ experiment.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-flag-checkered"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </form>
+
+                  {% else %}
+                    <span class="admin-badge admin-badge-muted">
                       <i
                         class="fa-solid fa-lock"
                         aria-hidden="true"
                       ></i>
-                      Verrouillée
+                      Terminée
                     </span>
                   {% endif %}
                 </div>
