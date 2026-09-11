@@ -56,8 +56,10 @@ final class ExperimentType extends AbstractType
                     'required' => false,
                     'widget' => 'single_text',
                     'input' => 'datetime_immutable',
+                    'model_timezone' => 'UTC',
+                    'view_timezone' => 'Europe/Paris',
                     'help' =>
-                        'Optionnel. Laisser vide pour démarrer dès l’activation.',
+                        'Optionnel. Heure de Paris. Laisser vide pour démarrer dès l’activation.',
                 ]
             )
             ->add(
@@ -68,8 +70,10 @@ final class ExperimentType extends AbstractType
                     'required' => false,
                     'widget' => 'single_text',
                     'input' => 'datetime_immutable',
+                    'model_timezone' => 'UTC',
+                    'view_timezone' => 'Europe/Paris',
                     'help' =>
-                        'Optionnel. Laisser vide pour une durée indéterminée.',
+                        'Optionnel. Heure de Paris. Laisser vide pour une durée indéterminée.',
                 ]
             );
     }

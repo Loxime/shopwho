@@ -301,6 +301,78 @@ final class ExperimentManagementTest extends WebTestCase
         );
     }
 
+    public function testExperimentDatesAreEnteredInParisAndStoredInUtc(): void
+    {
+        $client = static::createClient();
+
+        $client->loginUser(
+            $this->createManager()
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/experiments/new'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $client->submit(
+            $crawler
+                ->selectButton('Enregistrer')
+                ->form([
+                    'experiment[key]' =>
+                        'test-experiment-timezone',
+                    'experiment[name]' =>
+                        'Expérience timezone',
+                    'experiment[trafficPercentage]' =>
+                        100,
+                    'experiment[startsAt]' =>
+                        '2026-09-11T18:49',
+                    'experiment[endsAt]' =>
+                        '2026-09-25T18:50',
+                ])
+        );
+
+        self::assertResponseRedirects();
+
+        $this->em()->clear();
+
+        $experiment = $this
+            ->em()
+            ->getRepository(
+                Experiment::class
+            )
+            ->findOneBy([
+                'key' =>
+                    'test-experiment-timezone',
+            ]);
+
+        self::assertInstanceOf(
+            Experiment::class,
+            $experiment
+        );
+
+        self::assertSame(
+            '2026-09-11 16:49:00 +00:00',
+            $experiment
+                ->getStartsAt()
+                ?->setTimezone(
+                    new \DateTimeZone('UTC')
+                )
+                ->format('Y-m-d H:i:s P')
+        );
+
+        self::assertSame(
+            '2026-09-25 16:50:00 +00:00',
+            $experiment
+                ->getEndsAt()
+                ?->setTimezone(
+                    new \DateTimeZone('UTC')
+                )
+                ->format('Y-m-d H:i:s P')
+        );
+    }
+
     public function testStartedExperimentStructureIsLocked(): void
     {
         $client = static::createClient();

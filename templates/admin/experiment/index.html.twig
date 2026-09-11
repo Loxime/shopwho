@@ -107,7 +107,7 @@
 
               <td>
                 {% if experiment.startsAt %}
-                  {{ experiment.startsAt|date('d/m/Y H:i') }}
+                  {{ experiment.startsAt|date('d/m/Y H:i', 'Europe/Paris') }}
                 {% else %}
                   Immédiat
                 {% endif %}
@@ -117,7 +117,7 @@
                 <span class="muted">
                   jusqu’au
                   {% if experiment.endsAt %}
-                    {{ experiment.endsAt|date('d/m/Y H:i') }}
+                    {{ experiment.endsAt|date('d/m/Y H:i', 'Europe/Paris') }}
                   {% else %}
                     ∞
                   {% endif %}
@@ -125,7 +125,7 @@
               </td>
 
               <td>
-                {{ experiment.updatedAt|date('d/m/Y H:i') }}
+                {{ experiment.updatedAt|date('d/m/Y H:i', 'Europe/Paris') }}
               </td>
 
               <td>

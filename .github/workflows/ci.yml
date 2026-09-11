@@ -143,7 +143,16 @@ jobs:
           cd /opt/shopwho-sandbox
 
           git fetch --prune origin dev
-          git checkout -B deploy-sandbox origin/dev
+          git checkout -B deploy-sandbox "$SHOPWHO_IMAGE_TAG"
+
+          deployed_source_sha="$(git rev-parse HEAD)"
+
+          if [ "$deployed_source_sha" != "$SHOPWHO_IMAGE_TAG" ]; then
+            echo "Sandbox source SHA mismatch."
+            echo "Expected: $SHOPWHO_IMAGE_TAG"
+            echo "Actual:   $deployed_source_sha"
+            exit 1
+          fi
 
           if grep -q '^SHOPWHO_IMAGE_TAG=' .env.sandbox.local; then
             sed -i \
@@ -207,10 +216,73 @@ jobs:
             --no-interaction \
             --env=prod
 
+          compose run \
+            --rm \
+            --no-deps \
+            app \
+            php bin/console doctrine:migrations:up-to-date \
+            --env=prod
+
           compose up \
             -d \
+            --force-recreate \
             --remove-orphans \
             app nginx
+
+          app_container_id="$(compose ps -q app)"
+          nginx_container_id="$(compose ps -q nginx)"
+
+          if [ -z "$app_container_id" ] \
+            || [ -z "$nginx_container_id" ]; then
+            echo "Sandbox application containers are missing."
+            compose ps
+            exit 1
+          fi
+
+          expected_app_image="ghcr.io/loxime/shopwho-app:${SHOPWHO_IMAGE_TAG}"
+          expected_nginx_image="ghcr.io/loxime/shopwho-web:${SHOPWHO_IMAGE_TAG}"
+
+          expected_app_image_id="$(
+            docker image inspect \
+              "$expected_app_image" \
+              --format '{{.Id}}'
+          )"
+
+          expected_nginx_image_id="$(
+            docker image inspect \
+              "$expected_nginx_image" \
+              --format '{{.Id}}'
+          )"
+
+          actual_app_image_id="$(
+            docker inspect \
+              "$app_container_id" \
+              --format '{{.Image}}'
+          )"
+
+          actual_nginx_image_id="$(
+            docker inspect \
+              "$nginx_container_id" \
+              --format '{{.Image}}'
+          )"
+
+          if [ "$actual_app_image_id" != "$expected_app_image_id" ]; then
+            echo "Sandbox app image mismatch."
+            echo "Expected: $expected_app_image_id"
+            echo "Actual:   $actual_app_image_id"
+            exit 1
+          fi
+
+          if [ "$actual_nginx_image_id" != "$expected_nginx_image_id" ]; then
+            echo "Sandbox nginx image mismatch."
+            echo "Expected: $expected_nginx_image_id"
+            echo "Actual:   $actual_nginx_image_id"
+            exit 1
+          fi
+
+          compose exec -T app \
+            php bin/console doctrine:migrations:up-to-date \
+            --env=prod
 
           http_port="$(
             sed -n 's/^SHOPWHO_HTTP_PORT=//p' \
