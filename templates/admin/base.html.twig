@@ -95,6 +95,20 @@
         </a>
       {% endif %}
 
+      {% if is_granted('ROLE_EXPERIMENT_MANAGER') %}
+        <a
+          class="admin-nav-item{{ currentRoute starts with 'admin_experiment_' ? ' is-active' : '' }}"
+          href="{{ path('admin_experiment_index') }}"
+          {{ currentRoute starts with 'admin_experiment_' ? ' aria-current="page"' : '' }}
+        >
+          <i
+            class="fa-solid fa-flask"
+            aria-hidden="true"
+          ></i>
+          <span>Expériences A/B</span>
+        </a>
+      {% endif %}
+
       {% if is_granted('ROLE_DATA_ANALYST') %}
         <a
           class="admin-nav-item{{ currentRoute starts with 'admin_analytics_' ? ' is-active' : '' }}"
