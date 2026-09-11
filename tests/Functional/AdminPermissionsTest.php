@@ -223,6 +223,67 @@ final class AdminPermissionsTest extends WebTestCase
         );
     }
 
+    public function testExperimentManagerOnlyAccessesExperimentAdministration(): void
+    {
+        $client = static::createClient();
+
+        $client->loginUser(
+            $this->createUser(
+                'experiments',
+                ['ROLE_EXPERIMENT_MANAGER']
+            )
+        );
+
+        $client->request(
+            'GET',
+            '/admin'
+        );
+
+        self::assertResponseRedirects(
+            '/admin/experiments'
+        );
+
+        $crawler = $client->request(
+            'GET',
+            '/admin/experiments'
+        );
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorExists(
+            '.admin-nav '
+            .'a[href="/admin/experiments"]'
+        );
+
+        self::assertSelectorNotExists(
+            '.admin-nav '
+            .'a[href="/admin/offers"]'
+        );
+
+        self::assertSelectorNotExists(
+            '.admin-nav '
+            .'a[href="/admin/analytics"]'
+        );
+
+        $client->request(
+            'GET',
+            '/admin/offers'
+        );
+
+        self::assertResponseStatusCodeSame(
+            403
+        );
+
+        $client->request(
+            'GET',
+            '/admin/analytics'
+        );
+
+        self::assertResponseStatusCodeSame(
+            403
+        );
+    }
+
     public function testAdministratorKeepsFullBackofficeAccess(): void
     {
         $client = static::createClient();
@@ -241,6 +302,7 @@ final class AdminPermissionsTest extends WebTestCase
                 '/admin/offers',
                 '/admin/reviews',
                 '/admin/analytics',
+                '/admin/experiments',
                 '/admin/data-import',
                 '/admin/data-reset',
             ] as $path

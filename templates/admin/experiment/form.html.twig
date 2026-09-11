@@ -1,0 +1,241 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  {{ title }}
+{% endblock %}
+
+{% block admin_subtitle %}
+  Configuration structurelle de l’expérience
+{% endblock %}
+
+{% block admin_body %}
+  <div class="admin-form-page">
+    <a
+      class="admin-back-link"
+      href="{{ path('admin_experiment_index') }}"
+    >
+      <i
+        class="fa-solid fa-arrow-left"
+        aria-hidden="true"
+      ></i>
+      Retour aux expériences
+    </a>
+
+    <section class="admin-card admin-form-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Paramètres de l’expérience
+          </h2>
+
+          <p>
+            La clé, le trafic, les dates et les variantes
+            seront verrouillés après le premier démarrage.
+          </p>
+        </div>
+      </div>
+
+      {{ form_start(
+        form,
+        {
+          attr: {
+            class: 'admin-form'
+          }
+        }
+      ) }}
+
+        {{ form_errors(form) }}
+
+        <div class="admin-form-fields">
+          {% for field in form %}
+            <div class="admin-form-row">
+              {{ form_label(field) }}
+              {{ form_widget(field) }}
+              {{ form_errors(field) }}
+
+              {% if field.vars.help %}
+                <small class="admin-field-help">
+                  {{ field.vars.help }}
+                </small>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="admin-form-actions">
+          <a
+            class="admin-button admin-button-secondary"
+            href="{{ path('admin_experiment_index') }}"
+          >
+            Annuler
+          </a>
+
+          <button
+            class="admin-button admin-button-primary"
+            type="submit"
+          >
+            <i
+              class="fa-solid fa-check"
+              aria-hidden="true"
+            ></i>
+            Enregistrer
+          </button>
+        </div>
+
+      {{ form_end(form) }}
+    </section>
+
+    {% if not isNew %}
+      <section
+        class="admin-card"
+        aria-labelledby="experiment-variants-title"
+      >
+        <div class="admin-card-header">
+          <div>
+            <h2 id="experiment-variants-title">
+              Variantes
+            </h2>
+
+            <p>
+              {{ experiment.variants|length }}
+              variante{{ experiment.variants|length > 1 ? 's' : '' }}
+              configurée{{ experiment.variants|length > 1 ? 's' : '' }}
+            </p>
+          </div>
+
+          <a
+            class="admin-button admin-button-primary"
+            href="{{ path(
+              'admin_experiment_variant_new',
+              {
+                id: experiment.id
+              }
+            ) }}"
+          >
+            <i
+              class="fa-solid fa-plus"
+              aria-hidden="true"
+            ></i>
+            Ajouter une variante
+          </a>
+        </div>
+
+        <div class="admin-table-scroll">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th scope="col">
+                  Variante
+                </th>
+
+                <th scope="col">
+                  Poids
+                </th>
+
+                <th
+                  scope="col"
+                  class="admin-table-actions-heading"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for variant in experiment.variants %}
+                <tr>
+                  <td>
+                    <strong>
+                      {{ variant.name }}
+                    </strong>
+
+                    <div class="muted">
+                      {{ variant.key }}
+                    </div>
+                  </td>
+
+                  <td>
+                    {{ variant.weight }}
+                  </td>
+
+                  <td>
+                    <div class="admin-row-actions">
+                      <a
+                        class="admin-icon-button"
+                        href="{{ path(
+                          'admin_experiment_variant_edit',
+                          {
+                            id: experiment.id,
+                            variantId: variant.id
+                          }
+                        ) }}"
+                        title="Modifier {{ variant.name }}"
+                        aria-label="Modifier {{ variant.name }}"
+                      >
+                        <i
+                          class="fa-solid fa-pen-to-square"
+                          aria-hidden="true"
+                        ></i>
+
+                        <span class="admin-sr-only">
+                          Modifier
+                        </span>
+                      </a>
+
+                      <form
+                        method="post"
+                        action="{{ path(
+                          'admin_experiment_variant_delete',
+                          {
+                            id: experiment.id,
+                            variantId: variant.id
+                          }
+                        ) }}"
+                      >
+                        <input
+                          type="hidden"
+                          name="_token"
+                          value="{{ csrf_token(
+                            'delete-experiment-variant-' ~ variant.id
+                          ) }}"
+                        >
+
+                        <button
+                          class="
+                            admin-icon-button
+                            admin-icon-button-danger
+                          "
+                          type="submit"
+                          title="Supprimer {{ variant.name }}"
+                          aria-label="Supprimer {{ variant.name }}"
+                        >
+                          <i
+                            class="fa-solid fa-trash"
+                            aria-hidden="true"
+                          ></i>
+
+                          <span class="admin-sr-only">
+                            Supprimer
+                          </span>
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td
+                    colspan="3"
+                    class="admin-empty-state"
+                  >
+                    Aucune variante configurée.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+  </div>
+{% endblock %}

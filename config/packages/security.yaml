@@ -21,11 +21,15 @@ security:
     ROLE_DATA_MANAGER:
       - ROLE_BACKOFFICE
 
+    ROLE_EXPERIMENT_MANAGER:
+      - ROLE_BACKOFFICE
+
     ROLE_ADMIN:
       - ROLE_CATALOG_MANAGER
       - ROLE_MARKETING_MANAGER
       - ROLE_DATA_ANALYST
       - ROLE_DATA_MANAGER
+      - ROLE_EXPERIMENT_MANAGER
 
   firewalls:
     dev:
@@ -62,6 +66,8 @@ security:
     - { path: ^/admin/reviews(?:/|$), roles: ROLE_MARKETING_MANAGER }
 
     - { path: ^/admin/analytics(?:/|$), roles: ROLE_DATA_ANALYST }
+
+    - { path: ^/admin/experiments(?:/|$), roles: ROLE_EXPERIMENT_MANAGER }
 
     - { path: ^/admin/data-import(?:/|$), roles: ROLE_DATA_MANAGER }
     - { path: ^/admin/data-reset(?:/|$), roles: ROLE_DATA_MANAGER }

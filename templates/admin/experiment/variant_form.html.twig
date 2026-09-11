@@ -1,0 +1,98 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block admin_title %}
+  {{ title }}
+{% endblock %}
+
+{% block admin_subtitle %}
+  {{ experiment.name }}
+{% endblock %}
+
+{% block admin_body %}
+  <div class="admin-form-page">
+    <a
+      class="admin-back-link"
+      href="{{ path(
+        'admin_experiment_edit',
+        {
+          id: experiment.id
+        }
+      ) }}"
+    >
+      <i
+        class="fa-solid fa-arrow-left"
+        aria-hidden="true"
+      ></i>
+      Retour à l’expérience
+    </a>
+
+    <section class="admin-card admin-form-card">
+      <div class="admin-card-header">
+        <div>
+          <h2>
+            Configuration de la variante
+          </h2>
+
+          <p>
+            La clé et le poids participent directement
+            à l’affectation déterministe des visiteurs.
+          </p>
+        </div>
+      </div>
+
+      {{ form_start(
+        form,
+        {
+          attr: {
+            class: 'admin-form'
+          }
+        }
+      ) }}
+
+        {{ form_errors(form) }}
+
+        <div class="admin-form-fields">
+          {% for field in form %}
+            <div class="admin-form-row">
+              {{ form_label(field) }}
+              {{ form_widget(field) }}
+              {{ form_errors(field) }}
+
+              {% if field.vars.help %}
+                <small class="admin-field-help">
+                  {{ field.vars.help }}
+                </small>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="admin-form-actions">
+          <a
+            class="admin-button admin-button-secondary"
+            href="{{ path(
+              'admin_experiment_edit',
+              {
+                id: experiment.id
+              }
+            ) }}"
+          >
+            Annuler
+          </a>
+
+          <button
+            class="admin-button admin-button-primary"
+            type="submit"
+          >
+            <i
+              class="fa-solid fa-check"
+              aria-hidden="true"
+            ></i>
+            Enregistrer
+          </button>
+        </div>
+
+      {{ form_end(form) }}
+    </section>
+  </div>
+{% endblock %}
