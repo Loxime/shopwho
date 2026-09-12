@@ -828,4 +828,130 @@
       </div>
     </section>
   </div>
+
+  <section
+    class="admin-card"
+    aria-labelledby="recommendation-feedback-title"
+  >
+    <h2 id="recommendation-feedback-title">
+      Feedback automatique des recommandations
+    </h2>
+
+    <p class="muted">
+      Chaque ligne représente un parcours unique
+      session × produit × stratégie. Le funnel exige
+      l’ordre impression → clic → panier → achat.
+    </p>
+
+    <p class="muted">
+      L’attribution produit des achats est disponible
+      pour les commandes authentifiées disposant d’un
+      identifiant de commande dans le tracking.
+    </p>
+
+    {% if recommendationFeedback is empty %}
+      <p>
+        Aucun parcours de recommandation exploitable
+        sur cette période.
+      </p>
+    {% else %}
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Stratégie</th>
+              <th>Variante</th>
+              <th>Expositions</th>
+              <th>Clics</th>
+              <th>CTR</th>
+              <th>Paniers</th>
+              <th>Clic → panier</th>
+              <th>Achats</th>
+              <th>Panier → achat</th>
+              <th>Expo. → achat</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for feedback in recommendationFeedback %}
+              <tr>
+                <td>
+                  {{ feedback.productName }}
+                </td>
+
+                <td>
+                  {{ feedback.strategy }}
+                </td>
+
+                <td>
+                  {{ feedback.experimentVariant
+                    ?? '—'
+                  }}
+                </td>
+
+                <td>
+                  {{ feedback.exposedJourneys }}
+                </td>
+
+                <td>
+                  {{ feedback.clickedJourneys }}
+                </td>
+
+                <td>
+                  {{ feedback.ctr|number_format(
+                    2,
+                    ',',
+                    ' '
+                  ) }} %
+                </td>
+
+                <td>
+                  {{ feedback.cartedJourneys }}
+                </td>
+
+                <td>
+                  {{
+                    feedback.clickToCartRate
+                      |number_format(
+                        2,
+                        ',',
+                        ' '
+                      )
+                  }} %
+                </td>
+
+                <td>
+                  {{ feedback.purchasedJourneys }}
+                </td>
+
+                <td>
+                  {{
+                    feedback.cartToPurchaseRate
+                      |number_format(
+                        2,
+                        ',',
+                        ' '
+                      )
+                  }} %
+                </td>
+
+                <td>
+                  {{
+                    feedback.exposureToPurchaseRate
+                      |number_format(
+                        2,
+                        ',',
+                        ' '
+                      )
+                  }} %
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </section>
+
 {% endblock %}
