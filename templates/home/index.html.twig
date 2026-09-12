@@ -395,6 +395,123 @@ Découvrez Shopwho, un catalogue e-commerce expérimental conçu pour étudier l
     </section>
   {% endif %}
 
+  {% if preferences is not empty %}
+    <section
+      class="
+        section
+        preferences-section
+        home-showcase-section
+      "
+      aria-labelledby="preferences-title"
+    >
+      <div class="container">
+        <div class="recommendations-heading">
+          <div>
+            <p class="recommendations-eyebrow">
+              Profil comportemental
+            </p>
+
+            <h2 id="preferences-title">
+              Vos préférences
+            </h2>
+
+            <p class="muted">
+              Cette sélection évolue automatiquement
+              selon vos interactions récentes avec
+              les produits : consultations, clics,
+              paniers et favoris influencent leur score.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="
+            grid
+            recommendations-grid
+            home-product-grid
+          "
+        >
+          {% for preference in preferences %}
+            {% set product =
+              preference.product
+            %}
+
+            {% set rating =
+              productRatingStats[product.id] ?? null
+            %}
+
+            <article class="card">
+              <a
+                href="{{ path(
+                  'app_product_show',
+                  {
+                    slug: product.slug
+                  }
+                ) }}"
+              >
+                {% if product.imageUrl %}
+                  <img
+                    src="{{ product.imageUrl }}"
+                    alt="{{ product.name }}"
+                  >
+                {% else %}
+                  <div
+                    class="product-image-placeholder"
+                    aria-hidden="true"
+                  >
+                    🛍️
+                  </div>
+                {% endif %}
+
+                <div class="card-body">
+                  <div class="muted">
+                    {{ product.category.name }}
+                  </div>
+
+                  <h3>
+                    {{ product.name }}
+                  </h3>
+
+                  <p>
+                    Score de préférence :
+                    <strong>
+                      {{ preference.score }}
+                    </strong>
+                  </p>
+
+                  {% if rating and rating.count > 0 %}
+                    <div class="card-rating">
+                      ★
+                      {{ rating.average|number_format(
+                        1,
+                        ',',
+                        ' '
+                      ) }}
+                      ({{ rating.count }})
+                    </div>
+                  {% else %}
+                    <div class="card-rating muted">
+                      Pas encore d’avis
+                    </div>
+                  {% endif %}
+
+                  <div class="price">
+                    {{ product.price|number_format(
+                      2,
+                      ',',
+                      ' '
+                    ) }}
+                    €
+                  </div>
+                </div>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
   {% if recommendations is not empty %}
     {% set primaryRecommendationStrategy =
       recommendations|first.strategy
