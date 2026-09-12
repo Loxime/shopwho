@@ -77,4 +77,105 @@ class TrackingEventRepository extends ServiceEntityRepository
             $rows
         );
     }
+
+    /**
+     * @param list<string> $eventTypes
+     *
+     * @return list<array{
+     *     productId: int,
+     *     eventType: string,
+     *     interactionCount: int,
+     *     lastOccurredAt: string
+     * }>
+     */
+    public function findProductInteractionCounts(
+        User $user,
+        array $eventTypes,
+        int $days = 30
+    ): array {
+        if ($eventTypes === []) {
+            return [];
+        }
+
+        $since = new \DateTimeImmutable(
+            sprintf(
+                '-%d days',
+                max(1, $days)
+            )
+        );
+
+        $rows = $this->createQueryBuilder('event')
+            ->select(
+                'event.productId AS productId',
+                'event.eventType AS eventType',
+                'COUNT(event.id) AS interactionCount',
+                'MAX(event.occurredAt) AS lastOccurredAt'
+            )
+            ->andWhere(
+                'event.user = :user'
+            )
+            ->andWhere(
+                'event.productId IS NOT NULL'
+            )
+            ->andWhere(
+                'event.eventType IN (:eventTypes)'
+            )
+            ->andWhere(
+                'event.occurredAt >= :since'
+            )
+            ->setParameter(
+                'user',
+                $user
+            )
+            ->setParameter(
+                'eventTypes',
+                $eventTypes
+            )
+            ->setParameter(
+                'since',
+                $since
+            )
+            ->groupBy(
+                'event.productId'
+            )
+            ->addGroupBy(
+                'event.eventType'
+            )
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(
+            static function (
+                array $row
+            ): array {
+                $lastOccurredAt =
+                    $row['lastOccurredAt'];
+
+                if (
+                    $lastOccurredAt
+                    instanceof \DateTimeInterface
+                ) {
+                    $lastOccurredAt =
+                        $lastOccurredAt->format(
+                            \DateTimeInterface::ATOM
+                        );
+                }
+
+                return [
+                    'productId' =>
+                        (int) $row['productId'],
+                    'eventType' =>
+                        (string) $row['eventType'],
+                    'interactionCount' =>
+                        (int) $row[
+                            'interactionCount'
+                        ],
+                    'lastOccurredAt' =>
+                        (string) $lastOccurredAt,
+                ];
+            },
+            $rows
+        );
+    }
+
 }

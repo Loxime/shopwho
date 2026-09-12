@@ -9,6 +9,7 @@ use App\Repository\CategoryRepository;
 use App\Repository\PartnerRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
+use App\Service\ProductPreferenceService;
 use App\Service\RecommendationExperimentService;
 use App\Repository\SpecialOfferRepository;
 use App\Service\TrackingService;
@@ -27,6 +28,7 @@ class HomeController extends AbstractController
         ProductRepository $products,
         CategoryRepository $categories,
         ReviewRepository $reviews,
+        ProductPreferenceService $productPreferences,
         RecommendationExperimentService $recommendationExperiment,
         TrackingService $tracking,
         SpecialOfferRepository $specialOffers,
@@ -135,6 +137,12 @@ class HomeController extends AbstractController
             $user = null;
         }
 
+        $preferences =
+            $productPreferences->preferences(
+                $user,
+                8
+            );
+
         $recommendations =
             $recommendationExperiment->recommend(
                 $user,
@@ -145,6 +153,15 @@ class HomeController extends AbstractController
 
         foreach ($catalogProducts as $product) {
             $productId = $product->getId();
+
+            if ($productId !== null) {
+                $ratingProductIds[$productId] = true;
+            }
+        }
+
+        foreach ($preferences as $preference) {
+            $productId =
+                $preference->product->getId();
 
             if ($productId !== null) {
                 $ratingProductIds[$productId] = true;
@@ -182,6 +199,8 @@ class HomeController extends AbstractController
             'home/index.html.twig',
             [
                 'products' => $catalogProducts,
+                'preferences' =>
+                    $preferences,
                 'recommendations' =>
                     $recommendations,
                 'specialOffers' => $homepageOffers,
