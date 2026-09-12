@@ -362,6 +362,231 @@ SQL,
     }
 
 
+
+    /**
+     * @return list<RecommendationFeedbackAnalytics>
+     */
+    public function recommendationFeedback(
+        \DateTimeImmutable $from,
+        ?\DateTimeImmutable $to = null,
+        int $limit = 25
+    ): array {
+        $to ??= new \DateTimeImmutable();
+
+        $rows = $this->connection
+            ->fetchAllAssociative(
+                <<<'SQL'
+WITH recommendation_journeys AS (
+    SELECT
+        visitor_id,
+        session_id,
+        product_id,
+        COALESCE(
+            NULLIF(metadata->>'strategy', ''),
+            'unknown'
+        ) AS strategy,
+        NULLIF(
+            metadata->>'experiment_variant',
+            ''
+        ) AS experiment_variant,
+
+        MIN(occurred_at)
+            FILTER (
+                WHERE event_type =
+                    'RECOMMENDATION_IMPRESSION'
+            ) AS impression_at,
+
+        MIN(occurred_at)
+            FILTER (
+                WHERE event_type =
+                    'RECOMMENDATION_CLICK'
+            ) AS click_at
+
+    FROM tracking_event
+
+    WHERE occurred_at >= :from
+      AND occurred_at <= :to
+      AND event_type IN (
+          'RECOMMENDATION_IMPRESSION',
+          'RECOMMENDATION_CLICK'
+      )
+      AND product_id IS NOT NULL
+
+    GROUP BY
+        visitor_id,
+        session_id,
+        product_id,
+        COALESCE(
+            NULLIF(metadata->>'strategy', ''),
+            'unknown'
+        ),
+        NULLIF(
+            metadata->>'experiment_variant',
+            ''
+        )
+),
+
+purchase_products AS (
+    SELECT
+        purchase.visitor_id,
+        purchase.session_id,
+        COALESCE(
+            item.product_id,
+            item.product_id_snapshot
+        ) AS product_id,
+        purchase.occurred_at
+
+    FROM tracking_event purchase
+
+    INNER JOIN customer_order customer_order
+        ON customer_order.id::text =
+            purchase.metadata->>'order_id'
+
+    INNER JOIN order_item item
+        ON item.order_id = customer_order.id
+
+    WHERE purchase.event_type = 'PURCHASE'
+      AND purchase.occurred_at >= :from
+      AND purchase.occurred_at <= :to
+      AND COALESCE(
+          item.product_id,
+          item.product_id_snapshot
+      ) IS NOT NULL
+)
+
+SELECT
+    product.id AS product_id,
+    product.name AS product_name,
+    journey.strategy,
+    journey.experiment_variant,
+
+    COUNT(*) AS exposed_journeys,
+
+    COUNT(*)
+        FILTER (
+            WHERE journey.click_at IS NOT NULL
+              AND journey.click_at >=
+                    journey.impression_at
+        ) AS clicked_journeys,
+
+    COUNT(*)
+        FILTER (
+            WHERE cart.cart_at IS NOT NULL
+        ) AS carted_journeys,
+
+    COUNT(*)
+        FILTER (
+            WHERE purchase.purchase_at IS NOT NULL
+        ) AS purchased_journeys
+
+FROM recommendation_journeys journey
+
+INNER JOIN product
+    ON product.id = journey.product_id
+
+LEFT JOIN LATERAL (
+    SELECT
+        MIN(cart_event.occurred_at) AS cart_at
+
+    FROM tracking_event cart_event
+
+    WHERE journey.click_at IS NOT NULL
+      AND journey.click_at >=
+            journey.impression_at
+      AND cart_event.event_type = 'ADD_TO_CART'
+      AND cart_event.visitor_id =
+            journey.visitor_id
+      AND cart_event.session_id =
+            journey.session_id
+      AND cart_event.product_id =
+            journey.product_id
+      AND cart_event.occurred_at >=
+            journey.click_at
+      AND cart_event.occurred_at <= :to
+) cart ON TRUE
+
+LEFT JOIN LATERAL (
+    SELECT
+        MIN(purchase_event.occurred_at)
+            AS purchase_at
+
+    FROM purchase_products purchase_event
+
+    WHERE cart.cart_at IS NOT NULL
+      AND purchase_event.visitor_id =
+            journey.visitor_id
+      AND purchase_event.session_id =
+            journey.session_id
+      AND purchase_event.product_id =
+            journey.product_id
+      AND purchase_event.occurred_at >=
+            cart.cart_at
+      AND purchase_event.occurred_at <= :to
+) purchase ON TRUE
+
+WHERE journey.impression_at IS NOT NULL
+
+GROUP BY
+    product.id,
+    product.name,
+    journey.strategy,
+    journey.experiment_variant
+
+ORDER BY
+    purchased_journeys DESC,
+    carted_journeys DESC,
+    clicked_journeys DESC,
+    exposed_journeys DESC,
+    product.id ASC,
+    journey.strategy ASC,
+    journey.experiment_variant ASC NULLS LAST
+
+LIMIT :limit
+SQL,
+                [
+                    'from' => $from,
+                    'to' => $to,
+                    'limit' => max(
+                        1,
+                        min($limit, 100)
+                    ),
+                ],
+                [
+                    'from' =>
+                        \Doctrine\DBAL\Types\Types::
+                            DATETIME_IMMUTABLE,
+                    'to' =>
+                        \Doctrine\DBAL\Types\Types::
+                            DATETIME_IMMUTABLE,
+                    'limit' =>
+                        \Doctrine\DBAL\ParameterType::
+                            INTEGER,
+                ]
+            );
+
+        return array_map(
+            static fn (
+                array $row
+            ): RecommendationFeedbackAnalytics =>
+                new RecommendationFeedbackAnalytics(
+                    (int) $row['product_id'],
+                    (string) $row['product_name'],
+                    (string) $row['strategy'],
+                    $row['experiment_variant']
+                        !== null
+                        ? (string) $row[
+                            'experiment_variant'
+                        ]
+                        : null,
+                    (int) $row['exposed_journeys'],
+                    (int) $row['clicked_journeys'],
+                    (int) $row['carted_journeys'],
+                    (int) $row['purchased_journeys'],
+                ),
+            $rows
+        );
+    }
+
     public function dataQuality(
         \DateTimeImmutable $from,
         ?\DateTimeImmutable $to = null

@@ -71,6 +71,13 @@ final class AdminAnalyticsController extends AbstractController
             $to
         );
 
+        $recommendationFeedback =
+            $analytics->recommendationFeedback(
+                $from,
+                $to,
+                25
+            );
+
         $dataQuality = $analytics->dataQuality(
             $from,
             $to
@@ -88,6 +95,8 @@ final class AdminAnalyticsController extends AbstractController
                 'funnel' => $funnel,
                 'topProducts' => $topProducts,
                 'interactions' => $interactions,
+                'recommendationFeedback' =>
+                    $recommendationFeedback,
                 'dataQuality' => $dataQuality,
                 'eventCoverage' => $eventCoverage,
                 'days' => $days,
