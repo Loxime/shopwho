@@ -323,14 +323,6 @@
   margin-top:0;
 }
 
-.recommendations-eyebrow{
-  margin:0;
-  color:var(--blue);
-  font-size:13px;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
 
 .recommendations-grid{
   margin-top:0;
@@ -1503,14 +1495,6 @@
   min-width:0;
 }
 
-.profile-dashboard-eyebrow{
-  margin:0 0 5px;
-  color:var(--orange);
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
 
 .profile-dashboard-identity .profile-dashboard-name{
   margin:0 0 5px;
@@ -2778,15 +2762,6 @@ a.product-rating:hover span:last-child{
   font-size:30px;
 }
 
-.recommendations-eyebrow,
-.catalog-heading-eyebrow{
-  margin:0 0 5px;
-  color:var(--orange);
-  font-size:12px;
-  font-weight:800;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
 
 .home-product-grid{
   gap:20px;
