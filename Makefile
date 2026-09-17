@@ -127,3 +127,93 @@ check-final-git:
 > 	exit 1; \
 > }
 > @echo "Git working tree after checks: clean"
+
+# === Presentation workflows ===
+
+EXPORT_DIR ?= exports
+EXPORT_CSV ?= $(EXPORT_DIR)/tracking.csv
+EXPORT_MANIFEST ?= $(EXPORT_DIR)/tracking.manifest.json
+
+SINCE ?=
+UNTIL ?=
+EVENTS ?=
+
+FILE ?= var/import/catalogue-demo.xlsx
+DRY_RUN ?= 1
+
+EXPORT_FILTERS = \
+	$(if $(strip $(SINCE)),--since="$(SINCE)",) \
+	$(if $(strip $(UNTIL)),--until="$(UNTIL)",) \
+	$(foreach event,$(EVENTS),--event=$(event))
+
+DRY_RUN_FLAG = \
+	$(if $(filter 1 true yes,$(DRY_RUN)),--dry-run,)
+
+.PHONY: \
+	help \
+	up \
+	down \
+	logs \
+	export-tracking \
+	import-catalog
+
+help:
+> @echo "ShopWho - commandes utiles"
+> @echo
+> @echo "  make up"
+> @echo "      Lance l'environnement Docker."
+> @echo
+> @echo "  make logs"
+> @echo "      Affiche les logs app + nginx."
+> @echo
+> @echo "  make export-tracking"
+> @echo "      Exporte le tracking complet."
+> @echo
+> @echo "  make export-tracking SINCE=2026-09-01 UNTIL=2026-09-18"
+> @echo "      Exporte une fenêtre temporelle."
+> @echo
+> @echo "  make export-tracking EVENTS='PRODUCT_VIEW PURCHASE'"
+> @echo "      Filtre certains événements."
+> @echo
+> @echo "  make import-catalog FILE=var/import/catalogue-demo.xlsx"
+> @echo "      Validation catalogue uniquement (dry-run par défaut)."
+> @echo
+> @echo "  make import-catalog FILE=var/import/catalogue-demo.xlsx DRY_RUN=0"
+> @echo "      Importe catégories puis produits."
+> @echo
+> @echo "  make check"
+> @echo "      Validation complète avant PR."
+
+up:
+> @$(DC) up -d
+
+down:
+> @$(DC) down
+
+logs:
+> @$(DC) logs -f --tail=100 app nginx
+
+export-tracking:
+> @mkdir -p "$(EXPORT_DIR)"
+> @$(APP) php bin/console app:tracking:export-csv \
+> 	--output="$(EXPORT_CSV)" \
+> 	--manifest="$(EXPORT_MANIFEST)" \
+> 	$(EXPORT_FILTERS)
+
+import-catalog:
+> @test -f "$(FILE)" || { \
+> 	echo "ERROR: fichier introuvable: $(FILE)"; \
+> 	exit 1; \
+> }
+> @echo "Import catégories..."
+> @$(APP) php bin/console app:import:data \
+> 	categories \
+> 	"$(FILE)" \
+> 	$(DRY_RUN_FLAG)
+> @echo
+> @echo "Import produits..."
+> @$(APP) php bin/console app:import:data \
+> 	products \
+> 	"$(FILE)" \
+> 	$(DRY_RUN_FLAG)
+
