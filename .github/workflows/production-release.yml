@@ -298,7 +298,8 @@ jobs:
             docker compose \
               --env-file .env.prod.local \
               -f compose.prod.yaml \
-              "$@"
+              "$@" \
+              </dev/null
           }
 
           export SHOPWHO_IMAGE_TAG
@@ -356,8 +357,64 @@ jobs:
 
           compose up \
             -d \
+            --force-recreate \
             --remove-orphans \
             app nginx
+
+          app_container_id="$(compose ps -q app)"
+          nginx_container_id="$(compose ps -q nginx)"
+
+          if [ -z "$app_container_id" ] \
+            || [ -z "$nginx_container_id" ]; then
+            echo "ERROR: production application containers are missing."
+            compose ps
+            exit 1
+          fi
+
+          expected_app_image="ghcr.io/loxime/shopwho-app:${SHOPWHO_IMAGE_TAG}"
+          expected_nginx_image="ghcr.io/loxime/shopwho-web:${SHOPWHO_IMAGE_TAG}"
+
+          expected_app_image_id="$(
+            docker image inspect \
+              "$expected_app_image" \
+              --format '{{.Id}}'
+          )"
+
+          expected_nginx_image_id="$(
+            docker image inspect \
+              "$expected_nginx_image" \
+              --format '{{.Id}}'
+          )"
+
+          actual_app_image_id="$(
+            docker inspect \
+              "$app_container_id" \
+              --format '{{.Image}}'
+          )"
+
+          actual_nginx_image_id="$(
+            docker inspect \
+              "$nginx_container_id" \
+              --format '{{.Image}}'
+          )"
+
+          if [ "$actual_app_image_id" != "$expected_app_image_id" ]; then
+            echo "ERROR: production app image mismatch."
+            echo "Expected: $expected_app_image_id"
+            echo "Actual:   $actual_app_image_id"
+            exit 1
+          fi
+
+          if [ "$actual_nginx_image_id" != "$expected_nginx_image_id" ]; then
+            echo "ERROR: production nginx image mismatch."
+            echo "Expected: $expected_nginx_image_id"
+            echo "Actual:   $actual_nginx_image_id"
+            exit 1
+          fi
+
+          compose exec -T app \
+            php bin/console doctrine:migrations:up-to-date \
+            --env=prod
 
           http_port="$(
             sed -n 's/^SHOPWHO_HTTP_PORT=//p' \
