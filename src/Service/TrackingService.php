@@ -13,6 +13,7 @@ class TrackingService
 {
     public function __construct(
         private readonly RequestStack $requestStack,
+        private readonly TrackingIdentityService $trackingIdentity,
         private readonly EntityManagerInterface $entityManager,
         private readonly Security $security,
     ) {
@@ -51,40 +52,13 @@ class TrackingService
             return;
         }
 
-        if (
-            $request->cookies->get(
-                'shopwho_tracking_consent'
-            ) !== 'yes'
-        ) {
+        $identity =
+            $this->trackingIdentity->resolve(
+                $request
+            );
+
+        if ($identity === null) {
             return;
-        }
-
-        $session = $request->getSession();
-
-        $visitorId = $session->get(
-            'tracking_visitor_id'
-        );
-
-        if (!$visitorId) {
-            $visitorId = bin2hex(random_bytes(16));
-
-            $session->set(
-                'tracking_visitor_id',
-                $visitorId
-            );
-        }
-
-        $sessionId = $session->get(
-            'tracking_session_id'
-        );
-
-        if (!$sessionId) {
-            $sessionId = bin2hex(random_bytes(16));
-
-            $session->set(
-                'tracking_session_id',
-                $sessionId
-            );
         }
 
         $user = $this->security->getUser();
@@ -118,8 +92,8 @@ class TrackingService
             );
 
             $event = new TrackingEvent(
-                $visitorId,
-                $sessionId,
+                $identity->getVisitorId(),
+                $identity->getSessionId(),
                 $eventType->value,
                 $eventData['productId'],
                 $metadata

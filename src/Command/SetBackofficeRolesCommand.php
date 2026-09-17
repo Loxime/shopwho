@@ -21,6 +21,7 @@ final class SetBackofficeRolesCommand extends Command
         'marketing' => 'ROLE_MARKETING_MANAGER',
         'analytics' => 'ROLE_DATA_ANALYST',
         'data' => 'ROLE_DATA_MANAGER',
+        'experiments' => 'ROLE_EXPERIMENT_MANAGER',
         'admin' => 'ROLE_ADMIN',
     ];
 
@@ -30,6 +31,7 @@ final class SetBackofficeRolesCommand extends Command
         'ROLE_MARKETING_MANAGER',
         'ROLE_DATA_ANALYST',
         'ROLE_DATA_MANAGER',
+        'ROLE_EXPERIMENT_MANAGER',
         'ROLE_ADMIN',
     ];
 
@@ -52,7 +54,7 @@ final class SetBackofficeRolesCommand extends Command
                 'roles',
                 InputArgument::REQUIRED
                 | InputArgument::IS_ARRAY,
-                'catalog, marketing, analytics, data, admin ou none'
+                'catalog, marketing, analytics, data, experiments, admin ou none'
             );
     }
 

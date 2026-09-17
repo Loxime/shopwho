@@ -41,6 +41,16 @@ final class AdminDashboardController extends AbstractController
 
         if (
             $this->isGranted(
+                'ROLE_EXPERIMENT_MANAGER'
+            )
+        ) {
+            return $this->redirectToRoute(
+                'admin_experiment_index'
+            );
+        }
+
+        if (
+            $this->isGranted(
                 'ROLE_DATA_ANALYST'
             )
         ) {

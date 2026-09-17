@@ -3,6 +3,9 @@
 namespace App\Tests\Functional;
 
 use App\Entity\Category;
+use App\Entity\Experiment;
+use App\Entity\ExperimentVariant;
+use App\Enum\ExperimentStatus;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\Product;
@@ -10,10 +13,17 @@ use App\Entity\Review;
 use App\Entity\TrackingEvent;
 use App\Entity\User;
 use App\Kernel;
+use App\Service\ExperimentAssignmentService;
+use App\Service\RecommendationExperimentService;
+use App\Service\TrackingIdentityService;
 use App\Service\RecommendationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\BrowserKit\Cookie;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class DeterministicRecommendationTest extends WebTestCase
@@ -34,6 +44,17 @@ class DeterministicRecommendationTest extends WebTestCase
         }
 
         $connection = $this->em()->getConnection();
+
+        $connection->executeStatement(
+            '
+                DELETE FROM ab_experiment
+                WHERE experiment_key = :experimentKey
+            ',
+            [
+                'experimentKey' =>
+                    RecommendationExperimentService::EXPERIMENT_KEY,
+            ]
+        );
 
         $connection->executeStatement(
             "
@@ -504,6 +525,335 @@ class DeterministicRecommendationTest extends WebTestCase
         );
     }
 
+    public function testCustomStrategyOrderCanPrioritizeTopRatedFallback(): void
+    {
+        static::bootKernel();
+
+        $popular = $this->createProduct();
+        $topRated = $this->createProduct();
+
+        $this->createOrder(
+            $popular,
+            100000
+        );
+
+        for ($index = 0; $index < 10; ++$index) {
+            $this->createReview(
+                $topRated,
+                5
+            );
+        }
+
+        $recommendations = $this
+            ->recommendationService()
+            ->recommend(
+                null,
+                8,
+                [
+                    RecommendationService::STRATEGY_FREQUENTLY_VIEWED,
+                    RecommendationService::STRATEGY_TOP_RATED,
+                    RecommendationService::STRATEGY_POPULAR_30D,
+                ]
+            );
+
+        self::assertNotEmpty(
+            $recommendations
+        );
+
+        self::assertSame(
+            $topRated->getId(),
+            $recommendations[0]
+                ->product
+                ->getId()
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_TOP_RATED,
+            $recommendations[0]->strategy
+        );
+    }
+
+    public function testInvalidStrategyOrderIsRejected(): void
+    {
+        static::bootKernel();
+
+        $this->expectException(
+            \InvalidArgumentException::class
+        );
+
+        $this
+            ->recommendationService()
+            ->recommend(
+                null,
+                8,
+                [
+                    RecommendationService::STRATEGY_FREQUENTLY_VIEWED,
+                    RecommendationService::STRATEGY_POPULAR_30D,
+                    'unknown_strategy',
+                ]
+            );
+    }
+
+    public function testRecommendationExperimentFallsBackToDefaultWithoutConfiguration(): void
+    {
+        static::bootKernel();
+
+        $popular = $this->createProduct();
+
+        $this->createOrder(
+            $popular,
+            100000
+        );
+
+        $recommendations = static::getContainer()
+            ->get(
+                RecommendationExperimentService::class
+            )
+            ->recommend(
+                null,
+                8
+            );
+
+        self::assertNotEmpty(
+            $recommendations
+        );
+
+        self::assertSame(
+            $popular->getId(),
+            $recommendations[0]
+                ->product
+                ->getId()
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_POPULAR_30D,
+            $recommendations[0]->strategy
+        );
+    }
+
+    public function testControlExperimentKeepsPopularFallbackFirst(): void
+    {
+        static::bootKernel();
+
+        $experiment =
+            $this->createRecommendationExperiment();
+
+        $visitorId =
+            $this->visitorIdForVariant(
+                $experiment,
+                RecommendationExperimentService::VARIANT_CONTROL
+            );
+
+        $popular = $this->createProduct();
+        $topRated = $this->createProduct();
+
+        $this->createOrder(
+            $popular,
+            100000
+        );
+
+        $this->createReview(
+            $topRated,
+            5
+        );
+
+        $recommendations =
+            $this->recommendationsForVisitor(
+                $visitorId
+            );
+
+        self::assertNotEmpty(
+            $recommendations
+        );
+
+        self::assertSame(
+            $popular->getId(),
+            $recommendations[0]
+                ->product
+                ->getId()
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_POPULAR_30D,
+            $recommendations[0]->strategy
+        );
+    }
+
+    public function testCandidateExperimentPrioritizesTopRatedFallback(): void
+    {
+        static::bootKernel();
+
+        $experiment =
+            $this->createRecommendationExperiment();
+
+        $visitorId =
+            $this->visitorIdForVariant(
+                $experiment,
+                RecommendationExperimentService::VARIANT_CANDIDATE
+            );
+
+        $popular = $this->createProduct();
+        $topRated = $this->createProduct();
+
+        $this->createOrder(
+            $popular,
+            100000
+        );
+
+        $this->createReview(
+            $topRated,
+            5
+        );
+
+        $recommendations =
+            $this->recommendationsForVisitor(
+                $visitorId
+            );
+
+        self::assertNotEmpty(
+            $recommendations
+        );
+
+        self::assertSame(
+            $topRated->getId(),
+            $recommendations[0]
+                ->product
+                ->getId()
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_TOP_RATED,
+            $recommendations[0]->strategy
+        );
+    }
+
+    public function testRecommendationTrackingStoresServerResolvedExperimentMetadata(): void
+    {
+        $client = static::createClient();
+
+        $experiment =
+            $this->createRecommendationExperiment();
+
+        $product = $this->createProduct();
+
+        $this->createReview(
+            $product,
+            5
+        );
+
+        $client->getCookieJar()->set(
+            new Cookie(
+                TrackingIdentityService::CONSENT_COOKIE,
+                'yes'
+            )
+        );
+
+        /*
+         * Ce GET initialise la vraie identité BrowserKit
+         * et fournit le token CSRF de tracking.
+         */
+        $token = $this->trackingToken(
+            $client
+        );
+
+        $visitorId =
+            $client
+                ->getRequest()
+                ->getSession()
+                ->get(
+                    TrackingIdentityService::VISITOR_SESSION_KEY
+                );
+
+        self::assertIsString(
+            $visitorId
+        );
+
+        self::assertNotSame(
+            '',
+            $visitorId
+        );
+
+        $expectedVariant =
+            static::getContainer()
+                ->get(
+                    ExperimentAssignmentService::class
+                )
+                ->assignForVisitor(
+                    $experiment,
+                    $visitorId
+                );
+
+        self::assertNotNull(
+            $expectedVariant
+        );
+
+        $client->jsonRequest(
+            'POST',
+            '/tracking/recommendations',
+            [
+                '_token' => $token,
+                'sourcePath' =>
+                    '/?source=ab-test',
+                'events' => [
+                    [
+                        'eventType' =>
+                            'RECOMMENDATION_IMPRESSION',
+                        'productId' =>
+                            $product->getId(),
+                        'position' => 1,
+                        'strategy' =>
+                            RecommendationService::STRATEGY_TOP_RATED,
+                    ],
+                ],
+            ]
+        );
+
+        self::assertResponseStatusCodeSame(
+            202
+        );
+
+        $events =
+            $this->recommendationEvents(
+                $product
+            );
+
+        self::assertCount(
+            1,
+            $events
+        );
+
+        $metadata =
+            $events[0]->getMetadata();
+
+        self::assertSame(
+            RecommendationExperimentService::EXPERIMENT_KEY,
+            $metadata[
+                'experiment_key'
+            ] ?? null
+        );
+
+        self::assertSame(
+            $expectedVariant->getKey(),
+            $metadata[
+                'experiment_variant'
+            ] ?? null
+        );
+
+        self::assertSame(
+            RecommendationService::STRATEGY_TOP_RATED,
+            $metadata[
+                'strategy'
+            ] ?? null
+        );
+
+        self::assertSame(
+            'homepage_recommendations',
+            $metadata[
+                'placement'
+            ] ?? null
+        );
+    }
+
     private function createProduct(
         bool $active = true
     ): Product {
@@ -727,6 +1077,149 @@ class DeterministicRecommendationTest extends WebTestCase
             )
             ->getQuery()
             ->getResult();
+    }
+
+    private function createRecommendationExperiment():
+        Experiment
+    {
+        $experiment = (new Experiment())
+            ->setKey(
+                RecommendationExperimentService::EXPERIMENT_KEY
+            )
+            ->setName(
+                'Recommendation fallback test'
+            )
+            ->setStatus(
+                ExperimentStatus::Running
+            )
+            ->setTrafficPercentage(100);
+
+        $experiment->addVariant(
+            (new ExperimentVariant())
+                ->setKey(
+                    RecommendationExperimentService::VARIANT_CONTROL
+                )
+                ->setName('Control')
+                ->setWeight(50)
+        );
+
+        $experiment->addVariant(
+            (new ExperimentVariant())
+                ->setKey(
+                    RecommendationExperimentService::VARIANT_CANDIDATE
+                )
+                ->setName('Candidate')
+                ->setWeight(50)
+        );
+
+        $this->em()->persist(
+            $experiment
+        );
+
+        $this->em()->flush();
+
+        return $experiment;
+    }
+
+    private function visitorIdForVariant(
+        Experiment $experiment,
+        string $variantKey
+    ): string {
+        /** @var ExperimentAssignmentService $assignments */
+        $assignments =
+            static::getContainer()->get(
+                ExperimentAssignmentService::class
+            );
+
+        for (
+            $index = 0;
+            $index < 10000;
+            ++$index
+        ) {
+            $visitorId = sprintf(
+                'rec-test-ab-%s-%d',
+                $variantKey,
+                $index
+            );
+
+            $variant =
+                $assignments->assignForVisitor(
+                    $experiment,
+                    $visitorId
+                );
+
+            if (
+                $variant?->getKey()
+                === $variantKey
+            ) {
+                return $visitorId;
+            }
+        }
+
+        throw new \RuntimeException(
+            sprintf(
+                'Impossible de trouver un visiteur pour la variante "%s".',
+                $variantKey
+            )
+        );
+    }
+
+    /**
+     * @return list<\App\Recommendation\RecommendationItem>
+     */
+    private function recommendationsForVisitor(
+        string $visitorId
+    ): array {
+        $request = Request::create(
+            '/',
+            'GET',
+            [],
+            [
+                TrackingIdentityService::CONSENT_COOKIE =>
+                    'yes',
+            ]
+        );
+
+        $session = new Session(
+            new MockArraySessionStorage()
+        );
+
+        $session->set(
+            TrackingIdentityService::VISITOR_SESSION_KEY,
+            $visitorId
+        );
+
+        $session->set(
+            TrackingIdentityService::SESSION_SESSION_KEY,
+            'rec-test-ab-session'
+        );
+
+        $request->setSession(
+            $session
+        );
+
+        /** @var RequestStack $requestStack */
+        $requestStack =
+            static::getContainer()->get(
+                RequestStack::class
+            );
+
+        $requestStack->push(
+            $request
+        );
+
+        try {
+            return static::getContainer()
+                ->get(
+                    RecommendationExperimentService::class
+                )
+                ->recommend(
+                    null,
+                    8
+                );
+        } finally {
+            $requestStack->pop();
+        }
     }
 
     private function recommendationService():
