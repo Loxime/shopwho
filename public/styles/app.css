@@ -1503,8 +1503,7 @@
   min-width:0;
 }
 
-.profile-dashboard-eyebrow,
-.profile-dashboard-card-eyebrow{
+.profile-dashboard-eyebrow{
   margin:0 0 5px;
   color:var(--orange);
   font-size:12px;
