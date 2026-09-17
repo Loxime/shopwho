@@ -304,10 +304,7 @@ catalog-reset: catalog-stage
 > 	products \
 > 	"$(CONTAINER_FILE)" \
 > 	--apply; \
-> remaining="$$( \
-> 	$(DB) sh -lc \
-> 	'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Atqc "SELECT COUNT(*) FROM product;"' \
-> )"; \
+> remaining="$$( $(DB) sh -lc 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -Atqc "SELECT COUNT(*) FROM product;"' )"; \
 > echo "Produits restants: $$remaining"; \
 > if [ "$$remaining" = "0" ]; then \
 > 	$(DB) sh -lc \
